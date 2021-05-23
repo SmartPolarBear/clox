@@ -74,7 +74,6 @@ private:
 	void scan_next_token();
 
 	void add_token(token_type t);
-
 	void add_token(token_type t, const std::any& literal);
 
 	[[nodiscard]]char advance();
