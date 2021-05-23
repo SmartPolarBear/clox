@@ -3,4 +3,11 @@ project(clox)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(clox main.cpp)
+add_subdirectory(test)
+add_subdirectory(libs)
+
+add_executable(clox main.cpp test/test_main.cpp)
+
+target_link_libraries(clox
+        PUBLIC GSL
+        PUBLIC argparse)

@@ -1,0 +1,9 @@
+[submodule "libs/gsl"]
+	path = libs/gsl
+	url = https://github.com/microsoft/GSL.git
+[submodule "libs/argparse"]
+	path = libs/argparse
+	url = https://github.com/p-ranav/argparse.git
+[submodule "test/gtest"]
+	path = test/gtest
+	url = https://github.com/google/googletest.git
