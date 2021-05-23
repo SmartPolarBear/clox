@@ -5,7 +5,8 @@
 
 using namespace std;
 
-void clox::logger::logger::error(int line, std::string message)
+void clox::logger::logger::error(int line, const std::string& message)
 {
+	errors_++;
 	cout << format("[Line {}] Error: {}", line, message) << endl;
 }

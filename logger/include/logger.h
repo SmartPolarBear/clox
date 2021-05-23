@@ -10,6 +10,9 @@ class logger final
 		: public base::singleton<logger>
 {
 public:
-	void error(int line,std::string message);
+	void error(int line,const std::string& message);
+
+private:
+	size_t errors_{0};
 };
 }
