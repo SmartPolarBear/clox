@@ -1,8 +1,28 @@
-//
-// Created by cleve on 5/23/2021.
-//
+#pragma once
 
-#ifndef CLOX_BASE_H
-#define CLOX_BASE_H
+namespace clox::base
+{
+template<typename T>
+class singleton
+{
+public:
+	static T& Instance();
 
-#endif //CLOX_BASE_H
+	singleton(const singleton&) = delete;
+
+	singleton& operator=(const singleton&) = delete;
+
+protected:
+	singleton()
+	{
+	}
+};
+
+template<typename T>
+T& singleton<T>::Instance()
+{
+	static T inst{};
+	return inst;
+}
+
+}
