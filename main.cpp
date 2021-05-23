@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
 
 	prog.add_argument("f", "--file")
 			.help("the script to run")
-			.default_value("")
-			.implicit_value("");
+			.default_value(string{ "" })
+			.implicit_value(string{ "" });
 
 	try
 	{
@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	auto file=prog.get<string>("--file");
-	if(file.empty())
+	auto file = prog.get<string>("--file");
+	if (file.empty())
 	{
 		return clox::driver::run_file(file);
 	}
