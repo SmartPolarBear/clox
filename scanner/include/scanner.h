@@ -77,8 +77,17 @@ private:
 	void add_token(token_type t, const std::any& literal);
 
 	[[nodiscard]]char advance();
+	/// peek the next nth character, starting from 0
+	/// \param n
+	/// \return
+	[[nodiscard]]char peek(size_t n);
 	[[nodiscard]]char peek();
 	[[nodiscard]]bool match(char expect);
+
+	[[nodiscard]] std::string whole_lexeme();
+
+	void scan_string();
+	void scan_number_literal();
 
 	std::string src_;
 	std::vector<token> tokens_{};
