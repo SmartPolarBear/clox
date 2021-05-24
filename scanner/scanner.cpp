@@ -7,9 +7,142 @@ using namespace std;
 using namespace clox::scanner;
 using namespace clox::logger;
 
+bool validator::valid_number_literal_component(char c)
+{
+	return isdigit(c);
+}
+
+bool validator::valid_identifier_component(char c)
+{
+	return isdigit(c) || isalpha(c);
+}
+
+bool validator::isdigit(char c)
+{
+	return c >= '0' && c <= '9';
+}
+
+bool validator::isalpha(char c)
+{
+	return (c >= 'a' && c <= 'z') ||
+		   (c >= 'A' && c <= 'Z') ||
+		   c == '_';
+}
+
+std::unordered_map<std::string, token_type> clox::scanner::scanner::keywords
+		{
+				{ "and",    token_type::AND },
+				{ "class",  token_type::CLASS },
+				{ "else",   token_type::ELSE },
+				{ "false",  token_type::FALSE },
+				{ "for",    token_type::FOR },
+				{ "fun",    token_type::FUN },
+				{ "if",     token_type::IF },
+				{ "nil",    token_type::NIL },
+				{ "or",     token_type::OR },
+				{ "print",  token_type::PRINT },
+				{ "return", token_type::RETURN },
+				{ "super",  token_type::SUPER },
+				{ "this",   token_type::THIS },
+				{ "true",   token_type::TRUE },
+				{ "var",    token_type::VAR },
+				{ "while",  token_type::WHILE },
+		};
+
 std::vector<token> clox::scanner::scanner::scan()
 {
 	return std::vector<token>();
+}
+
+
+void scanner::add_token(token_type t)
+{
+	add_token(t, token::empty_literal);
+}
+
+void scanner::add_token(token_type t, const std::any& literal)
+{
+	tokens_.emplace_back(t, whole_lexeme(), literal, line_);
+}
+
+char scanner::advance()
+{
+	return src_.at(cur_++);
+}
+
+char scanner::peek()
+{
+	if (is_end())return 0;
+
+	return src_.at(cur_);
+}
+
+char scanner::peek(size_t n)
+{
+	if (is_end())return 0;
+	if (cur_ + n >= src_.size())return 0;
+
+	return src_.at(cur_ + n);
+}
+
+
+bool scanner::match(char expect)
+{
+	if (is_end())return false;
+	if (src_.at(cur_) != expect)return false;
+
+	cur_++;
+	return true;
+}
+
+void scanner::scan_string()
+{
+	while (peek() != '"' && !is_end())
+	{
+		if (peek() == '\n')line_++;
+		advance();
+	}
+
+	if (is_end())
+	{
+		logger::logger::instance().error(line_, "Unterminated string.");
+		return;
+	}
+
+	advance(); // eat the closing "
+
+	string val = src_.substr(start_ + 1, cur_ - start_);
+
+	add_token(token_type::STRING, val);
+}
+
+void scanner::scan_number_literal()
+{
+	while (validator::valid_number_literal_component(peek()))advance();
+
+	if (peek() == '.' && validator::valid_number_literal_component(peek(1)))
+	{
+		advance();
+		while (validator::valid_number_literal_component(peek()))advance();
+	}
+
+	add_token(token_type::NUMBER, std::stold(string{ whole_lexeme() }));
+}
+
+std::string scanner::whole_lexeme()
+{
+	return src_.substr(start_, cur_ - start_ + 1);
+}
+
+void scanner::scan_identifier()
+{
+	while (validator::valid_identifier_component(peek()))advance();
+
+	auto text = whole_lexeme();
+	auto keyword = keywords.find(text);
+
+	if (keyword != keywords.end())add_token(keywords[text]);
+	else add_token(token_type::IDENTIFIER);
 }
 
 
@@ -89,9 +222,13 @@ void scanner::scan_next_token()
 		break;
 
 	default:
-		if (isdigit(c))
+		if (validator::valid_number_literal_component(c))
 		{
-
+			scan_number_literal();
+		}
+		else if (validator::valid_identifier_component(c))
+		{
+			scan_identifier();
 		}
 		else
 		{
@@ -101,83 +238,3 @@ void scanner::scan_next_token()
 		break;
 	}
 }
-
-void scanner::add_token(token_type t)
-{
-	add_token(t, token::empty_literal);
-}
-
-void scanner::add_token(token_type t, const std::any& literal)
-{
-	tokens_.emplace_back(t, whole_lexeme(), literal, line_);
-}
-
-char scanner::advance()
-{
-	return src_.at(cur_++);
-}
-
-char scanner::peek()
-{
-	if (is_end())return 0;
-
-	return src_.at(cur_);
-}
-
-char scanner::peek(size_t n)
-{
-	if (is_end())return 0;
-	if (cur_ + n >= src_.size())return 0;
-
-	return src_.at(cur_ + n);
-}
-
-
-bool scanner::match(char expect)
-{
-	if (is_end())return false;
-	if (src_.at(cur_) != expect)return false;
-
-	cur_++;
-	return true;
-}
-
-void scanner::scan_string()
-{
-	while (peek() != '"' && !is_end())
-	{
-		if (peek() == '\n')line_++;
-		advance();
-	}
-
-	if (is_end())
-	{
-		logger::logger::instance().error(line_, "Unterminated string.");
-		return;
-	}
-
-	advance(); // eat the closing "
-
-	string val = src_.substr(start_ + 1, cur_ - start_);
-
-	add_token(token_type::STRING, val);
-}
-
-void scanner::scan_number_literal()
-{
-	while (isdigit(peek()))advance();
-
-	if (peek() == '.' && isdigit(peek(1)))
-	{
-		advance();
-		while (isdigit(peek()))advance();
-	}
-
-	add_token(token_type::NUMBER, std::stold(string{ whole_lexeme() }));
-}
-
-std::string scanner::whole_lexeme()
-{
-	return src_.substr(start_, cur_ - start_ + 1);
-}
-

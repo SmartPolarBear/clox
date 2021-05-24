@@ -4,6 +4,7 @@
 #include <any>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 namespace clox::scanner
 {
@@ -32,6 +33,19 @@ enum class token_type
 
 struct empty_literal_tag
 {
+};
+
+class validator final
+{
+public:
+	static bool valid_number_literal_component(char c);
+
+	static bool valid_identifier_component(char c);
+
+private:
+	static bool isdigit(char c);
+
+	static bool isalpha(char c);
 };
 
 
@@ -70,24 +84,32 @@ public:
 	}
 
 private:
+	static std::unordered_map<std::string, token_type> keywords;
 
 	void scan_next_token();
 
 	void add_token(token_type t);
+
 	void add_token(token_type t, const std::any& literal);
 
-	[[nodiscard]]char advance();
+	/*can be discarded*/ char advance();
+
 	/// peek the next nth character, starting from 0
 	/// \param n
 	/// \return
 	[[nodiscard]]char peek(size_t n);
+
 	[[nodiscard]]char peek();
+
 	[[nodiscard]]bool match(char expect);
 
 	[[nodiscard]] std::string whole_lexeme();
 
 	void scan_string();
+
 	void scan_number_literal();
+
+	void scan_identifier();
 
 	std::string src_;
 	std::vector<token> tokens_{};
