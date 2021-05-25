@@ -84,7 +84,24 @@ public:
 	}
 
 private:
-	static std::unordered_map<std::string, token_type> keywords;
+	std::unordered_map<std::string, token_type> keywords{
+			{ "and",    token_type::AND },
+			{ "class",  token_type::CLASS },
+			{ "else",   token_type::ELSE },
+			{ "false",  token_type::FALSE },
+			{ "for",    token_type::FOR },
+			{ "fun",    token_type::FUN },
+			{ "if",     token_type::IF },
+			{ "nil",    token_type::NIL },
+			{ "or",     token_type::OR },
+			{ "print",  token_type::PRINT },
+			{ "return", token_type::RETURN },
+			{ "super",  token_type::SUPER },
+			{ "this",   token_type::THIS },
+			{ "true",   token_type::TRUE },
+			{ "var",    token_type::VAR },
+			{ "while",  token_type::WHILE },
+	};
 
 	void scan_next_token();
 
