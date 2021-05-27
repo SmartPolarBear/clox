@@ -12,6 +12,7 @@ add_subdirectory(base)
 add_subdirectory(driver)
 add_subdirectory(logger)
 add_subdirectory(scanner)
+add_subdirectory(parser)
 
 target_link_libraries(clox
         PUBLIC GSL
