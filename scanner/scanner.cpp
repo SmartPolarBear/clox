@@ -4,7 +4,7 @@
 #include <format>
 
 using namespace std;
-using namespace clox::scanner;
+using namespace clox::scanning;
 using namespace clox::logger;
 
 bool validator::valid_number_literal_component(char c)
@@ -30,7 +30,7 @@ bool validator::isalpha(char c)
 }
 
 
-std::vector<token> clox::scanner::scanner::scan()
+std::vector<token> clox::scanning::scanner::scan()
 {
 	while (!is_end())
 	{

@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_map>
 
-namespace clox::scanner
+namespace clox::scanning
 {
 
 enum class token_type
