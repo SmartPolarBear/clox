@@ -1,0 +1,52 @@
+{
+  "expression_classes": [
+    {
+      "name": "binary_expression",
+      "member": [
+        {
+          "type": "expression",
+          "name": "left_"
+        },
+        {
+          "type": "token",
+          "name": "op_"
+        },
+        {
+          "type": "expression",
+          "name": "right_"
+        }
+      ]
+    },
+    {
+      "name": "unary_expression",
+      "member": [
+        {
+          "type": "token",
+          "name": "op_"
+        },
+        {
+          "type": "expression",
+          "name": "right_"
+        }
+      ]
+    },
+    {
+      "name": "literal",
+      "member": [
+        {
+          "type": "std::any",
+          "name": "value_"
+        }
+      ]
+    },
+    {
+      "name": "grouping",
+      "member": [
+        {
+          "type": "expression",
+          "name": "expr_"
+        }
+      ]
+    }
+  ]
+}
