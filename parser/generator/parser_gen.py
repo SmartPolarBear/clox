@@ -99,7 +99,15 @@ def expression_classes(arg_parser: argparse):
 
 
 def write_back(arg_parser: argparse, head: list, content: list, tail: list):
-    pass
+    with open(arg_parser.target[0], "w") as f:
+        for h in head:
+            f.write("{}\n".format(h))
+
+        for c in content:
+            f.write("{}\n".format(c))
+
+        for t in tail:
+            f.write("{}\n".format(t))
 
 
 def verify(arg_parser: argparse):
@@ -132,8 +140,6 @@ def generate(arg_parser: argparse):
 
     verify(arg_parser)
 
-    pass
-
 
 def main():
     def validate_config_file(arg: str) -> str:
@@ -162,8 +168,8 @@ def main():
     arg_parser.add_argument('-t', '--template', type=lambda x: validate_config_file(x), nargs=1,
                             help='configuration file', required=True)
 
-    arg_parser.add_argument('-g', '--generate', type=lambda x: validate_target_file(x), nargs=1,
-                            help='configuration file', required=True)
+    arg_parser.add_argument('-t', '--target', type=lambda x: validate_target_file(x), nargs=1,
+                            help='target configuration file', required=True)
 
     generate(arg_parser)
 
