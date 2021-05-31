@@ -1,6 +1,8 @@
 import argparse
 import pathlib
 import json
+import logging
+import datetime
 
 JSON_EXPR_CLASSES_NAME: str = "expression_classes"
 
@@ -61,6 +63,9 @@ class ExpressionClass:
         __name = _name
         __members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
 
+    def get_name(self) -> str:
+        return self.__name
+
     def lines(self):
         yield "class {0}{{".format(self.__name)
 
@@ -99,6 +104,8 @@ def expression_classes(arg_parser: argparse):
 
 
 def write_back(arg_parser: argparse, head: list, content: list, tail: list):
+    logging.info("Writing result to {}.".format(arg_parser.target[0]))
+
     with open(arg_parser.target[0], "w") as f:
         for h in head:
             f.write("{}\n".format(h))
@@ -111,11 +118,16 @@ def write_back(arg_parser: argparse, head: list, content: list, tail: list):
 
 
 def verify(arg_parser: argparse):
-    pass
+    logging.info("Verifying result {}.".format(arg_parser.target[0]))
+    # TODO
+    logging.info("Succeeded on ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def generate(arg_parser: argparse):
     head: list = list()
+
+    logging.info("Template file is {}.".format(arg_parser.template[0]))
+
     with open(arg_parser.template[0], "r") as template:
         line = template.readline()
         while line.strip() != "!":
@@ -133,6 +145,8 @@ def generate(arg_parser: argparse):
     content: list[str] = list()
 
     for cls in expression_classes(arg_parser):
+        logging.info("Generating class {}.".format(cls.get_name()))
+
         for line in cls.lines():
             content.append(line)
 
