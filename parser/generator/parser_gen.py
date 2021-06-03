@@ -93,20 +93,19 @@ class ExpressionClass:
         yield "}};"
 
 
-def expression_classes(arg_parser: argparse):
-    with open(str(arg_parser.config[0]), "r") as conf:
+def expression_classes(args: argparse):
+    with open(str(args.config[0]), "r") as conf:
         conf_dict: dict = json.load(conf)
 
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
 
-        for cls in ((ExpressionClass(expr_cls_def["name"], expr_cls_def["member"])) for expr_cls_def in expr_classes):
-            yield cls
+        return list((ExpressionClass(expr_cls_def["name"], expr_cls_def["member"])) for expr_cls_def in expr_classes)
 
 
-def write_back(arg_parser: argparse, head: list, content: list, tail: list):
-    logging.info("Writing result to {}.".format(arg_parser.target[0]))
+def write_back(args: argparse, head: list, content: list, tail: list):
+    logging.info("Writing result to {}.".format(args.target[0]))
 
-    with open(arg_parser.target[0], "w") as f:
+    with open(args.target[0], "w") as f:
         for h in head:
             f.write("{}\n".format(h))
 
@@ -123,12 +122,12 @@ def verify(arg_parser: argparse):
     logging.info("Succeeded on ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
-def generate(arg_parser: argparse):
+def generate(args: argparse):
     head: list = list()
 
-    logging.info("Template file is {}.".format(arg_parser.template[0]))
+    logging.info("Template file is {}.".format(args.template[0]))
 
-    with open(arg_parser.template[0], "r") as template:
+    with open(args.template[0], "r") as template:
         line = template.readline()
         while line.strip() != "!":
             head.append(line)
@@ -138,21 +137,22 @@ def generate(arg_parser: argparse):
 
         tail: list = list()
         line = template.readline()
-        while line.strip() != "!":
+        while line.strip() != "!" and len(line) != 0:
             tail.append(line)
             line = template.readline()
 
     content: list[str] = list()
 
-    for cls in expression_classes(arg_parser):
+    classes = expression_classes(args)
+    for cls in classes:
         logging.info("Generating class {}.".format(cls.get_name()))
 
         for line in cls.lines():
             content.append(line)
 
-    write_back(arg_parser, head, content, tail)
+    write_back(args, head, content, tail)
 
-    verify(arg_parser)
+    verify(args)
 
 
 def main():
@@ -169,8 +169,6 @@ def main():
 
     def validate_target_file(arg: str) -> str:
         path: pathlib.Path = pathlib.Path(arg)
-        if not path.is_file():
-            raise argparse.ArgumentError("FATAL:{} should be a file".format(arg))
 
         return str(path.absolute().as_posix())
 
@@ -179,13 +177,13 @@ def main():
     arg_parser.add_argument('-c', '--config', type=lambda x: validate_config_file(x), nargs=1,
                             help='configuration file', required=True)
 
-    arg_parser.add_argument('-t', '--template', type=lambda x: validate_config_file(x), nargs=1,
+    arg_parser.add_argument('-m', '--template', type=lambda x: validate_config_file(x), nargs=1,
                             help='configuration file', required=True)
 
     arg_parser.add_argument('-t', '--target', type=lambda x: validate_target_file(x), nargs=1,
                             help='target configuration file', required=True)
 
-    generate(arg_parser)
+    generate(arg_parser.parse_args())
 
 
 if __name__ == "__main__":

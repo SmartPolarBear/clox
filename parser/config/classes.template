@@ -1,7 +1,5 @@
 #pragma once
-
 #include "expression.h"
-
 namespace clox::parsing
 {
 !
