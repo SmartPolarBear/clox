@@ -6,6 +6,5 @@ namespace clox::parsing
 {
 class expression
 {
-
 };
 }
