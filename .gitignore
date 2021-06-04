@@ -1,2 +1,3 @@
 cmake-build-*
 /parser/include/parser_classes.hpp
+/parser/include/parser_classes.inc
