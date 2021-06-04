@@ -215,14 +215,16 @@ def generate(args: argparse):
     head: list = list()
     head.append("#pragma once")
 
-    for h in include_files(args):
-        head.append(h.line)
-
     with open(args.head[0], "r") as template:
         line = template.readline()
         while len(line) != 0:
             head.append(line.strip())
             line = template.readline()
+
+    head.append("#pragma once")
+
+    for h in include_files(args):
+        head.append(h.line)
 
     tail: list = list()
     with open(args.tail[0], "r") as template:
