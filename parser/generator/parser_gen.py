@@ -6,6 +6,28 @@ import datetime
 
 JSON_EXPR_CLASSES_NAME: str = "expression_classes"
 JSON_INC_NAME: str = "includes"
+JSON_NAMESPACE_NAME: str = "generated_namespace"
+JSON_CLASS_BASE_NAME: str = "expression_class_bases"
+
+
+class BaseClass:
+    __name: str
+    __accessibility: str
+
+    def __init__(self, name: str, acc: str):
+        self.__name = name
+        self.__accessibility = acc
+
+    @property
+    def string(self):
+        return "{} {}".format(self.__accessibility, self.__name)
+
+
+def concat_base_classes(classes: list[BaseClass]) -> str:
+    ret: str = ''
+    for c in classes:
+        ret += (c.string + ",")
+    return ret[:-1]
 
 
 class IncludeHeader:
@@ -73,12 +95,15 @@ class ExpressionClassConstructorDef:
 class ExpressionClass:
     __name: str = ""
     __members: list[ExpressionClassMemberDef] = list()
+    __parents: list[BaseClass] = list()
 
     __ctor: ExpressionClassConstructorDef
 
-    def __init__(self, _name: str, members_: dict):
+    def __init__(self, _name: str, members_: dict, base: dict):
         self.__name = _name
         self.__members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
+
+        self.__parents = list(BaseClass(b["name"], b["access"]) for b in base)
 
         self.__ctor = ExpressionClassConstructorDef(_name, members_)
 
@@ -88,7 +113,7 @@ class ExpressionClass:
 
     @property
     def lines(self):
-        yield "class {0}{{".format(self.__name)
+        yield "class {0}:{1}{{".format(self.__name, concat_base_classes(self.__parents))
 
         yield "public:"
 
@@ -114,6 +139,24 @@ class ExpressionClass:
         yield "};"
 
 
+class Namespace:
+    __name: str
+
+    def __init__(self, name: str, classes):
+        self.__name = name
+        self.__classes = classes
+
+    @property
+    def lines(self) -> str:
+        yield "namespace {} {{".format(self.__name)
+
+        for c in self.__classes:
+            for line in c.lines:
+                yield line
+
+        yield "}"
+
+
 def include_files(args: argparse):
     with open(str(args.config[0]), "r") as conf:
         conf_dict: dict = json.load(conf)
@@ -128,14 +171,27 @@ def expression_classes(args: argparse):
         conf_dict: dict = json.load(conf)
 
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
+        base_classes: dict = conf_dict[JSON_CLASS_BASE_NAME]
 
-        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"]) for expr_cls_def in expr_classes)
+        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"], base_classes) for expr_cls_def in
+                expr_classes)
+
+
+def root_namespace(args: argparse):
+    with open(str(args.config[0]), "r") as conf:
+        conf_dict: dict = json.load(conf)
+
+        namespace_conf: str = conf_dict[JSON_NAMESPACE_NAME]
+
+        expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
+
+        return Namespace(namespace_conf, expression_classes(args))
 
 
 def write_back(args: argparse, head: list, content: list, tail: list):
-    logging.info("Writing result to {}.".format(args.target[0]))
+    logging.info("Writing result to {}.".format(args.output[0]))
 
-    with open(args.target[0], "w") as f:
+    with open(args.output[0], "w") as f:
         for h in head:
             f.write("{}\n".format(h))
 
@@ -147,41 +203,35 @@ def write_back(args: argparse, head: list, content: list, tail: list):
 
 
 def verify(arg_parser: argparse):
-    logging.info("Verifying result {}.".format(arg_parser.target[0]))
+    logging.info("Verifying result {}.".format(arg_parser.output[0]))
     # TODO
     logging.info("Succeeded on ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def generate(args: argparse):
+    logging.info("Head template file is {}.".format(args.head[0]))
+    logging.info("Tail template file is {}.".format(args.tail[0]))
+
     head: list = list()
     head.append("#pragma once")
-
-    logging.info("Template file is {}.".format(args.template[0]))
 
     for h in include_files(args):
         head.append(h.line)
 
-    with open(args.template[0], "r") as template:
+    with open(args.head[0], "r") as template:
         line = template.readline()
-        while line.strip() != "!":
-            head.append(line)
-            line = template.readline()
-            if not line:
-                raise ValueError("template file is invalid")
-
-        tail: list = list()
-        line = template.readline()
-        while line.strip() != "!" and len(line) != 0:
-            tail.append(line)
+        while len(line) != 0:
+            head.append(line.strip())
             line = template.readline()
 
-    content: list[str] = list()
+    tail: list = list()
+    with open(args.tail[0], "r") as template:
+        line = template.readline()
+        while len(line) != 0:
+            tail.append(line.strip())
+            line = template.readline()
 
-    for cls in expression_classes(args):
-        logging.info("Generating class {}.".format(cls.name))
-
-        for line in cls.lines:
-            content.append(line)
+    content: list[str] = list(root_namespace(args).lines)
 
     write_back(args, head, content, tail)
 
@@ -210,10 +260,13 @@ def main():
     arg_parser.add_argument('-c', '--config', type=lambda x: validate_config_file(x), nargs=1,
                             help='configuration file', required=True)
 
-    arg_parser.add_argument('-m', '--template', type=lambda x: validate_config_file(x), nargs=1,
-                            help='configuration file', required=True)
+    arg_parser.add_argument('-H', '--head', type=lambda x: validate_config_file(x), nargs=1,
+                            help='head template file', required=True)
 
-    arg_parser.add_argument('-t', '--target', type=lambda x: validate_target_file(x), nargs=1,
+    arg_parser.add_argument('-t', '--tail', type=lambda x: validate_config_file(x), nargs=1,
+                            help='tail template file', required=True)
+
+    arg_parser.add_argument('-o', '--output', type=lambda x: validate_target_file(x), nargs=1,
                             help='target configuration file', required=True)
 
     generate(arg_parser.parse_args())

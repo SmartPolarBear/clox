@@ -1,7 +1,15 @@
 {
   "includes": [
     "scanner.h",
+    "expression.h",
     "any"
+  ],
+  "generated_namespace": "clox::parsing",
+  "expression_class_bases": [
+    {
+      "name": "expression",
+      "access": "public"
+    }
   ],
   "expression_classes": [
     {
