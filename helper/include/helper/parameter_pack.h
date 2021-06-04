@@ -1,4 +1,3 @@
-
 // Copyright (c) 2021 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,77 +18,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//
+// Created by cleve on 6/4/2021.
+//
 #pragma once
 
-#include "parser_classes.inc"
-
-#include "helper/parameter_pack.h"
-
-#include <concepts>
-
-namespace clox::parsing
+namespace clox::helper
 {
-
-class parser final
+/// \brief convert the parameter pack to a array of given type T and size Size at compile time
+/// \tparam T type, all elements of parameter pack should be able to be cast to T
+/// \tparam Size size of the parameter_pack
+template<typename T, std::size_t Size>
+struct parameter_pack
 {
-public:
-	using token = scanning::token;
+	T data[Size]{};
 
-	[[nodiscard]] explicit parser(std::vector<scanning::token>&& tokens)
-			: tokens_{ tokens }
+	template<typename ...Args>
+	constexpr explicit parameter_pack(const Args& ... args) : data{ ((T)(args))... }
 	{
 	}
-
-private:
-
-	bool match(std::convertible_to<scanning::token_type> auto... types_)
-	{
-		constexpr size_t ARG_COUNT = sizeof...(types_);
-		helper::parameter_pack<uint64_t, ARG_COUNT> types{ types_... };
-
-		for (const auto& t:types.data)
-		{
-			if (check(t))
-			{
-				[[maybe_unused]]auto _ = advance();
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	[[nodiscard]]bool check(scanning::token_type t)
-	{
-		if (is_end())return false;
-		return peek().type() == t;
-	}
-
-	[[nodiscard]]token advance()
-	{
-		if (!is_end())cur_++;
-		return previous();
-	}
-
-	[[nodiscard]]bool is_end()
-	{
-		return peek().type() == scanning::token_type::FEND;
-	}
-
-	[[nodiscard]]token peek()
-	{
-		return tokens_.at(cur_);
-	}
-
-	[[nodiscard]]token previous()
-	{
-		return tokens_.at(cur_ - 1);
-	}
-
-	std::vector<token> tokens_;
-
-	size_t cur_{ 0 };
 };
-
 }
-

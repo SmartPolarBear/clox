@@ -202,12 +202,6 @@ def write_back(args: argparse, head: list, content: list, tail: list):
             f.write("{}\n".format(t))
 
 
-def verify(arg_parser: argparse):
-    logging.info("Verifying result {}.".format(arg_parser.output[0]))
-    # TODO
-    logging.info("Succeeded on ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-
 def generate(args: argparse):
     logging.info("Head template file is {}.".format(args.head[0]))
     logging.info("Tail template file is {}.".format(args.tail[0]))
@@ -236,8 +230,6 @@ def generate(args: argparse):
     content: list[str] = list(root_namespace(args).lines)
 
     write_back(args, head, content, tail)
-
-    verify(args)
 
 
 def main():
