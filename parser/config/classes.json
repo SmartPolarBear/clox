@@ -1,4 +1,8 @@
 {
+  "includes": [
+    "scanner.h",
+    "any"
+  ],
   "expression_classes": [
     {
       "name": "binary_expression",
@@ -8,7 +12,7 @@
           "name": "left_"
         },
         {
-          "type": "token",
+          "type": "clox::scanning::token",
           "name": "op_"
         },
         {
@@ -21,7 +25,7 @@
       "name": "unary_expression",
       "member": [
         {
-          "type": "token",
+          "type": "clox::scanning::token",
           "name": "op_"
         },
         {

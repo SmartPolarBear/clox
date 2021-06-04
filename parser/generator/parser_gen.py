@@ -5,6 +5,18 @@ import logging
 import datetime
 
 JSON_EXPR_CLASSES_NAME: str = "expression_classes"
+JSON_INC_NAME: str = "includes"
+
+
+class IncludeHeader:
+    __name: str
+
+    def __init__(self, name: str):
+        self.__name = name
+
+    @property
+    def line(self) -> str:
+        return "#include <{}>".format(self.__name)
 
 
 class ExpressionClassMemberDef:
@@ -12,21 +24,24 @@ class ExpressionClassMemberDef:
     __name: str
 
     def __init__(self, _name: str, _type: str):
-        __name = _name
-        __type = _type
+        self.__name = _name
+        self.__type = _type
 
-    def get_definition(self) -> str:
-        return "{0} {1}{{}};".format(self.__type, self.__name)
+    @property
+    def definition(self) -> str:
+        return "{0} {1};".format(self.__type, self.__name)
         pass
 
-    def get_getter(self):
-        yield "[[nodiscard]] get_{}(){".format(self.__name[:-1])
-        yield "return this->{};}".format(self.__name)
+    @property
+    def getter(self):
+        yield "[[nodiscard]] auto& get_{}(){{".format(self.__name[:-1])
+        yield "return this->{};}}".format(self.__name)
         pass
 
-    def get_setter(self):
-        yield "void set_{0}(const {1}&{0}){".format(self.__name[:-1], self.__type)
-        yield "{}={};}".format(self.__name, self.__name[:-1])
+    @property
+    def setter(self):
+        yield "void set_{0}(const {1}&{0}){{".format(self.__name[:-1], self.__type)
+        yield "{}={};}}".format(self.__name, self.__name[:-1])
 
 
 class ExpressionClassConstructorDef:
@@ -47,25 +62,31 @@ class ExpressionClassConstructorDef:
 
         self.__def = self.__def[:-1]
 
-        self.__def += "{{}}"
+        self.__def += "{"
+        self.__def += "}"
 
-    def get_definition(self) -> str:
+    @property
+    def definition(self) -> str:
         return self.__def
 
 
 class ExpressionClass:
-    __name: str
-    __members: list[ExpressionClassMemberDef]
+    __name: str = ""
+    __members: list[ExpressionClassMemberDef] = list()
 
     __ctor: ExpressionClassConstructorDef
 
     def __init__(self, _name: str, members_: dict):
-        __name = _name
-        __members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
+        self.__name = _name
+        self.__members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
 
-    def get_name(self) -> str:
+        self.__ctor = ExpressionClassConstructorDef(_name, members_)
+
+    @property
+    def name(self) -> str:
         return self.__name
 
+    @property
     def lines(self):
         yield "class {0}{{".format(self.__name)
 
@@ -75,22 +96,31 @@ class ExpressionClass:
         yield "{0}({0}&&)=default;".format(self.__name)
         yield "{0}& operator=(const {0}&)=default;".format(self.__name)
 
-        yield self.__ctor.get_definition()
+        yield self.__ctor.definition
 
         for m in self.__members:
-            for s in m.get_getter():
+            for s in m.getter:
                 yield s
 
         for m in self.__members:
-            for s in m.get_setter():
+            for s in m.setter:
                 yield s
 
         yield "private:"
 
         for m in self.__members:
-            yield m.get_definition()
+            yield m.definition
 
-        yield "}};"
+        yield "};"
+
+
+def include_files(args: argparse):
+    with open(str(args.config[0]), "r") as conf:
+        conf_dict: dict = json.load(conf)
+
+        includings: dict = conf_dict[JSON_INC_NAME]
+
+        return (IncludeHeader(h) for h in includings)
 
 
 def expression_classes(args: argparse):
@@ -99,7 +129,7 @@ def expression_classes(args: argparse):
 
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
 
-        return list((ExpressionClass(expr_cls_def["name"], expr_cls_def["member"])) for expr_cls_def in expr_classes)
+        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"]) for expr_cls_def in expr_classes)
 
 
 def write_back(args: argparse, head: list, content: list, tail: list):
@@ -124,8 +154,12 @@ def verify(arg_parser: argparse):
 
 def generate(args: argparse):
     head: list = list()
+    head.append("#pragma once")
 
     logging.info("Template file is {}.".format(args.template[0]))
+
+    for h in include_files(args):
+        head.append(h.line)
 
     with open(args.template[0], "r") as template:
         line = template.readline()
@@ -143,11 +177,10 @@ def generate(args: argparse):
 
     content: list[str] = list()
 
-    classes = expression_classes(args)
-    for cls in classes:
-        logging.info("Generating class {}.".format(cls.get_name()))
+    for cls in expression_classes(args):
+        logging.info("Generating class {}.".format(cls.name))
 
-        for line in cls.lines():
+        for line in cls.lines:
             content.append(line)
 
     write_back(args, head, content, tail)
