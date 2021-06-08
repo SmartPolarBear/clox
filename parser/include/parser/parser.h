@@ -22,6 +22,7 @@
 #pragma once
 
 #include "parser_classes.inc"
+#include "parser_error.h"
 
 #include "helper/parameter_pack.h"
 
@@ -57,6 +58,10 @@ private:
 
 	std::shared_ptr<expression> primary();
 
+
+	token consume(scanning::token_type t, std::string msg);
+
+	parse_error error(token t, std::string msg);
 
 	bool match(std::initializer_list<scanning::token_type> types)
 	{

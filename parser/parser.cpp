@@ -22,6 +22,8 @@
 #include "parser/parser.h"
 #include "scanner/scanner.h"
 
+#include "logger/logger.h"
+
 #include <vector>
 
 using namespace clox::parsing;
@@ -125,4 +127,16 @@ std::shared_ptr<expression> parser::primary()
 	}
 
 	return nullptr;
+}
+
+token parser::consume(token_type t, std::string msg)
+{
+	if (check(t))return advance();
+	throw error(peek(), msg);
+}
+
+parse_error parser::error(token t, std::string msg)
+{
+
+	return parse_error(msg);
 }

@@ -79,13 +79,20 @@ public:
 	{
 	}
 
+	~token() = default;
+
+	token(const token&) = default;
+
+	token(token&&) = default;
+
+	token& operator=(const token&) = default;
 
 	[[nodiscard]]token_type type() const
 	{
 		return type_;
 	}
 
-	[[nodiscard]]string lexeme() const
+	[[nodiscard]]std::string lexeme() const
 	{
 		return lexeme_;
 	}
@@ -97,7 +104,7 @@ public:
 
 	[[nodiscard]] size_t line() const
 	{
-		return line;
+		return line_;
 	}
 
 private:
