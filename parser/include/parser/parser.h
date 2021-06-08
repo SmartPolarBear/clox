@@ -26,6 +26,8 @@
 #include "helper/parameter_pack.h"
 
 #include <concepts>
+#include <memory>
+
 
 namespace clox::parsing
 {
@@ -41,13 +43,24 @@ public:
 	}
 
 private:
+	std::shared_ptr<expression> expr();
 
-	bool match(std::convertible_to<scanning::token_type> auto... types_)
+	std::shared_ptr<expression> equality();
+
+	std::shared_ptr<expression> comparison();
+
+	std::shared_ptr<expression> term();
+
+	std::shared_ptr<expression> factor();
+
+	std::shared_ptr<expression> unary();
+
+	std::shared_ptr<expression> primary();
+
+
+	bool match(std::initializer_list<scanning::token_type> types)
 	{
-		constexpr size_t ARG_COUNT = sizeof...(types_);
-		helper::parameter_pack<uint64_t, ARG_COUNT> types{ types_... };
-
-		for (const auto& t:types.data)
+		for (const auto& t:types)
 		{
 			if (check(t))
 			{
@@ -59,7 +72,7 @@ private:
 		return false;
 	}
 
-	[[nodiscard]]bool check(scanning::token_type t)
+	[[nodiscard]] bool check(scanning::token_type t)
 	{
 		if (is_end())return false;
 		return peek().type() == t;

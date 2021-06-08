@@ -85,6 +85,21 @@ public:
 		return type_;
 	}
 
+	[[nodiscard]]string lexeme() const
+	{
+		return lexeme_;
+	}
+
+	[[nodiscard]] std::any literal() const
+	{
+		return literal_;
+	}
+
+	[[nodiscard]] size_t line() const
+	{
+		return line;
+	}
+
 private:
 	token_type type_;
 	std::string lexeme_;
