@@ -19,15 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "parser/parser.h"
-#include "scanner/scanner.h"
+#include <parser/parser.h>
+#include <scanner/scanner.h>
 
-#include "logger/logger.h"
+#include <logger/logger.h>
 
 #include <vector>
 
 using namespace clox::parsing;
 using namespace clox::scanning;
+using namespace clox::logger;
 
 using namespace std;
 
@@ -126,7 +127,7 @@ std::shared_ptr<expression> parser::primary()
 		return make_shared<grouping>(expr);
 	}
 
-	return nullptr;
+	throw error(peek(), "Expression is expected.");
 }
 
 token parser::consume(token_type t, std::string msg)
@@ -137,6 +138,43 @@ token parser::consume(token_type t, std::string msg)
 
 parse_error parser::error(token t, std::string msg)
 {
-
+	logger::logger::instance().error(t, msg);
 	return parse_error(msg);
+}
+
+void parser::synchronize()
+{
+	advance();
+	while (!is_end())
+	{
+		if (previous().type() == token_type::SEMICOLON)return;
+
+		switch (peek().type())
+		{
+		case token_type::CLASS:
+		case token_type::FUN:
+		case token_type::VAR:
+		case token_type::FOR:
+		case token_type::IF:
+		case token_type::WHILE:
+		case token_type::PRINT:
+		case token_type::RETURN:
+			return;
+		default:
+			advance();
+			continue;
+		}
+	}
+}
+
+std::shared_ptr<expression> parser::parse()
+{
+	try
+	{
+		return expression();
+	}
+	catch (const parse_error& pe)
+	{
+		return nullptr;
+	}
 }

@@ -43,6 +43,8 @@ public:
 	{
 	}
 
+	std::shared_ptr<expression> parse();
+
 private:
 	std::shared_ptr<expression> expr();
 
@@ -58,6 +60,7 @@ private:
 
 	std::shared_ptr<expression> primary();
 
+	void synchronize();
 
 	token consume(scanning::token_type t, std::string msg);
 
