@@ -4,7 +4,7 @@
 namespace clox::driver
 {
 
-[[nodiscard]] int run_file(std::string name);
+[[nodiscard]] int run_file(const std::string& name);
 
 [[nodiscard]] int run_command();
 

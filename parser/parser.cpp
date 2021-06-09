@@ -28,7 +28,7 @@
 
 using namespace clox::parsing;
 using namespace clox::scanning;
-using namespace clox::logger;
+using namespace clox::logging;
 
 using namespace std;
 
@@ -138,13 +138,13 @@ token parser::consume(token_type t, std::string msg)
 
 parse_error parser::error(token t, std::string msg)
 {
-	logger::logger::instance().error(t, msg);
+	logging::logger::instance().error(t, msg);
 	return parse_error(msg);
 }
 
 void parser::synchronize()
 {
-	advance();
+	auto _ = advance(); // discard it
 	while (!is_end())
 	{
 		if (previous().type() == token_type::SEMICOLON)return;
@@ -161,7 +161,7 @@ void parser::synchronize()
 		case token_type::RETURN:
 			return;
 		default:
-			advance();
+			_ = advance();  // discard it
 			continue;
 		}
 	}
@@ -171,7 +171,7 @@ std::shared_ptr<expression> parser::parse()
 {
 	try
 	{
-		return expression();
+		return this->expr();
 	}
 	catch (const parse_error& pe)
 	{

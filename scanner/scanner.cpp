@@ -5,7 +5,7 @@
 
 using namespace std;
 using namespace clox::scanning;
-using namespace clox::logger;
+using namespace clox::logging;
 
 bool validator::valid_number_literal_component(char c)
 {
@@ -93,7 +93,7 @@ void scanner::scan_string()
 
 	if (is_end())
 	{
-		logger::logger::instance().error(line_, "Unterminated string.");
+		logging::logger::instance().error(line_, "Unterminated string.");
 		return;
 	}
 
@@ -220,7 +220,7 @@ void scanner::scan_next_token()
 		}
 		else
 		{
-			logger::logger::instance().error(line_, format("Unexpected character {}.", c));
+			logging::logger::instance().error(line_, format("Unexpected character {}.", c));
 		}
 
 		break;
