@@ -10,6 +10,11 @@ JSON_NAMESPACE_NAME: str = "generated_namespace"
 JSON_CLASS_BASE_NAME: str = "expression_class_bases"
 
 
+class Visitor:
+    def __init__(self):
+        pass
+
+
 class BaseClass:
     __name: str
     __accessibility: str

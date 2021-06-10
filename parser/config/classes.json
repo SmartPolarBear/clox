@@ -9,12 +9,14 @@
   "expression_class_bases": [
     {
       "name": "expression",
-      "access": "public"
+      "access": "public",
+      "id": 1
     }
   ],
   "expression_classes": [
     {
       "name": "binary_expression",
+      "base": [1],
       "member": [
         {
           "type": "std::shared_ptr<expression>",
@@ -32,6 +34,7 @@
     },
     {
       "name": "unary_expression",
+      "base": [1],
       "member": [
         {
           "type": "clox::scanning::token",
@@ -45,6 +48,7 @@
     },
     {
       "name": "literal",
+      "base": [1],
       "member": [
         {
           "type": "std::any",
@@ -54,6 +58,7 @@
     },
     {
       "name": "grouping",
+      "base": [1],
       "member": [
         {
           "type": "std::shared_ptr<expression>",
