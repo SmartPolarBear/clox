@@ -10,29 +10,29 @@ JSON_NAMESPACE_NAME: str = "generated_namespace"
 JSON_CLASS_BASE_NAME: str = "expression_class_bases"
 
 
-class Visitor:
-    def __init__(self):
-        pass
-
-
 class BaseClass:
     __name: str
     __accessibility: str
+    __crtp: bool = False
 
-    def __init__(self, name: str, acc: str):
+    def __init__(self, name: str, acc: str, crtp: bool):
         self.__name = name
         self.__accessibility = acc
+        self.__crtp = crtp
+
+    @property
+    def crtp(self) -> bool:
+        return self.__crtp
 
     @property
     def string(self):
         return "{} {}".format(self.__accessibility, self.__name)
 
+    def string_crtp(self, crtp_param: str = ""):
+        if not self.__crtp and len(crtp_param) != 0:
+            raise RuntimeError("Not a CRTP base, but CRTP parameter is provided")
 
-def concat_base_classes(classes: list[BaseClass]) -> str:
-    ret: str = ''
-    for c in classes:
-        ret += (c.string + ",")
-    return ret[:-1]
+        return "{} {}<{}>".format(self.__accessibility, self.__name, crtp_param)
 
 
 class IncludeHeader:
@@ -104,13 +104,22 @@ class ExpressionClass:
 
     __ctor: ExpressionClassConstructorDef
 
-    def __init__(self, _name: str, members_: dict, base: dict):
+    def __init__(self, _name: str, members_: dict, base):
         self.__name = _name
         self.__members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
 
-        self.__parents = list(BaseClass(b["name"], b["access"]) for b in base)
+        self.__parents = list(base)
 
         self.__ctor = ExpressionClassConstructorDef(_name, members_)
+
+    def __concat_base_classes(self) -> str:
+        ret: str = ''
+        for c in self.__parents:
+            if c.crtp:
+                ret += (c.string_crtp(self.__name) + ",")
+            else:
+                ret += (c.string + ",")
+        return ret[:-1]
 
     @property
     def name(self) -> str:
@@ -118,7 +127,7 @@ class ExpressionClass:
 
     @property
     def lines(self):
-        yield "class {0}:{1}{{".format(self.__name, concat_base_classes(self.__parents))
+        yield "class {0}:{1}{{".format(self.__name, self.__concat_base_classes())
 
         yield "public:"
 
@@ -144,12 +153,32 @@ class ExpressionClass:
         yield "};"
 
 
+class Visitor:
+    __classes: list[ExpressionClass]
+
+    def __init__(self, classes):
+        self.__classes = list(classes)
+
+    @property
+    def lines(self):
+        yield "template<typename T> class visitor{"
+        yield "public:"
+
+        for c in self.__classes:
+            yield "virtual T visit_{0}({0}*)=0;".format(c.name)
+
+        yield "};"
+
+
 class Namespace:
     __name: str
+    __classes: list[ExpressionClass]
+    __visitor: Visitor
 
     def __init__(self, name: str, classes):
         self.__name = name
-        self.__classes = classes
+        self.__classes = list(classes)
+        self.__visitor = Visitor( self.__classes)
 
     @property
     def lines(self) -> str:
@@ -158,6 +187,9 @@ class Namespace:
         for c in self.__classes:
             for line in c.lines:
                 yield line
+
+        for l1 in self.__visitor.lines:
+            yield l1
 
         yield "}"
 
@@ -178,7 +210,10 @@ def expression_classes(args: argparse):
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
         base_classes: dict = conf_dict[JSON_CLASS_BASE_NAME]
 
-        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"], base_classes) for expr_cls_def in
+        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"],
+                                (BaseClass(b["name"], b["access"], b["crtp"]) for b in base_classes if
+                                 b["id"] in expr_cls_def["base"]))
+                for expr_cls_def in
                 expr_classes)
 
 
