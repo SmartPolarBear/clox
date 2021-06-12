@@ -5,9 +5,16 @@ import logging
 import datetime
 
 JSON_EXPR_CLASSES_NAME: str = "expression_classes"
-JSON_INC_NAME: str = "includes"
+JSON_PRIMARY_INC_NAME: str = "primary_includes"
+JSON_SECONDARY_INC_NAME: str = "secondary_includes"
 JSON_NAMESPACE_NAME: str = "generated_namespace"
 JSON_CLASS_BASE_NAME: str = "expression_class_bases"
+
+TYPE_ENUM_NAME: str = "parser_class_type"
+
+
+def type_value_of(name: str):
+    return "PC_TYPE_{}".format(name)
 
 
 class BaseClass:
@@ -46,7 +53,7 @@ class IncludeHeader:
         return "#include <{}>".format(self.__name)
 
 
-class ExpressionClassMemberDef:
+class ParserClassMemberDef:
     __type: str
     __name: str
 
@@ -71,7 +78,7 @@ class ExpressionClassMemberDef:
         yield "{}={};}}".format(self.__name, self.__name[:-1])
 
 
-class ExpressionClassConstructorDef:
+class ParserClassConstructorDef:
     __def: str
 
     def __init__(self, __name: str, members_: dict):
@@ -97,20 +104,20 @@ class ExpressionClassConstructorDef:
         return self.__def
 
 
-class ExpressionClass:
+class ParserClass:
     __name: str = ""
-    __members: list[ExpressionClassMemberDef] = list()
+    __members: list[ParserClassMemberDef] = list()
     __parents: list[BaseClass] = list()
 
-    __ctor: ExpressionClassConstructorDef
+    __ctor: ParserClassConstructorDef
 
     def __init__(self, _name: str, members_: dict, base):
         self.__name = _name
-        self.__members = list(ExpressionClassMemberDef(m["name"], m["type"]) for m in members_)
+        self.__members = list(ParserClassMemberDef(m["name"], m["type"]) for m in members_)
 
         self.__parents = list(base)
 
-        self.__ctor = ExpressionClassConstructorDef(_name, members_)
+        self.__ctor = ParserClassConstructorDef(_name, members_)
 
     def __concat_base_classes(self) -> str:
         ret: str = ''
@@ -145,6 +152,9 @@ class ExpressionClass:
             for s in m.setter:
                 yield s
 
+        yield "[[nodiscard]] {0} get_type()const override{{return {1};}}".format(TYPE_ENUM_NAME,
+                                                                                 type_value_of(self.name))
+
         yield "private:"
 
         for m in self.__members:
@@ -154,7 +164,7 @@ class ExpressionClass:
 
 
 class Visitor:
-    __classes: list[ExpressionClass]
+    __classes: list[ParserClass]
 
     def __init__(self, classes):
         self.__classes = list(classes)
@@ -170,23 +180,50 @@ class Visitor:
         yield "};"
 
 
+class ParserClassTypeEnum:
+    __classes: list[str]
+
+    def __init__(self, classes):
+        self.__classes = list(classes)
+
+    @property
+    def lines(self):
+        yield "enum {}{{".format(TYPE_ENUM_NAME)
+
+        for c in self.__classes:
+            yield "{},".format(type_value_of(c))
+
+        yield "};"
+
+
 class Namespace:
     __name: str
-    __classes: list[ExpressionClass]
+    __classes: list[ParserClass]
     __visitor: Visitor
+    __enum: ParserClassTypeEnum
 
     def __init__(self, name: str, classes):
         self.__name = name
         self.__classes = list(classes)
-        self.__visitor = Visitor( self.__classes)
+        self.__enum = ParserClassTypeEnum(list(c.name for c in self.__classes))
+        self.__visitor = Visitor(self.__classes)
 
     @property
-    def lines(self) -> str:
+    def primary_lines(self) -> str:
         yield "namespace {} {{".format(self.__name)
 
         for c in self.__classes:
             for line in c.lines:
                 yield line
+
+        yield "}"
+
+    @property
+    def secondary_lines(self):
+        yield "namespace {} {{".format(self.__name)
+
+        for e in self.__enum.lines:
+            yield e
 
         for l1 in self.__visitor.lines:
             yield l1
@@ -194,11 +231,20 @@ class Namespace:
         yield "}"
 
 
-def include_files(args: argparse):
+def primary_include_files(args: argparse):
     with open(str(args.config[0]), "r") as conf:
         conf_dict: dict = json.load(conf)
 
-        includings: dict = conf_dict[JSON_INC_NAME]
+        includings: dict = conf_dict[JSON_PRIMARY_INC_NAME]
+
+        return (IncludeHeader(h) for h in includings)
+
+
+def secondary_include_files(args: argparse):
+    with open(str(args.config[0]), "r") as conf:
+        conf_dict: dict = json.load(conf)
+
+        includings: dict = conf_dict[JSON_SECONDARY_INC_NAME]
 
         return (IncludeHeader(h) for h in includings)
 
@@ -210,9 +256,9 @@ def expression_classes(args: argparse):
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
         base_classes: dict = conf_dict[JSON_CLASS_BASE_NAME]
 
-        return (ExpressionClass(expr_cls_def["name"], expr_cls_def["member"],
-                                (BaseClass(b["name"], b["access"], b["crtp"]) for b in base_classes if
-                                 b["id"] in expr_cls_def["base"]))
+        return (ParserClass(expr_cls_def["name"], expr_cls_def["member"],
+                            (BaseClass(b["name"], b["access"], b["crtp"]) for b in base_classes if
+                             b["id"] in expr_cls_def["base"]))
                 for expr_cls_def in
                 expr_classes)
 
@@ -228,10 +274,10 @@ def root_namespace(args: argparse):
         return Namespace(namespace_conf, expression_classes(args))
 
 
-def write_back(args: argparse, head: list, content: list, tail: list):
-    logging.info("Writing result to {}.".format(args.output[0]))
+def write_back(path: str, head: list, content: list, tail: list):
+    logging.info("Writing result to {}.".format(path))
 
-    with open(args.output[0], "w") as f:
+    with open(path, "w") as f:
         for h in head:
             f.write("{}\n".format(h))
 
@@ -257,9 +303,6 @@ def generate(args: argparse):
 
     head.append("#pragma once")
 
-    for h in include_files(args):
-        head.append(h.line)
-
     tail: list = list()
     with open(args.tail[0], "r") as template:
         line = template.readline()
@@ -267,9 +310,20 @@ def generate(args: argparse):
             tail.append(line.strip())
             line = template.readline()
 
-    content: list[str] = list(root_namespace(args).lines)
+    primary_head = head.copy()
 
-    write_back(args, head, content, tail)
+    for h in primary_include_files(args):
+        primary_head.append(h.line)
+
+    secondary_path: pathlib.Path = pathlib.Path((args.secondary[0]))
+    primary_head.append('#include "{}"'.format(secondary_path.name))
+
+    write_back(args.primary[0], primary_head, list(root_namespace(args).primary_lines), tail)
+
+    secondary_head = head.copy()
+    for h in secondary_include_files(args):
+        secondary_head.append(h.line)
+    write_back(args.secondary[0], secondary_head, list(root_namespace(args).secondary_lines), tail)
 
 
 def main():
@@ -300,8 +354,11 @@ def main():
     arg_parser.add_argument('-t', '--tail', type=lambda x: validate_config_file(x), nargs=1,
                             help='tail template file', required=True)
 
-    arg_parser.add_argument('-o', '--output', type=lambda x: validate_target_file(x), nargs=1,
-                            help='target configuration file', required=True)
+    arg_parser.add_argument('-p', '--primary', type=lambda x: validate_target_file(x), nargs=1,
+                            help='primary generated file', required=True)
+
+    arg_parser.add_argument('-s', '--secondary', type=lambda x: validate_target_file(x), nargs=1,
+                            help='secondary generated file', required=True)
 
     generate(arg_parser.parse_args())
 

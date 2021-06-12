@@ -1,7 +1,12 @@
 {
-  "includes": [
+  "primary_includes": [
     "scanner/scanner.h",
     "parser/expression.h",
+    "any",
+    "memory"
+  ],
+  "secondary_includes": [
+    "scanner/scanner.h",
     "any",
     "memory"
   ],

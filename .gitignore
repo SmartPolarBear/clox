@@ -1,2 +1,2 @@
 cmake-build-*
-parser_classes.inc
+*.inc
