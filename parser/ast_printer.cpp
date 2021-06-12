@@ -64,7 +64,7 @@ std::string ast_printer::to_string(const expression& expr)
 	return accept(expr, *this);
 }
 
-std::string ast_printer::parenthesize(std::string name, std::initializer_list<expression> exprs)
+std::string ast_printer::parenthesize(const std::string& name, std::initializer_list<expression> exprs)
 {
 	stringstream ss{};
 

@@ -3,6 +3,7 @@
 #include <scanner/scanner.h>
 
 #include <parser/parser.h>
+#include <parser/ast_printer.h>
 
 #include <logger/logger.h>
 
@@ -26,6 +27,9 @@ static inline int run(string code)
 	auto expr = ps.parse();
 
 	if (logger::instance().has_errors())return 1;
+
+	ast_printer pt{};
+	cout << pt.to_string(*expr) << endl;
 
 	return 0;
 }

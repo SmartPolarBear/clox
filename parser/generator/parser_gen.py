@@ -199,7 +199,7 @@ class Visitor:
         for c in self.__classes:
             yield "case {}:".format(type_value_of(c.name))
 
-            yield "((const {0} &)(expr)).accept<T>(vis);".format(c.name)
+            yield "return (( {0} &)(expr)).accept<T>(vis);".format(c.name)
 
             yield "break;"
 
