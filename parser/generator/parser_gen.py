@@ -187,7 +187,13 @@ class Visitor:
 
         yield "};"
 
-        yield "template<typename E,typename T>static inline T accept(const E& expr,visitor<T> &vis){"
+    @property
+    def secondary_lines(self):
+        yield ""
+
+    @property
+    def accept_func(self):
+        yield "template<typename T>static inline T accept(const expression& expr,visitor<T> &vis){"
         yield "switch(expr.get_type()){"
 
         for c in self.__classes:
@@ -197,12 +203,11 @@ class Visitor:
 
             yield "break;"
 
-        yield "}"
-        yield "}"
+        yield "default:"
+        yield 'throw std::invalid_argument("{}");'.format("expr")
 
-    @property
-    def secondary_lines(self):
-        yield ""
+        yield "}"
+        yield "}"
 
 
 class ParserClassTypeEnum:
@@ -245,6 +250,9 @@ class Namespace:
         for c in self.__classes:
             for line in c.lines:
                 yield line
+
+        for ac in self.__visitor.accept_func:
+            yield ac
 
         yield "}"
 

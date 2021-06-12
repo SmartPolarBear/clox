@@ -3,7 +3,8 @@
     "scanner/scanner.h",
     "parser/expression.h",
     "any",
-    "memory"
+    "memory",
+    "stdexcept"
   ],
   "secondary_includes": [
     "scanner/scanner.h",
