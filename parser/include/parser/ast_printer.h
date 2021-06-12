@@ -24,7 +24,26 @@
 
 #pragma once
 
+#include <parser/parser_classes.inc>
+
+#include <string>
+
 namespace clox::parsing
 {
+class ast_printer final : public visitor<std::string>
+{
+public:
+	std::string to_string(const expression& expr);
 
+	std::string visit_binary_expression(struct binary_expression* expression) override;
+
+	std::string visit_unary_expression(struct unary_expression* expression) override;
+
+	std::string visit_literal(struct literal* literal) override;
+
+	std::string visit_grouping(struct grouping* grouping) override;
+
+private:
+	std::string parenthesize(std::string name, std::initializer_list<expression> exprs);
+};
 }

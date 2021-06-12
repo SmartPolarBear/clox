@@ -33,6 +33,12 @@
 namespace clox::parsing
 {
 
+struct nil_value_tag_type
+{
+};
+
+static inline constexpr nil_value_tag_type nil_value_tag{};
+
 class parser final
 {
 public:

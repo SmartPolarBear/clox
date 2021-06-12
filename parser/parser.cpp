@@ -112,7 +112,7 @@ std::shared_ptr<expression> parser::primary()
 {
 	if (match({ token_type::FALSE }))return make_shared<literal>(false);
 	if (match({ token_type::TRUE }))return make_shared<literal>(true);
-	if (match({ token_type::NIL }))return make_shared<literal>(nullptr);
+	if (match({ token_type::NIL }))return make_shared<literal>(nil_value_tag);
 
 	if (match({ token_type::NUMBER, token_type::STRING }))
 	{
