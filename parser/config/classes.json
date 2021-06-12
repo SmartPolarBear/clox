@@ -17,12 +17,6 @@
       "access": "public",
       "id": 1,
       "crtp": false
-    },
-    {
-      "name": "visitable",
-      "access": "public",
-      "id": 2,
-      "crtp": true
     }
   ],
   "expression_classes": [

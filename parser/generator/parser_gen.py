@@ -17,6 +17,10 @@ def type_value_of(name: str):
     return "PC_TYPE_{}".format(name)
 
 
+def visitor_method_of(name: str) -> str:
+    return "visit_{0}".format(name)
+
+
 class BaseClass:
     __name: str
     __accessibility: str
@@ -155,6 +159,10 @@ class ParserClass:
         yield "[[nodiscard]] {0} get_type()const override{{return {1};}}".format(TYPE_ENUM_NAME,
                                                                                  type_value_of(self.name))
 
+        yield "template<typename T>[[nodiscard]] T accept(visitor<T> &vis){"
+        yield "return vis.{}(this);".format(visitor_method_of(self.name))
+        yield "}"
+
         yield "private:"
 
         for m in self.__members:
@@ -170,14 +178,31 @@ class Visitor:
         self.__classes = list(classes)
 
     @property
-    def lines(self):
+    def primary_lines(self):
         yield "template<typename T> class visitor{"
         yield "public:"
 
         for c in self.__classes:
-            yield "virtual T visit_{0}({0}*)=0;".format(c.name)
+            yield "virtual T {0}(class {1}*)=0;".format(visitor_method_of(c.name), c.name)
 
         yield "};"
+
+        yield "template<typename E,typename T>static inline T accept(const E& expr,visitor<T> &vis){"
+        yield "switch(expr.get_type()){"
+
+        for c in self.__classes:
+            yield "case {}:".format(type_value_of(c.name))
+
+            yield "((const {0} &)(expr)).accept<T>(vis);".format(c.name)
+
+            yield "break;"
+
+        yield "}"
+        yield "}"
+
+    @property
+    def secondary_lines(self):
+        yield ""
 
 
 class ParserClassTypeEnum:
@@ -189,6 +214,8 @@ class ParserClassTypeEnum:
     @property
     def lines(self):
         yield "enum {}{{".format(TYPE_ENUM_NAME)
+
+        yield "{},".format(type_value_of("invalid"))
 
         for c in self.__classes:
             yield "{},".format(type_value_of(c))
@@ -212,6 +239,9 @@ class Namespace:
     def primary_lines(self) -> str:
         yield "namespace {} {{".format(self.__name)
 
+        for l1 in self.__visitor.primary_lines:
+            yield l1
+
         for c in self.__classes:
             for line in c.lines:
                 yield line
@@ -225,7 +255,7 @@ class Namespace:
         for e in self.__enum.lines:
             yield e
 
-        for l1 in self.__visitor.lines:
+        for l1 in self.__visitor.secondary_lines:
             yield l1
 
         yield "}"
