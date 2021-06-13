@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	}
 
 	auto file = prog.get<string>("--file");
-	if (file.empty())
+	if (!file.empty())
 	{
 		return clox::driver::run_file(file);
 	}

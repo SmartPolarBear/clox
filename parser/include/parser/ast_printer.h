@@ -44,6 +44,7 @@ public:
 	std::string visit_grouping(struct grouping* grouping) override;
 
 private:
-	std::string parenthesize(const std::string& name, std::initializer_list<expression> exprs);
+	std::string parenthesize(const std::string& name, std::initializer_list<expression*> exprs);
+
 };
 }

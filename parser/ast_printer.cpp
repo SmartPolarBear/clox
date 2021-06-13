@@ -26,6 +26,7 @@
 #include <parser/parser.h>
 
 #include <sstream>
+#include <format>
 
 using namespace std;
 
@@ -35,13 +36,13 @@ using namespace clox::scanning;
 std::string clox::parsing::ast_printer::visit_binary_expression(clox::parsing::binary_expression* e)
 {
 	return parenthesize(any_cast<token>(e->get_op()).lexeme(),
-			{ (expression&)e->get_left(), (expression&)e->get_right() });
+			{ e->get_left().get(), e->get_right().get() });
 }
 
 std::string clox::parsing::ast_printer::visit_unary_expression(clox::parsing::unary_expression* e)
 {
 	return parenthesize(any_cast<token>(e->get_op()).lexeme(),
-			{ (expression&)e->get_right() });
+			{ e->get_right().get() });
 }
 
 std::string clox::parsing::ast_printer::visit_literal(clox::parsing::literal* literal)
@@ -51,12 +52,12 @@ std::string clox::parsing::ast_printer::visit_literal(clox::parsing::literal* li
 		return "nil";
 	}
 
-	return "<literal>";
+	return std::format("<literal>({})", literal->get_value().type().name());
 }
 
 std::string clox::parsing::ast_printer::visit_grouping(clox::parsing::grouping* grouping)
 {
-	return parenthesize("group", { (expression&)*grouping });
+	return parenthesize("group", { grouping });
 }
 
 std::string ast_printer::to_string(const expression& expr)
@@ -64,14 +65,14 @@ std::string ast_printer::to_string(const expression& expr)
 	return accept(expr, *this);
 }
 
-std::string ast_printer::parenthesize(const std::string& name, std::initializer_list<expression> exprs)
+std::string ast_printer::parenthesize(const std::string& name, initializer_list<expression*> exprs)
 {
 	stringstream ss{};
 
 	ss << "(" << name;
 	for (auto& expr:exprs)
 	{
-		ss << " " << accept(expr, *this);
+		ss << " " << accept(*expr, *this);
 	}
 
 	ss << ")";
