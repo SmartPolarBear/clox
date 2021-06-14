@@ -340,9 +340,27 @@ def write_back(path: str, head: list, content: list, tail: list):
             f.write("{}\n".format(t))
 
 
+def file_date_time(path: str) -> datetime.datetime:
+    fname = pathlib.Path(path)
+    return datetime.datetime.fromtimestamp(fname.stat().st_mtime)
+
+
 def generate(args: argparse):
     logging.info("Head template file is {}.".format(args.head[0]))
     logging.info("Tail template file is {}.".format(args.tail[0]))
+    logging.info("Configuration file is {}.".format(args.config[0]))
+    logging.info("Target primary file is {}.".format(args.primary[0]))
+    logging.info("Target secondary file is {}.".format(args.secondary[0]))
+
+    config_file_time: list[datetime.datetime] = list(
+        {file_date_time(args.head[0]), file_date_time(args.tail[0]), file_date_time(args.config[0])})
+
+    primary_time = file_date_time(args.primary[0])
+    secondary_time = file_date_time(args.secondary[0])
+
+    if all(primary_time > t for t in config_file_time) and all(secondary_time > t for t in config_file_time):
+        logging.info("Everything updated.")
+        exit(0)
 
     head: list = list()
     head.append("#pragma once")
@@ -416,4 +434,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Logging to screen
+    formatter = logging.Formatter('%(message)s')
+    logging.getLogger('').setLevel(logging.DEBUG)
     main()
