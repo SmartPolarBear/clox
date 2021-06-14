@@ -119,7 +119,7 @@ void scanner::scan_number_literal()
 
 std::string scanner::whole_lexeme()
 {
-	return src_.substr(start_, cur_ - start_ + 1);
+	return src_.substr(start_, cur_ - start_);
 }
 
 void scanner::scan_identifier()

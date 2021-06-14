@@ -50,8 +50,7 @@ int clox::driver::run_command()
 	cout << ">>> ";
 	while (std::getline(std::cin, line))
 	{
-		auto e = run(line);
-		if (e != 0)return e;
+		auto _ = run(line);
 
 		cout << ">>> ";
 	}
