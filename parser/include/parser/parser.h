@@ -23,6 +23,7 @@
 
 #include "parser/gen/parser_classes.inc"
 #include "parser_error.h"
+#include <parser/nil_value.h>
 
 #include "helper/parameter_pack.h"
 
@@ -33,11 +34,7 @@
 namespace clox::parsing
 {
 
-struct nil_value_tag_type
-{
-};
 
-static inline constexpr nil_value_tag_type nil_value_tag{};
 
 class parser final
 {
