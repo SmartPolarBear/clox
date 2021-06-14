@@ -29,7 +29,7 @@ target_link_libraries(clox
 
 
 add_custom_target(parser_classes_inc
-        COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/parser_base.inc
+        COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p  ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s  ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
         BYPRODUCTS {CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser_classes.inc
         COMMENT "Generating parser expression classes"
         )

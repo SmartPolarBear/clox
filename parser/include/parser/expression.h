@@ -2,8 +2,8 @@
 
 #include <scanner/scanner.h>
 
-#include <parser/parser_classes.inc>
-#include <parser/parser_base.inc>
+#include <parser/gen/parser_classes.inc>
+#include <parser/gen/parser_base.inc>
 
 namespace clox::parsing
 {

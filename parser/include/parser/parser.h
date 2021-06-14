@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "parser_classes.inc"
+#include "parser/gen/parser_classes.inc"
 #include "parser_error.h"
 
 #include "helper/parameter_pack.h"

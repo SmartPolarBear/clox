@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <parser/parser_classes.inc>
+#include <parser/gen/parser_classes.inc>
 
 #include <string>
 
