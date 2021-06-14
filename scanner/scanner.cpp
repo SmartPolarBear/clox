@@ -226,3 +226,4 @@ void scanner::scan_next_token()
 		break;
 	}
 }
+

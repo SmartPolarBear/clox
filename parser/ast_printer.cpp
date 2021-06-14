@@ -52,7 +52,7 @@ std::string clox::parsing::ast_printer::visit_literal(clox::parsing::literal* li
 		return "nil";
 	}
 
-	return std::format("<literal>({})", literal->get_value().type().name());
+	return std::format("<literal>({}={})", literal->get_value().type().name());
 }
 
 std::string clox::parsing::ast_printer::visit_grouping(clox::parsing::grouping* grouping)

@@ -26,6 +26,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <helper/printable.h>
+
 namespace clox::scanning
 {
 
@@ -78,6 +80,7 @@ public:
 			: type_(t), lexeme_(std::move(lexeme)), literal_(std::move(lit)), line_(line)
 	{
 	}
+
 
 	~token() = default;
 
