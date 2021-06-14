@@ -18,6 +18,12 @@
       "access": "public",
       "id": 1,
       "crtp": false
+    },
+    {
+      "name": "std::enable_shared_from_this",
+      "access": "public",
+      "id": 2,
+      "crtp": true
     }
   ],
   "expression_classes": [

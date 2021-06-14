@@ -24,25 +24,70 @@
 
 #include <parser/interpreter.h>
 
-clox::parsing::interpreting_result
-clox::parsing::interpreter::visit_binary_expression(clox::parsing::binary_expression* expression)
-{
-	return clox::parsing::interpreting_result();
-}
+using namespace std;
+using namespace clox::scanning;
 
 clox::parsing::interpreting_result
-clox::parsing::interpreter::visit_unary_expression(clox::parsing::unary_expression* expression)
+clox::parsing::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	return clox::parsing::interpreting_result();
+	auto left = evaluate(be->get_left());
+	auto right = evaluate(be->get_right());
+
+	switch (be->get_op().type())
+	{
+	case scanning::token_type::MINUS:
+	case scanning::token_type::SLASH:
+	case scanning::token_type::STAR:
+	case scanning::token_type::PLUS:
+
+
+	case scanning::token_type::GREATER:
+	case scanning::token_type::GREATER_EQUAL:
+	case scanning::token_type::LESS:
+	case scanning::token_type::LESS_EQUAL:
+
+	case scanning::token_type::BANG_EQUAL:
+	case scanning::token_type::EQUAL_EQUAL:
+
+
+	default:
+		//TODO: ERROR?
+		break;
+	}
+
+	// Should not reach here
+	return nil_value_tag;
 }
 
-clox::parsing::interpreting_result clox::parsing::interpreter::visit_literal(clox::parsing::literal* literal)
+clox::parsing::interpreting_result
+clox::parsing::interpreter::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
+	auto right = evaluate(ue->get_right());
+
+	switch (ue->get_op().type())
+	{
+	case scanning::token_type::MINUS:
+		return -get<long double>(right);
+		break;
+	case scanning::token_type::BANG:
+		return !is_truth(right);
+	default:
+		//TODO: ERROR?
+		break;
+	}
+
+	// Should not reach here
+	return nil_value_tag;
 }
 
-clox::parsing::interpreting_result clox::parsing::interpreter::visit_grouping(clox::parsing::grouping* grouping)
+clox::parsing::interpreting_result clox::parsing::interpreter::visit_literal(const std::shared_ptr<literal>& literal)
 {
-	return clox::parsing::interpreting_result();
+	return interpreter::literal_value_to_interpreting_result(literal->get_value());
+}
+
+clox::parsing::interpreting_result clox::parsing::interpreter::visit_grouping(const std::shared_ptr<grouping>& grouping)
+{
+	return evaluate(grouping->get_expr());
 }
 
 std::string clox::parsing::interpreter::result_to_string(const clox::parsing::interpreting_result& res)
@@ -53,4 +98,40 @@ std::string clox::parsing::interpreter::result_to_string(const clox::parsing::in
 void clox::parsing::interpreter::interpret(const clox::parsing::expression& expr)
 {
 
+}
+
+clox::parsing::interpreting_result clox::parsing::interpreter::literal_value_to_interpreting_result(std::any any)
+{
+	if (any.type() == typeid(long double))
+	{
+		return any_cast<long double>(any);
+	}
+	else if (any.type() == typeid(bool))
+	{
+		return any_cast<bool>(any);
+	}
+	else if (any.type() == typeid(std::string))
+	{
+		return any_cast<std::string>(any);
+	}
+	else if (any.type() == typeid(scanning::nil_value_tag_type))
+	{
+		return any_cast<scanning::nil_value_tag_type>(any);
+	}
+	else
+	{
+		throw invalid_argument("any");
+	}
+}
+
+clox::parsing::interpreting_result clox::parsing::interpreter::evaluate(const shared_ptr<expression>& expr)
+{
+	return clox::parsing::interpreting_result();
+}
+
+bool clox::parsing::interpreter::is_truth(clox::parsing::interpreting_result e)
+{
+	if (holds_alternative<nil_value_tag_type>(e))return false;
+	if (holds_alternative<bool>(e))return get<bool>(e);
+	return true;
 }

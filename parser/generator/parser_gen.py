@@ -12,6 +12,8 @@ JSON_CLASS_BASE_NAME: str = "expression_class_bases"
 
 TYPE_ENUM_NAME: str = "parser_class_type"
 
+use_shared_ptr: bool = True
+
 
 def type_value_of(name: str):
     return "PC_TYPE_{}".format(name)
@@ -132,6 +134,12 @@ class ParserClass:
                 ret += (c.string + ",")
         return ret[:-1]
 
+    def __this_pointer(self) -> str:
+        if use_shared_ptr:
+            return "shared_from_this()"
+        else:
+            return "this"
+
     @property
     def name(self) -> str:
         return self.__name
@@ -160,7 +168,7 @@ class ParserClass:
                                                                                  type_value_of(self.name))
 
         yield "template<typename T>[[nodiscard]] T accept(visitor<T> &vis){"
-        yield "return vis.{}(this);".format(visitor_method_of(self.name))
+        yield "return vis.{0}({1});".format(visitor_method_of(self.name), self.__this_pointer())
         yield "}"
 
         yield "private:"
@@ -177,13 +185,19 @@ class Visitor:
     def __init__(self, classes):
         self.__classes = list(classes)
 
+    def __pointer_type(self, name: str):
+        if use_shared_ptr:
+            return "const std::shared_ptr<class {}> &".format(name)
+        else:
+            return "class {}*".format(name)
+
     @property
     def primary_lines(self):
         yield "template<typename T> class visitor{"
         yield "public:"
 
         for c in self.__classes:
-            yield "virtual T {0}(class {1}*)=0;".format(visitor_method_of(c.name), c.name)
+            yield "virtual T {0}({1})=0;".format(visitor_method_of(c.name), self.__pointer_type(c.name))
 
         yield "};"
 

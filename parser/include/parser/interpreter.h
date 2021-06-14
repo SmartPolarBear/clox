@@ -27,6 +27,8 @@
 #include <parser/gen/parser_classes.inc>
 #include <scanner/nil_value.h>
 
+#include <parser/parser.h>
+
 #include <variant>
 #include <string>
 
@@ -41,15 +43,21 @@ class interpreter final :
 public:
 	void interpret(const expression& expr);
 
-	interpreting_result visit_binary_expression(struct binary_expression* expression) override;
+	interpreting_result visit_binary_expression(const std::shared_ptr<binary_expression>& expression) override;
 
-	interpreting_result visit_unary_expression(struct unary_expression* expression) override;
+	interpreting_result visit_unary_expression(const std::shared_ptr<unary_expression>& expression) override;
 
-	interpreting_result visit_literal(struct literal* literal) override;
+	interpreting_result visit_literal(const std::shared_ptr<literal>& expression) override;
 
-	interpreting_result visit_grouping(struct grouping* grouping) override;
+	interpreting_result visit_grouping(const std::shared_ptr<grouping>& expression) override;
 
 private:
+	interpreting_result evaluate(const std::shared_ptr<expression> &expr);
+
 	std::string result_to_string(const interpreting_result& res);
+
+	static interpreting_result literal_value_to_interpreting_result(std::any any);
+
+	bool is_truth(interpreting_result variant_1);
 };
 }

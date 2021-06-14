@@ -35,13 +35,13 @@ class ast_printer final : public visitor<std::string>
 public:
 	std::string to_string(const expression& expr);
 
-	std::string visit_binary_expression(struct binary_expression* expression) override;
+	std::string visit_binary_expression(const std::shared_ptr<binary_expression>& expression) override;
 
-	std::string visit_unary_expression(struct unary_expression* expression) override;
+	std::string visit_unary_expression(const std::shared_ptr<unary_expression>& expression) override;
 
-	std::string visit_literal(struct literal* literal) override;
+	std::string visit_literal(const std::shared_ptr<literal>& expression) override;
 
-	std::string visit_grouping(struct grouping* grouping) override;
+	std::string visit_grouping(const std::shared_ptr<grouping>& expression) override;
 
 private:
 	std::string parenthesize(const std::string& name, std::initializer_list<expression*> exprs);

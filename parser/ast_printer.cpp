@@ -33,19 +33,19 @@ using namespace std;
 using namespace clox::parsing;
 using namespace clox::scanning;
 
-std::string clox::parsing::ast_printer::visit_binary_expression(clox::parsing::binary_expression* e)
+std::string clox::parsing::ast_printer::visit_binary_expression(const std::shared_ptr<binary_expression>& e)
 {
 	return parenthesize(any_cast<token>(e->get_op()).lexeme(),
 			{ e->get_left().get(), e->get_right().get() });
 }
 
-std::string clox::parsing::ast_printer::visit_unary_expression(clox::parsing::unary_expression* e)
+std::string clox::parsing::ast_printer::visit_unary_expression(const std::shared_ptr<unary_expression>& e)
 {
 	return parenthesize(any_cast<token>(e->get_op()).lexeme(),
 			{ e->get_right().get() });
 }
 
-std::string clox::parsing::ast_printer::visit_literal(clox::parsing::literal* literal)
+std::string clox::parsing::ast_printer::visit_literal(const std::shared_ptr<literal>& literal)
 {
 	if (literal->get_value().type() == typeid(nil_value_tag))
 	{
@@ -55,9 +55,9 @@ std::string clox::parsing::ast_printer::visit_literal(clox::parsing::literal* li
 	return std::format("<literal>({}={})", literal->get_value().type().name());
 }
 
-std::string clox::parsing::ast_printer::visit_grouping(clox::parsing::grouping* grouping)
+std::string clox::parsing::ast_printer::visit_grouping(const std::shared_ptr<grouping>& grouping)
 {
-	return parenthesize("group", { grouping });
+	return parenthesize("group", { grouping.get() });
 }
 
 std::string ast_printer::to_string(const expression& expr)
