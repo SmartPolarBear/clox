@@ -23,10 +23,9 @@
 
 #include "parser/gen/parser_classes.inc"
 #include "parser_error.h"
-#include <parser/nil_value.h>
+#include <scanner/nil_value.h>
 
 #include "helper/parameter_pack.h"
-
 #include <concepts>
 #include <memory>
 
@@ -34,6 +33,7 @@
 namespace clox::parsing
 {
 
+using literal_value_type = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
 
 
 class parser final

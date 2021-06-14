@@ -25,7 +25,7 @@
 #pragma once
 
 #include <parser/gen/parser_classes.inc>
-#include <parser/nil_value.h>
+#include <scanner/nil_value.h>
 
 #include <variant>
 #include <string>
@@ -33,12 +33,14 @@
 namespace clox::parsing
 {
 
-using interpreting_result = std::variant<long double, bool, std::string, nil_value_tag_type>;
+using interpreting_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
 
 class interpreter final :
 		public visitor<interpreting_result>
 {
 public:
+	void interpret(const expression& expr);
+
 	interpreting_result visit_binary_expression(struct binary_expression* expression) override;
 
 	interpreting_result visit_unary_expression(struct unary_expression* expression) override;
@@ -46,5 +48,8 @@ public:
 	interpreting_result visit_literal(struct literal* literal) override;
 
 	interpreting_result visit_grouping(struct grouping* grouping) override;
+
+private:
+	std::string result_to_string(const interpreting_result& res);
 };
 }

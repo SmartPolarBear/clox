@@ -38,10 +38,19 @@ clox::parsing::interpreter::visit_unary_expression(clox::parsing::unary_expressi
 
 clox::parsing::interpreting_result clox::parsing::interpreter::visit_literal(clox::parsing::literal* literal)
 {
-	return clox::parsing::interpreting_result();
 }
 
 clox::parsing::interpreting_result clox::parsing::interpreter::visit_grouping(clox::parsing::grouping* grouping)
 {
 	return clox::parsing::interpreting_result();
+}
+
+std::string clox::parsing::interpreter::result_to_string(const clox::parsing::interpreting_result& res)
+{
+	return std::string();
+}
+
+void clox::parsing::interpreter::interpret(const clox::parsing::expression& expr)
+{
+
 }

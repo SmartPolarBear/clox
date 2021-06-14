@@ -2,8 +2,11 @@
 
 #include <scanner/scanner.h>
 
-#include <parser/gen/parser_classes.inc>
 #include <parser/gen/parser_base.inc>
+#include <scanner/nil_value.h>
+
+#include <variant>
+
 
 namespace clox::parsing
 {

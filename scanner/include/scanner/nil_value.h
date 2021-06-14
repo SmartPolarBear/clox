@@ -23,7 +23,7 @@
 //
 #pragma once
 
-namespace clox::parsing
+namespace clox::scanning
 {
 struct nil_value_tag_type
 {
