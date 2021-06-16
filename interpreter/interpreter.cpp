@@ -24,9 +24,14 @@
 
 #include "include/interpreter/interpreter.h"
 
+#include "include/interpreter/runtime_error.h"
+
+#include <utility>
+
 using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
+using namespace clox::interpreting;
 
 clox::interpreting::interpreting_result
 clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
@@ -37,15 +42,20 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	switch (be->get_op().type())
 	{
 	case scanning::token_type::GREATER:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) > get<long double>(right);
 	case scanning::token_type::GREATER_EQUAL:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) >= get<long double>(right);
 	case scanning::token_type::LESS:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) < get<long double>(right);
 	case scanning::token_type::LESS_EQUAL:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) <= get<long double>(right);
 
 	case scanning::token_type::MINUS:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) - get<long double>(right);
 	case scanning::token_type::PLUS:
 		if (holds_alternative<long double>(left) && holds_alternative<long double>(right))
@@ -56,10 +66,13 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 		{
 			return get<string>(left) + get<string>(right);
 		}
-		break;
+
+		throw clox::interpreting::runtime_error(be->get_op(), "Operands should be strings or numbers.");
 	case scanning::token_type::SLASH:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) / get<long double>(right);
 	case scanning::token_type::STAR:
+		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) * get<long double>(right);
 
 
@@ -98,12 +111,14 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	return nil_value_tag;
 }
 
-clox::interpreting::interpreting_result clox::interpreting::interpreter::visit_literal(const std::shared_ptr<literal>& literal)
+clox::interpreting::interpreting_result
+clox::interpreting::interpreter::visit_literal(const std::shared_ptr<literal>& literal)
 {
 	return interpreter::literal_value_to_interpreting_result(literal->get_value());
 }
 
-clox::interpreting::interpreting_result clox::interpreting::interpreter::visit_grouping(const std::shared_ptr<grouping>& grouping)
+clox::interpreting::interpreting_result
+clox::interpreting::interpreter::visit_grouping(const std::shared_ptr<grouping>& grouping)
 {
 	return evaluate(grouping->get_expr());
 }
@@ -118,7 +133,8 @@ void clox::interpreting::interpreter::interpret(const expression& expr)
 
 }
 
-clox::interpreting::interpreting_result clox::interpreting::interpreter::literal_value_to_interpreting_result(std::any any)
+clox::interpreting::interpreting_result
+clox::interpreting::interpreter::literal_value_to_interpreting_result(std::any any)
 {
 	if (any.type() == typeid(long double))
 	{
@@ -157,7 +173,8 @@ bool clox::interpreting::interpreter::is_truth(clox::interpreting::interpreting_
 }
 
 bool
-clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_result lhs, clox::interpreting::interpreting_result rhs)
+clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_result lhs,
+		clox::interpreting::interpreting_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
 	{
@@ -183,4 +200,12 @@ clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_resul
 
 	//FIXME :error?
 	return false;
+}
+
+void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::interpreting_result& l,
+		const clox::interpreting::interpreting_result& r)
+{
+	if (holds_alternative<long double>(l) && holds_alternative<long double>(r))return;
+
+	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }

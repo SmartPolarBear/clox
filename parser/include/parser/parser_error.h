@@ -33,21 +33,19 @@
 namespace clox::parsing
 {
 
-class runtime_error final
+class parse_error final
 		: public std::runtime_error
 {
 public:
-	runtime_error() = default;
+	parse_error() = default;
 
-	runtime_error(scanning::token tk, const std::string& msg)
-			: tk_(std::move(tk)), std::runtime_error(msg)
+	parse_error(const std::string& msg)
+			: std::runtime_error(msg)
 	{
 	}
 
-	~runtime_error() = default;
+	~parse_error() = default;
 
-private:
-	scanning::token tk_;
 };
 
 }

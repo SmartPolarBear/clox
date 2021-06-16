@@ -56,6 +56,8 @@ private:
 
 	std::string result_to_string(const interpreting_result& res);
 
+	static void check_numeric_operands(scanning::token,const interpreting_result& l,const interpreting_result& r);
+
 	static interpreting_result literal_value_to_interpreting_result(std::any any);
 
 	static bool is_equal(interpreting_result lhs,interpreting_result rhs);
