@@ -24,23 +24,30 @@
 
 #pragma once
 
+#include <scanner/scanner.h>
+
 #include <exception>
 #include <stdexcept>
+#include <utility>
 
 namespace clox::parsing
 {
 
-class parse_error final
+class runtime_error final
 		: public std::runtime_error
 {
 public:
-	parse_error() = default;
+	runtime_error() = default;
 
-	parse_error(std::string msg) : std::runtime_error(msg)
+	runtime_error(scanning::token tk, const std::string& msg)
+			: tk_(std::move(tk)), std::runtime_error(msg)
 	{
 	}
 
-	~parse_error() = default;
+	~runtime_error() = default;
+
+private:
+	scanning::token tk_;
 };
 
 }
