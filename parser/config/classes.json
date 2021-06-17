@@ -73,7 +73,7 @@
       ],
       "member": [
         {
-          "type": "std::any",
+          "type": "scanning::literal_value_type",
           "name": "value_"
         }
       ]

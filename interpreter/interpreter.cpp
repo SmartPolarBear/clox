@@ -22,6 +22,8 @@
 // Created by cleve on 6/14/2021.
 //
 
+#include <scanner/scanner.h>
+
 #include <interpreter/interpreter.h>
 #include <interpreter/runtime_error.h>
 
@@ -35,6 +37,7 @@ using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::interpreting;
+
 
 clox::interpreting::interpreting_result
 clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
@@ -161,27 +164,27 @@ void clox::interpreting::interpreter::interpret(const shared_ptr<expression>& ex
 }
 
 clox::interpreting::interpreting_result
-clox::interpreting::interpreter::literal_value_to_interpreting_result(std::any any)
+clox::interpreting::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
 {
-	if (any.type() == typeid(long double))
+	if (holds_alternative<long double>(value))
 	{
-		return any_cast<long double>(any);
+		return get<long double>(value);
 	}
-	else if (any.type() == typeid(bool))
+	else if (holds_alternative<bool>(value))
 	{
-		return any_cast<bool>(any);
+		return get<bool>(value);
 	}
-	else if (any.type() == typeid(std::string))
+	else if (holds_alternative<string>(value))
 	{
-		return any_cast<std::string>(any);
+		return get<std::string>(value);
 	}
-	else if (any.type() == typeid(scanning::nil_value_tag_type))
+	else if (holds_alternative<nil_value_tag_type>(value))
 	{
-		return any_cast<scanning::nil_value_tag_type>(any);
+		return get<scanning::nil_value_tag_type>(value);
 	}
 	else
 	{
-		throw invalid_argument("any");
+		throw invalid_argument("value");
 	}
 }
 

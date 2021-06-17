@@ -47,12 +47,24 @@ std::string clox::parsing::ast_printer::visit_unary_expression(const std::shared
 
 std::string clox::parsing::ast_printer::visit_literal(const std::shared_ptr<literal>& literal)
 {
-	if (literal->get_value().type() == typeid(nil_value_tag))
+	if (holds_alternative<nil_value_tag_type>(literal->get_value()))
 	{
 		return "nil";
 	}
+	else if (holds_alternative<string>(literal->get_value()))
+	{
+		return std::format("<literal>({0})={1}", "string", get<string>(literal->get_value()));
+	}
+	else if (holds_alternative<long double>(literal->get_value()))
+	{
+		return std::format("<literal>({})", get<long double>(literal->get_value()));
+	}
+	else if (holds_alternative<bool>(literal->get_value()))
+	{
+		return std::format("<literal>({})", get<bool>(literal->get_value()));
+	}
 
-	return std::format("<literal>({})", literal->get_value().type().name());
+	return std::format("<literal>({})", "Unknown");
 }
 
 std::string clox::parsing::ast_printer::visit_grouping(const std::shared_ptr<grouping>& grouping)

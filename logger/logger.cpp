@@ -35,7 +35,7 @@ bool clox::logging::logger::has_errors() const
 void clox::logging::logger::runtime_error(const clox::interpreting::runtime_error& re)
 {
 	runtime_errors_++;
-	cout << std::format("{}\n [lINE {}]", re.what(), re.token().line()) << endl;
+	cout << std::format("{}\n [Line {}]", re.what(), re.token().line()) << endl;
 }
 
 bool clox::logging::logger::has_runtime_errors() const

@@ -48,7 +48,7 @@ void scanner::add_token(token_type t)
 	add_token(t, token::empty_literal);
 }
 
-void scanner::add_token(token_type t, const std::any& literal)
+void scanner::add_token(token_type t, const literal_value_type& literal)
 {
 	tokens_.emplace_back(t, whole_lexeme(), literal, line_);
 }
@@ -99,7 +99,7 @@ void scanner::scan_string()
 
 	advance(); // eat the closing "
 
-	string val = src_.substr(start_ + 1, cur_ - start_);
+	string val = src_.substr(start_ + 1, cur_ - start_ - 2);
 
 	add_token(token_type::STRING, val);
 }

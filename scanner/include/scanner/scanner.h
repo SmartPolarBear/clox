@@ -30,10 +30,10 @@
 
 
 #include <variant>
+#include "nil_value.h"
 
 namespace clox::scanning
 {
-
 
 
 enum class token_type
@@ -62,6 +62,9 @@ struct empty_literal_tag
 {
 };
 
+using literal_value_type = std::variant<long double, bool, std::string, scanning::nil_value_tag_type, empty_literal_tag>;
+
+
 class validator final
 {
 public:
@@ -81,7 +84,7 @@ class token final
 public:
 	static inline constexpr empty_literal_tag empty_literal;
 
-	[[nodiscard]] token(token_type t, std::string lexeme, std::any lit, size_t line)
+	[[nodiscard]] token(token_type t, std::string lexeme, literal_value_type lit, size_t line)
 			: type_(t), lexeme_(std::move(lexeme)), literal_(std::move(lit)), line_(line)
 	{
 	}
@@ -105,7 +108,7 @@ public:
 		return lexeme_;
 	}
 
-	[[nodiscard]] std::any literal() const
+	[[nodiscard]] literal_value_type literal() const
 	{
 		return literal_;
 	}
@@ -118,7 +121,7 @@ public:
 private:
 	token_type type_;
 	std::string lexeme_;
-	std::any literal_;
+	literal_value_type literal_;
 	size_t line_;
 };
 
@@ -162,7 +165,7 @@ private:
 
 	void add_token(token_type t);
 
-	void add_token(token_type t, const std::any& literal);
+	void add_token(token_type t, const literal_value_type& literal);
 
 	/*can be discarded*/ char advance();
 

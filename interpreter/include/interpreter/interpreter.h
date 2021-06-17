@@ -28,6 +28,7 @@
 
 #include <parser/gen/parser_classes.inc>
 #include <scanner/nil_value.h>
+#include <scanner/scanner.h>
 
 #include <parser/parser.h>
 
@@ -65,7 +66,7 @@ private:
 
 	static void check_numeric_operands(scanning::token, const interpreting_result& l, const interpreting_result& r);
 
-	static interpreting_result literal_value_to_interpreting_result(std::any any);
+	static interpreting_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 
 	static bool is_equal(interpreting_result lhs, interpreting_result rhs);
 
