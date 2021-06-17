@@ -199,8 +199,7 @@ bool clox::interpreting::interpreter::is_truthy(clox::interpreting::interpreting
 	return true;
 }
 
-bool
-clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_result lhs,
+bool clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_result lhs,
 		clox::interpreting::interpreting_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
@@ -239,5 +238,5 @@ void clox::interpreting::interpreter::check_numeric_operands(token op, const clo
 
 std::string interpreter::bool_to_string(bool b)
 {
-	return b ? "True" : "False";
+	return b ? "true" : "false";
 }
