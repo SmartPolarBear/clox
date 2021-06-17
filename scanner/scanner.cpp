@@ -48,7 +48,7 @@ void scanner::add_token(token_type t)
 	add_token(t, token::empty_literal);
 }
 
-void scanner::add_token(token_type t, const std::any& literal)
+void scanner::add_token(token_type t, const literal_value_type& literal)
 {
 	tokens_.emplace_back(t, whole_lexeme(), literal, line_);
 }

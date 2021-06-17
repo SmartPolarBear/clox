@@ -15,7 +15,7 @@
 #include <sstream>
 
 
-//#define AST_PRINTING
+#define AST_PRINTING
 
 using namespace std;
 

@@ -33,8 +33,6 @@
 namespace clox::parsing
 {
 
-using literal_value_type = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
-
 
 class parser final
 {
