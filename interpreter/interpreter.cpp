@@ -136,7 +136,7 @@ std::string clox::interpreting::interpreter::result_to_string(const clox::interp
 	}
 	else if (holds_alternative<bool>(res))
 	{
-		return bool_to_string(get<bool>(res));
+		return string{ bool_to_string(get<bool>(res)) };
 	}
 	else if (holds_alternative<string>(res))
 	{
@@ -236,7 +236,7 @@ void clox::interpreting::interpreter::check_numeric_operands(token op, const clo
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }
 
-std::string interpreter::bool_to_string(bool b)
+constexpr std::string_view interpreter::bool_to_string(bool b)
 {
 	return b ? "true" : "false";
 }

@@ -61,7 +61,7 @@ private:
 
 	static std::string result_to_string(const interpreting_result& res);
 
-	static std::string bool_to_string(bool b);
+	static constexpr std::string_view bool_to_string(bool b);
 
 	static void check_numeric_operands(scanning::token, const interpreting_result& l, const interpreting_result& r);
 
