@@ -7,17 +7,22 @@
 
 #include <logger/logger.h>
 
+#include <interpreter/interpreter.h>
+
 #include <utility>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 
+//#define AST_PRINTING
+
 using namespace std;
 
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::logging;
+using namespace clox::interpreting;
 
 static inline int run(string code)
 {
@@ -29,8 +34,12 @@ static inline int run(string code)
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
+#ifdef AST_PRINTING
 	ast_printer pt{};
 	cout << pt.to_string(*expr) << endl;
+#else
+	interpreter::instance().interpret(expr);
+#endif
 
 	return 0;
 }

@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <base.h>
+
 #include <parser/gen/parser_classes.inc>
 #include <scanner/nil_value.h>
 
@@ -38,9 +40,12 @@ namespace clox::interpreting
 using interpreting_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
 
 class interpreter final :
-		public parsing::visitor<interpreting_result>
+		public parsing::visitor<interpreting_result>,
+		public base::singleton<interpreter>
 {
 public:
+
+
 	void interpret(const std::shared_ptr<parsing::expression>& expr);
 
 	interpreting_result visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expression) override;
@@ -52,16 +57,18 @@ public:
 	interpreting_result visit_grouping(const std::shared_ptr<parsing::grouping>& expression) override;
 
 private:
-	interpreting_result evaluate(const std::shared_ptr<parsing::expression> &expr);
+	interpreting_result evaluate(const std::shared_ptr<parsing::expression>& expr);
 
-	std::string result_to_string(const interpreting_result& res);
+	static std::string result_to_string(const interpreting_result& res);
 
-	static void check_numeric_operands(scanning::token,const interpreting_result& l,const interpreting_result& r);
+	static std::string bool_to_string(bool b);
+
+	static void check_numeric_operands(scanning::token, const interpreting_result& l, const interpreting_result& r);
 
 	static interpreting_result literal_value_to_interpreting_result(std::any any);
 
-	static bool is_equal(interpreting_result lhs,interpreting_result rhs);
+	static bool is_equal(interpreting_result lhs, interpreting_result rhs);
 
-	static bool is_truth(interpreting_result res);
+	static bool is_truthy(interpreting_result res);
 };
 }

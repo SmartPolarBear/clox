@@ -104,7 +104,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 		return -get<long double>(right);
 		break;
 	case scanning::token_type::BANG:
-		return !is_truth(right);
+		return !is_truthy(right);
 	default:
 		//TODO: ERROR?
 		break;
@@ -136,7 +136,7 @@ std::string clox::interpreting::interpreter::result_to_string(const clox::interp
 	}
 	else if (holds_alternative<bool>(res))
 	{
-		return std::to_string(get<bool>(res));
+		return bool_to_string(get<bool>(res));
 	}
 	else if (holds_alternative<string>(res))
 	{
@@ -191,7 +191,7 @@ clox::interpreting::interpreting_result clox::interpreting::interpreter::evaluat
 }
 
 
-bool clox::interpreting::interpreter::is_truth(clox::interpreting::interpreting_result e)
+bool clox::interpreting::interpreter::is_truthy(clox::interpreting::interpreting_result e)
 {
 	// Ruby’s rule: false and nil are false, and everything else is truthy
 	if (holds_alternative<nil_value_tag_type>(e))return false;
@@ -235,4 +235,9 @@ void clox::interpreting::interpreter::check_numeric_operands(token op, const clo
 	if (holds_alternative<long double>(l) && holds_alternative<long double>(r))return;
 
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
+}
+
+std::string interpreter::bool_to_string(bool b)
+{
+	return b ? "True" : "False";
 }

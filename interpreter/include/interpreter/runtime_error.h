@@ -21,7 +21,7 @@
 //
 // Created by cleve on 6/16/2021.
 //
-
+#pragma once
 #include <stdexcept>
 
 namespace clox::interpreting
