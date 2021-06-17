@@ -26,7 +26,8 @@ static inline int run(string code)
 
 	auto expr = ps.parse();
 
-	if (logger::instance().has_errors())return 1;
+	if (logger::instance().has_errors())return 65;
+	else if (logger::instance().has_runtime_errors())return 67;
 
 	ast_printer pt{};
 	cout << pt.to_string(*expr) << endl;

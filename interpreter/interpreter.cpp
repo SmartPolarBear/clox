@@ -22,9 +22,12 @@
 // Created by cleve on 6/14/2021.
 //
 
-#include "include/interpreter/interpreter.h"
+#include <interpreter/interpreter.h>
+#include <interpreter/runtime_error.h>
 
-#include "include/interpreter/runtime_error.h"
+#include <logger/logger.h>
+
+#include <iostream>
 
 #include <utility>
 
@@ -125,12 +128,36 @@ clox::interpreting::interpreter::visit_grouping(const std::shared_ptr<grouping>&
 
 std::string clox::interpreting::interpreter::result_to_string(const clox::interpreting::interpreting_result& res)
 {
-	return std::string();
+	if (holds_alternative<nil_value_tag_type>(res))return "nil";
+
+	if (holds_alternative<long double>(res))
+	{
+		return std::to_string(get<long double>(res));
+	}
+	else if (holds_alternative<bool>(res))
+	{
+		return std::to_string(get<bool>(res));
+	}
+	else if (holds_alternative<string>(res))
+	{
+		return get<string>(res);
+	}
+
+	// FIXME: error?
+	return "";
 }
 
-void clox::interpreting::interpreter::interpret(const expression& expr)
+void clox::interpreting::interpreter::interpret(const shared_ptr<expression>& expr)
 {
-
+	try
+	{
+		auto val = evaluate(expr);
+		cout << result_to_string(val) << endl;
+	}
+	catch (const clox::interpreting::runtime_error& re)
+	{
+		clox::logging::logger::instance().runtime_error(re);
+	}
 }
 
 clox::interpreting::interpreting_result
@@ -160,7 +187,7 @@ clox::interpreting::interpreter::literal_value_to_interpreting_result(std::any a
 
 clox::interpreting::interpreting_result clox::interpreting::interpreter::evaluate(const shared_ptr<expression>& expr)
 {
-	return clox::interpreting::interpreting_result();
+	return accept(*expr, *this);
 }
 
 

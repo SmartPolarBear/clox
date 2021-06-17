@@ -22,6 +22,7 @@ add_subdirectory(logger)
 add_subdirectory(scanner)
 add_subdirectory(parser)
 add_subdirectory(helper)
+add_subdirectory(interpreter)
 
 target_link_libraries(clox
         PUBLIC GSL

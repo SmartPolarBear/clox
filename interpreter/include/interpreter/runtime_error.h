@@ -22,23 +22,30 @@
 // Created by cleve on 6/16/2021.
 //
 
+#include <stdexcept>
+
 namespace clox::interpreting
 {
 class runtime_error final
 		: public std::runtime_error
-		{
-		public:
-			runtime_error() = default;
+{
+public:
+	runtime_error() = default;
 
-			runtime_error(scanning::token tk, const std::string& msg)
+	runtime_error(scanning::token tk, const std::string& msg)
 			: tk_(std::move(tk)), std::runtime_error(msg)
-			{
-			}
+	{
+	}
 
-			~runtime_error() = default;
+	~runtime_error() = default;
 
-		private:
-			scanning::token tk_;
-		};
+	[[nodiscard]]scanning::token token() const
+	{
+		return tk_;
+	}
+
+private:
+	scanning::token tk_;
+};
 
 }

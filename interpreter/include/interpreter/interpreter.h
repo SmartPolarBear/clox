@@ -41,7 +41,7 @@ class interpreter final :
 		public parsing::visitor<interpreting_result>
 {
 public:
-	void interpret(const parsing::expression& expr);
+	void interpret(const std::shared_ptr<parsing::expression>& expr);
 
 	interpreting_result visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expression) override;
 

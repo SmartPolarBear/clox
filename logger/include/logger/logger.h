@@ -4,6 +4,8 @@
 
 #include "scanner/scanner.h"
 
+#include <interpreter/runtime_error.h>
+
 #include <string>
 
 namespace clox::logging
@@ -16,9 +18,14 @@ public:
 
 	void error(scanning::token token, std::string msg);
 
-	[[nodiscard]] bool has_errors()const;
+	void runtime_error(const interpreting::runtime_error &re);
+
+	[[nodiscard]] bool has_errors() const;
+
+	[[nodiscard]] bool has_runtime_errors() const;
 
 private:
 	size_t errors_{ 0 };
+	size_t runtime_errors_{ 0 };
 };
 }
