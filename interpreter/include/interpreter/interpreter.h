@@ -27,6 +27,7 @@
 #include <base.h>
 
 #include <parser/gen/parser_classes.inc>
+
 #include <scanner/nil_value.h>
 #include <scanner/scanner.h>
 
@@ -38,38 +39,46 @@
 namespace clox::interpreting
 {
 
-using interpreting_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
+using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
+
 
 class interpreter final :
-		public parsing::expression_visitor<interpreting_result>,
+		virtual parsing::expression_visitor<evaluating_result>,
+		virtual parsing::statement_visitor<void>,
 		public base::singleton<interpreter>
 {
 public:
+	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
+	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
 
-	void interpret(const std::shared_ptr<parsing::expression>& expr);
+	void interpret(std::vector<std::shared_ptr<parsing::statement>>&& stmts);
 
-	interpreting_result visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expression) override;
+	evaluating_result visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expression) override;
 
-	interpreting_result visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& expression) override;
+	evaluating_result visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& expression) override;
 
-	interpreting_result visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression) override;
+	evaluating_result
+	visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression) override;
 
-	interpreting_result visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression) override;
+	evaluating_result
+	visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression) override;
 
 private:
-	interpreting_result evaluate(const std::shared_ptr<parsing::expression>& expr);
+	void execute(const std::shared_ptr<parsing::statement> &s);
 
-	static std::string result_to_string(const interpreting_result& res);
+	evaluating_result evaluate(const std::shared_ptr<parsing::expression>& expr);
+
+	static std::string result_to_string(const evaluating_result& res);
 
 	static constexpr std::string_view bool_to_string(bool b);
 
-	static void check_numeric_operands(scanning::token, const interpreting_result& l, const interpreting_result& r);
+	static void check_numeric_operands(scanning::token, const evaluating_result& l, const evaluating_result& r);
 
-	static interpreting_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
+	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 
-	static bool is_equal(interpreting_result lhs, interpreting_result rhs);
+	static bool is_equal(evaluating_result lhs, evaluating_result rhs);
 
-	static bool is_truthy(interpreting_result res);
+	static bool is_truthy(evaluating_result res);
 };
 }

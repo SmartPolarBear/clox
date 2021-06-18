@@ -29,6 +29,7 @@
 
 #include <concepts>
 #include <memory>
+#include <vector>
 
 
 namespace clox::parsing
@@ -45,9 +46,15 @@ public:
 	{
 	}
 
-	std::shared_ptr<expression> parse();
+	std::vector<std::shared_ptr<statement>> parse();
 
 private:
+	std::shared_ptr<statement> stmt();
+
+	std::shared_ptr<statement> print_stmt();
+
+	std::shared_ptr<statement> expr_stmt();
+
 	/// expr -> equality
 	/// \return
 	std::shared_ptr<expression> expr();

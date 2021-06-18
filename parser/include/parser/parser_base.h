@@ -21,12 +21,18 @@
 //
 // Created by cleve on 6/18/2021.
 //
-
 #pragma once
+
+#include <parser/gen/parser_classes.inc>
 
 namespace clox::parsing
 {
-class statement : public parser_class_base
+class parser_class_base
 {
+public:
+	[[nodiscard]] virtual parser_class_type get_type() const
+	{
+		return parser_class_type::PC_TYPE_invalid;
+	};
 };
 }

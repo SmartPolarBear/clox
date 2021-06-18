@@ -15,8 +15,6 @@
 #include <sstream>
 
 
-//#define AST_PRINTING
-
 using namespace std;
 
 using namespace clox::scanning;
@@ -29,17 +27,13 @@ static inline int run(string code)
 	scanner sc{ std::move(code) };
 	parser ps{ sc.scan() };
 
-	auto expr = ps.parse();
+	auto stmts = ps.parse();
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-#ifdef AST_PRINTING
-	ast_printer pt{};
-	cout << pt.to_string(*expr) << endl;
-#else
-	interpreter::instance().interpret(expr);
-#endif
+
+	interpreter::instance().interpret(std::move(stmts));
 
 	return 0;
 }

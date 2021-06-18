@@ -39,7 +39,7 @@ using namespace clox::parsing;
 using namespace clox::interpreting;
 
 
-clox::interpreting::interpreting_result
+clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
 	auto left = evaluate(be->get_left());
@@ -96,7 +96,7 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	return nil_value_tag;
 }
 
-clox::interpreting::interpreting_result
+clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
 	auto right = evaluate(ue->get_right());
@@ -117,19 +117,21 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	return nil_value_tag;
 }
 
-clox::interpreting::interpreting_result
-clox::interpreting::interpreter::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression)
+clox::interpreting::evaluating_result
+clox::interpreting::interpreter::visit_literal_expression(
+		const std::shared_ptr<parsing::literal_expression>& expression)
 {
 	return interpreter::literal_value_to_interpreting_result(expression->get_value());
 }
 
-clox::interpreting::interpreting_result
-clox::interpreting::interpreter::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression)
+clox::interpreting::evaluating_result
+clox::interpreting::interpreter::visit_grouping_expression(
+		const std::shared_ptr<parsing::grouping_expression>& expression)
 {
 	return evaluate(expression->get_expr());
 }
 
-std::string clox::interpreting::interpreter::result_to_string(const clox::interpreting::interpreting_result& res)
+std::string clox::interpreting::interpreter::result_to_string(const clox::interpreting::evaluating_result& res)
 {
 	if (holds_alternative<nil_value_tag_type>(res))return "nil";
 
@@ -150,12 +152,15 @@ std::string clox::interpreting::interpreter::result_to_string(const clox::interp
 	return "";
 }
 
-void clox::interpreting::interpreter::interpret(const shared_ptr<expression>& expr)
+void clox::interpreting::interpreter::interpret(vector<shared_ptr<statement>>&& t_stmts)
 {
+	auto stmts = t_stmts;
 	try
 	{
-		auto val = evaluate(expr);
-		cout << result_to_string(val) << endl;
+		for (const auto& s:stmts)
+		{
+			execute(s);
+		}
 	}
 	catch (const clox::interpreting::runtime_error& re)
 	{
@@ -163,7 +168,7 @@ void clox::interpreting::interpreter::interpret(const shared_ptr<expression>& ex
 	}
 }
 
-clox::interpreting::interpreting_result
+clox::interpreting::evaluating_result
 clox::interpreting::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
 {
 	if (holds_alternative<long double>(value))
@@ -188,13 +193,13 @@ clox::interpreting::interpreter::literal_value_to_interpreting_result(const lite
 	}
 }
 
-clox::interpreting::interpreting_result clox::interpreting::interpreter::evaluate(const shared_ptr<expression>& expr)
+clox::interpreting::evaluating_result clox::interpreting::interpreter::evaluate(const shared_ptr<expression>& expr)
 {
-	return accept(*expr, *this);
+	return accept(*expr, *dynamic_cast<expression_visitor<evaluating_result>*>(this));
 }
 
 
-bool clox::interpreting::interpreter::is_truthy(clox::interpreting::interpreting_result e)
+bool clox::interpreting::interpreter::is_truthy(clox::interpreting::evaluating_result e)
 {
 	// Ruby’s rule: false and nil are false, and everything else is truthy
 	if (holds_alternative<nil_value_tag_type>(e))return false;
@@ -202,8 +207,8 @@ bool clox::interpreting::interpreter::is_truthy(clox::interpreting::interpreting
 	return true;
 }
 
-bool clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_result lhs,
-		clox::interpreting::interpreting_result rhs)
+bool clox::interpreting::interpreter::is_equal(clox::interpreting::evaluating_result lhs,
+		clox::interpreting::evaluating_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
 	{
@@ -231,8 +236,8 @@ bool clox::interpreting::interpreter::is_equal(clox::interpreting::interpreting_
 	return false;
 }
 
-void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::interpreting_result& l,
-		const clox::interpreting::interpreting_result& r)
+void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::evaluating_result& l,
+		const clox::interpreting::evaluating_result& r)
 {
 	if (holds_alternative<long double>(l) && holds_alternative<long double>(r))return;
 
@@ -243,3 +248,21 @@ constexpr std::string_view interpreter::bool_to_string(bool b)
 {
 	return b ? "true" : "false";
 }
+
+void interpreter::visit_expression_statement(const shared_ptr<parsing::expression_statement>& es)
+{
+	evaluate(es->get_expr());
+}
+
+void interpreter::visit_print_statement(const shared_ptr<parsing::print_statement>& ps)
+{
+	auto val = evaluate(ps->get_expr());
+	cout << result_to_string(val) << endl;
+}
+
+void interpreter::execute(const shared_ptr<parsing::statement>& s)
+{
+	accept(*s, *dynamic_cast<statement_visitor<void>*>(this));
+}
+
+
