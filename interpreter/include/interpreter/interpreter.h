@@ -41,7 +41,7 @@ namespace clox::interpreting
 using interpreting_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
 
 class interpreter final :
-		public parsing::visitor<interpreting_result>,
+		public parsing::expression_visitor<interpreting_result>,
 		public base::singleton<interpreter>
 {
 public:
@@ -53,9 +53,9 @@ public:
 
 	interpreting_result visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& expression) override;
 
-	interpreting_result visit_literal(const std::shared_ptr<parsing::literal>& expression) override;
+	interpreting_result visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression) override;
 
-	interpreting_result visit_grouping(const std::shared_ptr<parsing::grouping>& expression) override;
+	interpreting_result visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression) override;
 
 private:
 	interpreting_result evaluate(const std::shared_ptr<parsing::expression>& expr);

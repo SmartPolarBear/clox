@@ -19,32 +19,19 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/9/2021.
+// Created by cleve on 6/18/2021.
 //
 
 #pragma once
 
-#include <parser/gen/parser_classes.inc>
-
-#include <string>
-
 namespace clox::parsing
 {
-class ast_printer final : public expression_visitor<std::string>
+class statement
 {
 public:
-	std::string to_string(const expression& expr);
-
-	std::string visit_binary_expression(const std::shared_ptr<binary_expression>& expression) override;
-
-	std::string visit_unary_expression(const std::shared_ptr<unary_expression>& expression) override;
-
-	std::string visit_literal_expression(const std::shared_ptr<literal_expression>& expression) override;
-
-	std::string visit_grouping_expression(const std::shared_ptr<grouping_expression>& expression) override;
-
-private:
-	std::string parenthesize(const std::string& name, std::initializer_list<expression*> exprs);
-
+	[[nodiscard]] virtual parser_class_type get_type() const
+	{
+		return parser_class_type::PC_TYPE_invalid;
+	};
 };
 }

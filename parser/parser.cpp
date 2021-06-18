@@ -110,21 +110,21 @@ std::shared_ptr<expression> parser::unary()
 
 std::shared_ptr<expression> parser::primary()
 {
-	if (match({ token_type::FALSE }))return make_shared<literal>(false);
-	if (match({ token_type::TRUE }))return make_shared<literal>(true);
-	if (match({ token_type::NIL }))return make_shared<literal>(nil_value_tag);
+	if (match({ token_type::FALSE }))return make_shared<literal_expression>(false);
+	if (match({ token_type::TRUE }))return make_shared<literal_expression>(true);
+	if (match({ token_type::NIL }))return make_shared<literal_expression>(nil_value_tag);
 
 	if (match({ token_type::NUMBER, token_type::STRING }))
 	{
-		return make_shared<literal>(previous().literal());
+		return make_shared<literal_expression>(previous().literal());
 	}
 
 	if (match({ token_type::LEFT_PAREN }))
 	{
 		auto expr = make_shared<expression>();
-		// TODO:
+		consume(scanning::token_type::RIGHT_PAREN, "')' is expected after the expression");
 
-		return make_shared<grouping>(expr);
+		return make_shared<grouping_expression>(expr);
 	}
 
 	throw error(peek(), "Expression is expected.");

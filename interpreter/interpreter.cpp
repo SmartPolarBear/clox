@@ -118,15 +118,15 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 }
 
 clox::interpreting::interpreting_result
-clox::interpreting::interpreter::visit_literal(const std::shared_ptr<literal>& literal)
+clox::interpreting::interpreter::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression)
 {
-	return interpreter::literal_value_to_interpreting_result(literal->get_value());
+	return interpreter::literal_value_to_interpreting_result(expression->get_value());
 }
 
 clox::interpreting::interpreting_result
-clox::interpreting::interpreter::visit_grouping(const std::shared_ptr<grouping>& grouping)
+clox::interpreting::interpreter::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression)
 {
-	return evaluate(grouping->get_expr());
+	return evaluate(expression->get_expr());
 }
 
 std::string clox::interpreting::interpreter::result_to_string(const clox::interpreting::interpreting_result& res)

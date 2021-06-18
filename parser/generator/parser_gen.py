@@ -23,33 +23,7 @@ def visitor_method_of(name: str) -> str:
     return "visit_{0}".format(name)
 
 
-class BaseClass:
-    __name: str
-    __accessibility: str
-    __crtp: bool = False
-
-    def __init__(self, name: str, acc: str, crtp: bool):
-        self.__name = name
-        self.__accessibility = acc
-        self.__crtp = crtp
-
-    @property
-    def crtp(self) -> bool:
-        return self.__crtp
-
-    @property
-    def string(self):
-        return "{} {}".format(self.__accessibility, self.__name)
-
-    def string_crtp(self, crtp_param: str = ""):
-        if not self.__crtp and len(crtp_param) != 0:
-            raise RuntimeError("Not a CRTP base, but CRTP parameter is provided")
-
-        return "{} {}<{}>".format(self.__accessibility, self.__name, crtp_param)
-
-
 class IncludeHeader:
-    __name: str
 
     def __init__(self, name: str):
         self.__name = name
@@ -60,8 +34,6 @@ class IncludeHeader:
 
 
 class ParserClassMemberDef:
-    __type: str
-    __name: str
 
     def __init__(self, _name: str, _type: str):
         self.__name = _name
@@ -85,7 +57,6 @@ class ParserClassMemberDef:
 
 
 class ParserClassConstructorDef:
-    __def: str
 
     def __init__(self, __name: str, members_: dict):
         self.__def = "[[nodiscard]] explicit {0}(".format(__name)
@@ -111,11 +82,6 @@ class ParserClassConstructorDef:
 
 
 class ParserClass:
-    __name: str = ""
-    __members: list[ParserClassMemberDef] = list()
-    __parents: list[BaseClass] = list()
-
-    __ctor: ParserClassConstructorDef
 
     def __init__(self, _name: str, members_: dict, base):
         self.__name = _name
@@ -139,6 +105,19 @@ class ParserClass:
             return "shared_from_this()"
         else:
             return "this"
+
+    def __visitable_base(self):
+        for b in self.__parents:
+            if b.visitable:
+                return b
+
+        return None
+
+    def add_to_parent(self):
+        for p in self.__parents:
+            if p.visitable:
+                p.add_super(self)
+                return
 
     @property
     def name(self) -> str:
@@ -167,9 +146,12 @@ class ParserClass:
         yield "[[nodiscard]] {0} get_type()const override{{return {1};}}".format(TYPE_ENUM_NAME,
                                                                                  type_value_of(self.name))
 
-        yield "template<typename T>[[nodiscard]] T accept(visitor<T> &vis){"
-        yield "return vis.{0}({1});".format(visitor_method_of(self.name), self.__this_pointer())
-        yield "}"
+        vb = self.__visitable_base()
+        if vb is not None:
+            yield "template<typename T>[[nodiscard]] T accept({}<T> &vis){{".format(vb.visitor_name)
+
+            yield "return vis.{0}({1});".format(visitor_method_of(self.name), self.__this_pointer())
+            yield "}"
 
         yield "private:"
 
@@ -180,9 +162,10 @@ class ParserClass:
 
 
 class Visitor:
-    __classes: list[ParserClass]
 
-    def __init__(self, classes):
+    def __init__(self, name: str, base: str, classes):
+        self.__name = name
+        self.__base = base
         self.__classes = list(classes)
 
     def __pointer_type(self, name: str):
@@ -193,7 +176,7 @@ class Visitor:
 
     @property
     def primary_lines(self):
-        yield "template<typename T> class visitor{"
+        yield "template<typename T> class {}{{".format(self.__name)
         yield "public:"
 
         for c in self.__classes:
@@ -207,25 +190,70 @@ class Visitor:
 
     @property
     def accept_func(self):
-        yield "template<typename T>static inline T accept(const expression& expr,visitor<T> &vis){"
-        yield "switch(expr.get_type()){"
+        yield "template<typename T>static inline T accept(const {}& visitee,{}<T> &vis){{".format(self.__base,
+                                                                                                  self.__name)
+        yield "switch(visitee.get_type()){"
 
         for c in self.__classes:
             yield "case {}:".format(type_value_of(c.name))
 
-            yield "return (( {0} &)(expr)).accept<T>(vis);".format(c.name)
+            yield "return (( {0} &)(visitee)).accept<T>(vis);".format(c.name)
 
             yield "break;"
 
         yield "default:"
-        yield 'throw std::invalid_argument("{}");'.format("expr")
+        yield 'throw std::invalid_argument("{}");'.format("visitee")
 
         yield "}"
         yield "}"
+
+
+class BaseClass:
+
+    def __init__(self, name: str, acc: str, crtp: bool, visitable: bool, the_id: int):
+        self.__name = name
+        self.__accessibility = acc
+        self.__crtp = crtp
+        self.__visitable = visitable
+        self.__id = the_id
+        self.__super = list()
+
+    def add_super(self, cls: ParserClass):
+        self.__super.append(cls)
+
+    def get_visitor(self) -> Visitor:
+        if not self.__visitable:
+            raise RuntimeError()
+        return Visitor(self.visitor_name, self.__name, self.__super)
+
+    @property
+    def visitor_name(self):
+        return "{}_visitor".format(self.__name)
+
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def crtp(self) -> bool:
+        return self.__crtp
+
+    @property
+    def string(self):
+        return "{} {}".format(self.__accessibility, self.__name)
+
+    @property
+    def visitable(self) -> bool:
+        return self.__visitable
+
+    def string_crtp(self, crtp_param: str = ""):
+        if not self.__crtp and len(crtp_param) != 0:
+            raise RuntimeError("Not a CRTP base, but CRTP parameter is provided")
+
+        return "{} {}<{}>".format(self.__accessibility, self.__name, crtp_param)
 
 
 class ParserClassTypeEnum:
-    __classes: list[str]
 
     def __init__(self, classes):
         self.__classes = list(classes)
@@ -245,28 +273,35 @@ class ParserClassTypeEnum:
 class Namespace:
     __name: str
     __classes: list[ParserClass]
-    __visitor: Visitor
     __enum: ParserClassTypeEnum
 
-    def __init__(self, name: str, classes):
+    def __init__(self, name: str, classes: list[ParserClass]):
         self.__name = name
-        self.__classes = list(classes)
+        self.__classes = classes
         self.__enum = ParserClassTypeEnum(list(c.name for c in self.__classes))
-        self.__visitor = Visitor(self.__classes)
 
     @property
     def primary_lines(self) -> str:
+        global bases
         yield "namespace {} {{".format(self.__name)
 
-        for l1 in self.__visitor.primary_lines:
-            yield l1
+        for b in bases:
+            if b.visitable:
+                visitor = b.get_visitor()
+                for l1 in visitor.primary_lines:
+                    yield l1
 
         for c in self.__classes:
             for line in c.lines:
                 yield line
 
-        for ac in self.__visitor.accept_func:
-            yield ac
+        # for ac in self.__visitor.accept_func:
+        #     yield ac
+        for b in bases:
+            if b.visitable:
+                visitor = b.get_visitor()
+                for l1 in visitor.accept_func:
+                    yield l1
 
         yield "}"
 
@@ -277,10 +312,18 @@ class Namespace:
         for e in self.__enum.lines:
             yield e
 
-        for l1 in self.__visitor.secondary_lines:
-            yield l1
+        # for l1 in self.__visitor.secondary_lines:
+        #     yield l1
+        for b in bases:
+            if b.visitable:
+                visitor = b.get_visitor()
+                for l1 in visitor.secondary_lines:
+                    yield l1
 
         yield "}"
+
+
+bases: list[BaseClass] = list()
 
 
 def primary_include_files(args: argparse):
@@ -302,28 +345,37 @@ def secondary_include_files(args: argparse):
 
 
 def expression_classes(args: argparse):
+    global bases
+
     with open(str(args.config[0]), "r") as conf:
         conf_dict: dict = json.load(conf)
 
         expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
-        base_classes: dict = conf_dict[JSON_CLASS_BASE_NAME]
 
-        return (ParserClass(expr_cls_def["name"], expr_cls_def["member"],
-                            (BaseClass(b["name"], b["access"], b["crtp"]) for b in base_classes if
-                             b["id"] in expr_cls_def["base"]))
-                for expr_cls_def in
-                expr_classes)
+        res = list(ParserClass(expr_cls_def["name"], expr_cls_def["member"],
+                               (b for b in bases if b.id in expr_cls_def["base"]))
+                   for expr_cls_def in
+                   expr_classes)
+
+        for r in res:
+            r.add_to_parent()
+
+        return res
 
 
 def root_namespace(args: argparse):
+    global bases
+
     with open(str(args.config[0]), "r") as conf:
         conf_dict: dict = json.load(conf)
 
+        base_classes_dict: dict = conf_dict[JSON_CLASS_BASE_NAME]
+        bases = list(BaseClass(b["name"], b["access"], b["crtp"], b["visitable"], b["id"]) for b in base_classes_dict)
+
         namespace_conf: str = conf_dict[JSON_NAMESPACE_NAME]
 
-        expr_classes: dict = conf_dict[JSON_EXPR_CLASSES_NAME]
-
-        return Namespace(namespace_conf, expression_classes(args))
+        classes = expression_classes(args)
+        return Namespace(namespace_conf, classes)
 
 
 def write_back(path: str, head: list, content: list, tail: list):
@@ -345,6 +397,11 @@ def file_date_time(path: str) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(fname.stat().st_mtime)
 
 
+def check_exist(path: str) -> bool:
+    fname = pathlib.Path(path)
+    return fname.exists()
+
+
 def generate(args: argparse):
     logging.info("Head template file is {}.".format(args.head[0]))
     logging.info("Tail template file is {}.".format(args.tail[0]))
@@ -352,15 +409,16 @@ def generate(args: argparse):
     logging.info("Target primary file is {}.".format(args.primary[0]))
     logging.info("Target secondary file is {}.".format(args.secondary[0]))
 
-    config_file_time: list[datetime.datetime] = list(
-        {file_date_time(args.head[0]), file_date_time(args.tail[0]), file_date_time(args.config[0])})
-
-    primary_time = file_date_time(args.primary[0])
-    secondary_time = file_date_time(args.secondary[0])
-
-    if all(primary_time > t for t in config_file_time) and all(secondary_time > t for t in config_file_time):
-        logging.info("Everything updated.")
-        exit(0)
+    # if all({check_exist(args.primary[0]), check_exist(args.secondary[0])}):
+    #     config_file_time: list[datetime.datetime] = list(
+    #         {file_date_time(args.head[0]), file_date_time(args.tail[0]), file_date_time(args.config[0])})
+    #
+    #     primary_time = file_date_time(args.primary[0])
+    #     secondary_time = file_date_time(args.secondary[0])
+    #
+    #     if all(primary_time > t for t in config_file_time) and all(secondary_time > t for t in config_file_time):
+    #         logging.info("Everything updated.")
+    #         exit(0)
 
     head: list = list()
     head.append("#pragma once")

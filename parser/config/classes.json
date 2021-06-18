@@ -2,6 +2,7 @@
   "primary_includes": [
     "scanner/scanner.h",
     "parser/expression.h",
+    "parser/statement.h",
     "any",
     "memory",
     "stdexcept"
@@ -17,13 +18,22 @@
       "name": "expression",
       "access": "public",
       "id": 1,
-      "crtp": false
+      "crtp": false,
+      "visitable": true
     },
     {
       "name": "std::enable_shared_from_this",
       "access": "public",
       "id": 2,
-      "crtp": true
+      "crtp": true,
+      "visitable": false
+    },
+    {
+      "name": "statement",
+      "access": "public",
+      "id": 3,
+      "crtp": false,
+      "visitable": true
     }
   ],
   "expression_classes": [
@@ -66,7 +76,7 @@
       ]
     },
     {
-      "name": "literal",
+      "name": "literal_expression",
       "base": [
         1,
         2
@@ -79,10 +89,36 @@
       ]
     },
     {
-      "name": "grouping",
+      "name": "grouping_expression",
       "base": [
         1,
         2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "expr_"
+        }
+      ]
+    },
+    {
+      "name": "expression_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "expr_"
+        }
+      ]
+    },
+    {
+      "name": "print_statement",
+      "base": [
+        2,
+        3
       ],
       "member": [
         {

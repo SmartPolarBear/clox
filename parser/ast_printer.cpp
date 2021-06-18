@@ -45,7 +45,7 @@ std::string clox::parsing::ast_printer::visit_unary_expression(const std::shared
 			{ e->get_right().get() });
 }
 
-std::string clox::parsing::ast_printer::visit_literal(const std::shared_ptr<literal>& literal)
+std::string clox::parsing::ast_printer::visit_literal_expression(const std::shared_ptr<literal_expression>& literal)
 {
 	if (holds_alternative<nil_value_tag_type>(literal->get_value()))
 	{
@@ -67,9 +67,9 @@ std::string clox::parsing::ast_printer::visit_literal(const std::shared_ptr<lite
 	return std::format("<literal>({})", "Unknown");
 }
 
-std::string clox::parsing::ast_printer::visit_grouping(const std::shared_ptr<grouping>& grouping)
+std::string clox::parsing::ast_printer::visit_grouping_expression(const shared_ptr<grouping_expression>& expression)
 {
-	return parenthesize("group", { grouping.get() });
+	return parenthesize("group", { expression.get() });
 }
 
 std::string ast_printer::to_string(const expression& expr)
