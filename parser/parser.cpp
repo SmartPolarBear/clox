@@ -119,6 +119,11 @@ std::shared_ptr<expression> parser::primary()
 		return make_shared<literal_expression>(previous().literal());
 	}
 
+	if (match({ token_type::IDENTIFIER }))
+	{
+		return make_shared<var_expression>(previous());
+	}
+
 	if (match({ token_type::LEFT_PAREN }))
 	{
 		auto expr = make_shared<expression>();
@@ -169,19 +174,10 @@ void parser::synchronize()
 
 std::vector<std::shared_ptr<statement>> parser::parse()
 {
-//	try
-//	{
-//		return this->expr();
-//	}
-//	catch (const parse_error& pe)
-//	{
-//		return nullptr;
-//	}
-
 	vector<shared_ptr<statement>> stmts{};
 	while (!is_end())
 	{
-		stmts.push_back(stmt());
+		stmts.push_back(declaration());
 	}
 
 	return stmts;
@@ -210,4 +206,36 @@ std::shared_ptr<statement> parser::expr_stmt()
 	auto e = expr();
 	consume(token_type::SEMICOLON, "';' is expected after a value.");
 	return make_shared<expression_statement>(e);
+}
+
+std::shared_ptr<statement> parser::declaration()
+{
+	try
+	{
+		if (match({ token_type::VAR }))
+		{
+			return var_declaration();
+		}
+
+		return stmt();
+	}
+	catch (const parse_error& pe)
+	{
+		synchronize();
+		return nullptr;
+	}
+}
+
+std::shared_ptr<statement> parser::var_declaration()
+{
+	auto name = consume(token_type::IDENTIFIER, "Variable name is expected.");
+
+	decltype(expr()) initializer = nullptr;
+	if (match({ token_type::EQUAL }))
+	{
+		initializer = expr();
+	}
+
+	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
+	return make_shared<variable_statement>(name, initializer);
 }

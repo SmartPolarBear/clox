@@ -83,6 +83,10 @@ private:
 	/// \return
 	std::shared_ptr<expression> primary();
 
+	std::shared_ptr<statement> declaration();
+
+	std::shared_ptr<statement> var_declaration();
+
 	void synchronize();
 
 	token consume(scanning::token_type t, std::string msg);
