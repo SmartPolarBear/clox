@@ -21,11 +21,12 @@
 
 #pragma once
 
-#include "parser/gen/parser_classes.inc"
-#include "parser_error.h"
+#include <parser/gen/parser_classes.inc>
+#include <parser/parser_error.h>
 #include <scanner/nil_value.h>
 
-#include "helper/parameter_pack.h"
+#include <helper/parameter_pack.h>
+
 #include <concepts>
 #include <memory>
 
@@ -47,18 +48,32 @@ public:
 	std::shared_ptr<expression> parse();
 
 private:
+	/// expr -> equality
+	/// \return
 	std::shared_ptr<expression> expr();
 
+	/// equality -> comparison ( ( "!=" | "==" ) comparison )*
+	/// \return
 	std::shared_ptr<expression> equality();
 
+	/// comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
+	/// \return
 	std::shared_ptr<expression> comparison();
 
+	/// term -> factor ( ( "-" | "+" ) factor )*
+	/// \return
 	std::shared_ptr<expression> term();
 
+	/// factor -> unary ( ( "/" | "*" ) unary )*
+	/// \return
 	std::shared_ptr<expression> factor();
 
+	/// unary -> ( "!" | "-" ) unary|primary ;
+	/// \return
 	std::shared_ptr<expression> unary();
 
+	/// primary -> NUMBER|STRING|"true"|"false"|"nil"|"(" expr ")"
+	/// \return
 	std::shared_ptr<expression> primary();
 
 	void synchronize();
