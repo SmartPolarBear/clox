@@ -409,16 +409,16 @@ def generate(args: argparse):
     logging.info("Target primary file is {}.".format(args.primary[0]))
     logging.info("Target secondary file is {}.".format(args.secondary[0]))
 
-    # if all({check_exist(args.primary[0]), check_exist(args.secondary[0])}):
-    #     config_file_time: list[datetime.datetime] = list(
-    #         {file_date_time(args.head[0]), file_date_time(args.tail[0]), file_date_time(args.config[0])})
-    #
-    #     primary_time = file_date_time(args.primary[0])
-    #     secondary_time = file_date_time(args.secondary[0])
-    #
-    #     if all(primary_time > t for t in config_file_time) and all(secondary_time > t for t in config_file_time):
-    #         logging.info("Everything updated.")
-    #         exit(0)
+    if all({check_exist(args.primary[0]), check_exist(args.secondary[0])}):
+        config_file_time: list[datetime.datetime] = list(
+            {file_date_time(args.head[0]), file_date_time(args.tail[0]), file_date_time(args.config[0])})
+
+        primary_time = file_date_time(args.primary[0])
+        secondary_time = file_date_time(args.secondary[0])
+
+        if all(primary_time > t for t in config_file_time) and all(secondary_time > t for t in config_file_time):
+            logging.info("Everything updated.")
+            exit(0)
 
     head: list = list()
     head.append("#pragma once")
