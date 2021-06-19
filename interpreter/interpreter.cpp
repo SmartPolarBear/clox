@@ -30,7 +30,7 @@
 #include <logger/logger.h>
 
 #include <iostream>
-
+#include <format>
 #include <utility>
 
 using namespace std;
@@ -263,6 +263,28 @@ void interpreter::visit_print_statement(const shared_ptr<parsing::print_statemen
 void interpreter::execute(const shared_ptr<parsing::statement>& s)
 {
 	accept(*s, *dynamic_cast<statement_visitor<void>*>(this));
+}
+
+evaluating_result interpreter::visit_var_expression(const std::shared_ptr<var_expression>& e)
+{
+	auto opt_val = environment_->get(e->get_name());
+	if (opt_val.has_value())
+	{
+		return *opt_val;
+	}
+
+	throw runtime_error{ e->get_name(), std::format("Undefined variable '{}'.", e->get_name().lexeme()) };
+}
+
+void interpreter::visit_variable_statement(const std::shared_ptr<variable_statement>& stmt)
+{
+	decltype(evaluate(stmt->get_initializer())) value{};
+	if (stmt->get_initializer())
+	{
+		value = evaluate(stmt->get_initializer());
+	}
+
+	environment_->put(stmt->get_name().lexeme(), value);
 }
 
 

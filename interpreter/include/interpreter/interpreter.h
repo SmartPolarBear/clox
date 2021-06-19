@@ -28,6 +28,9 @@
 
 #include <parser/gen/parser_classes.inc>
 
+#include <interpreter/evaluating_result.h>
+#include <interpreter/environment.h>
+
 #include <scanner/nil_value.h>
 #include <scanner/scanner.h>
 
@@ -38,19 +41,24 @@
 
 namespace clox::interpreting
 {
-
-using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
-
-
 class interpreter final :
 		virtual parsing::expression_visitor<evaluating_result>,
 		virtual parsing::statement_visitor<void>,
 		public base::singleton<interpreter>
 {
 public:
+	interpreter() : expression_visitor<evaluating_result>(),
+					parsing::statement_visitor<void>(),
+					base::singleton<interpreter>(),
+					environment_(std::make_unique<environment>())
+	{
+	}
+
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
+
+	void visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& ptr) override;
 
 	void interpret(std::vector<std::shared_ptr<parsing::statement>>&& stmts);
 
@@ -64,8 +72,11 @@ public:
 	evaluating_result
 	visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression) override;
 
+	evaluating_result
+	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
+
 private:
-	void execute(const std::shared_ptr<parsing::statement> &s);
+	void execute(const std::shared_ptr<parsing::statement>& s);
 
 	evaluating_result evaluate(const std::shared_ptr<parsing::expression>& expr);
 
@@ -80,5 +91,7 @@ private:
 	static bool is_equal(evaluating_result lhs, evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
+	std::unique_ptr<environment> environment_{ nullptr };
 };
 }
