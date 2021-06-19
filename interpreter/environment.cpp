@@ -31,7 +31,7 @@ using namespace clox::interpreting;
 
 std::optional<evaluating_result> clox::interpreting::environment::get(const clox::scanning::token& name)
 {
-	if (!values_.contains(name.lexeme()))
+	if (values_.contains(name.lexeme()))
 	{
 		return values_.at(name.lexeme());
 	}
