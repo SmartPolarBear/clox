@@ -38,6 +38,23 @@
   ],
   "expression_classes": [
     {
+      "name": "assignment_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "name_"
+        },
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "value_"
+        }
+      ]
+    },
+    {
       "name": "binary_expression",
       "base": [
         1,

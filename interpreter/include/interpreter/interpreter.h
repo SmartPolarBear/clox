@@ -62,6 +62,8 @@ public:
 
 	void interpret(std::vector<std::shared_ptr<parsing::statement>>&& stmts);
 
+	evaluating_result visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
+
 	evaluating_result visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expression) override;
 
 	evaluating_result visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& expression) override;

@@ -105,7 +105,6 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	{
 	case scanning::token_type::MINUS:
 		return -get<long double>(right);
-		break;
 	case scanning::token_type::BANG:
 		return !is_truthy(right);
 	default:
@@ -278,13 +277,20 @@ evaluating_result interpreter::visit_var_expression(const std::shared_ptr<var_ex
 
 void interpreter::visit_variable_statement(const std::shared_ptr<variable_statement>& stmt)
 {
-	decltype(evaluate(stmt->get_initializer())) value{};
+	decltype(evaluate(stmt->get_initializer())) value{ nil_value_tag };
 	if (stmt->get_initializer())
 	{
 		value = evaluate(stmt->get_initializer());
 	}
 
 	environment_->put(stmt->get_name().lexeme(), value);
+}
+
+evaluating_result interpreter::visit_assignment_expression(const std::shared_ptr<struct assignment_expression>& ae)
+{
+	auto val = evaluate(ae->get_value());
+	environment_->assign(ae->get_name(), val);
+	return val;
 }
 
 

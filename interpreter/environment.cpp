@@ -25,6 +25,7 @@
 #include <interpreter/environment.h>
 
 #include <utility>
+#include <format>
 
 using namespace std;
 using namespace clox::interpreting;
@@ -42,4 +43,15 @@ std::optional<evaluating_result> clox::interpreting::environment::get(const clox
 void environment::put(const std::string& name, evaluating_result value)
 {
 	values_[name] = std::move(value);
+}
+
+void environment::assign(const clox::scanning::token& name, evaluating_result val)
+{
+	if (values_.contains(name.lexeme()))
+	{
+		values_[name.lexeme()] = std::move(val);
+		return;
+	}
+
+	throw clox::interpreting::runtime_error{ name, std::format("Undefined variable '{}'.", name.lexeme()) };
 }

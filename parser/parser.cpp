@@ -34,7 +34,29 @@ using namespace std;
 
 std::shared_ptr<expression> clox::parsing::parser::expr()
 {
-	return equality();
+	return assigment();
+}
+
+std::shared_ptr<expression> parser::assigment()
+{
+	auto expr = equality();
+
+	if (match({ token_type::EQUAL }))
+	{
+		auto equals = previous();
+		auto val = assigment();
+
+		if (expr->get_type() == PC_TYPE_var_expression)
+		{
+			auto name = dynamic_cast<var_expression*>(expr.get())->get_name();
+			return make_shared<assignment_expression>(name, val);
+		}
+
+		// No throw, because of no need for synchronization
+		error(equals, "Invalid assignment to the token.");
+	}
+
+	return expr;
 }
 
 std::shared_ptr<expression> clox::parsing::parser::equality()
@@ -239,3 +261,4 @@ std::shared_ptr<statement> parser::var_declaration()
 	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
 	return make_shared<variable_statement>(name, initializer);
 }
+

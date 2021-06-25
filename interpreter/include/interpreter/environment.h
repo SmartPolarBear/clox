@@ -25,6 +25,7 @@
 #pragma once
 
 #include <interpreter/evaluating_result.h>
+#include <interpreter/runtime_error.h>
 
 #include <unordered_map>
 #include <string>
@@ -38,6 +39,8 @@ public:
 	std::optional<evaluating_result> get(const scanning::token& name);
 
 	void put(const std::string& name, evaluating_result value);
+
+	void assign(const scanning::token& name,evaluating_result val);
 
 private:
 	std::unordered_map<std::string, evaluating_result> values_{};

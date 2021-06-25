@@ -55,9 +55,14 @@ private:
 
 	std::shared_ptr<statement> expr_stmt();
 
-	/// expr -> equality
+	/// expr -> assigment
 	/// \return
 	std::shared_ptr<expression> expr();
+
+	/// assignment -> IDENTIFIER "=" assignment
+	///               | equality
+	/// \return
+	std::shared_ptr<expression> assigment();
 
 	/// equality -> comparison ( ( "!=" | "==" ) comparison )*
 	/// \return
