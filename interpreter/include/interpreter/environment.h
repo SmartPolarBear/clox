@@ -30,19 +30,30 @@
 #include <unordered_map>
 #include <string>
 #include <optional>
+#include <memory>
 
 namespace clox::interpreting
 {
 class environment final
 {
 public:
+	environment() = default;
+
+	explicit environment(const std::shared_ptr<environment>& parent)
+			: parent_(parent)
+	{
+
+	}
+
 	std::optional<evaluating_result> get(const scanning::token& name);
 
 	void put(const std::string& name, evaluating_result value);
 
-	void assign(const scanning::token& name,evaluating_result val);
+	void assign(const scanning::token& name, evaluating_result val);
 
 private:
 	std::unordered_map<std::string, evaluating_result> values_{};
+
+	std::weak_ptr<environment> parent_{};
 };
 }

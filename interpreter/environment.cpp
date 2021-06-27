@@ -37,6 +37,11 @@ std::optional<evaluating_result> clox::interpreting::environment::get(const clox
 		return values_.at(name.lexeme());
 	}
 
+	if (auto pa = parent_.lock())
+	{
+		return pa->get(name);
+	}
+
 	return nullopt;
 }
 
@@ -50,6 +55,12 @@ void environment::assign(const clox::scanning::token& name, evaluating_result va
 	if (values_.contains(name.lexeme()))
 	{
 		values_[name.lexeme()] = std::move(val);
+		return;
+	}
+
+	if (auto pa = parent_.lock())
+	{
+		pa->assign(name, val);
 		return;
 	}
 

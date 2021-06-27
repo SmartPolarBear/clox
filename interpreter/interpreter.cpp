@@ -33,6 +33,8 @@
 #include <format>
 #include <utility>
 
+#include <gsl/gsl>
+
 using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
@@ -291,6 +293,29 @@ evaluating_result interpreter::visit_assignment_expression(const std::shared_ptr
 	auto val = evaluate(ae->get_value());
 	environment_->assign(ae->get_name(), val);
 	return val;
+}
+
+void interpreter::visit_block_statement(const std::shared_ptr<block_statement>& bs)
+{
+	execute_block(bs->get_stmts(), make_shared<environment>(this->environment_));
+}
+
+void
+interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& stmts, const shared_ptr<environment>& env)
+{
+	auto prev = this->environment_;
+
+	auto _ = gsl::finally([&prev, this]
+	{
+		this->environment_ = prev;
+	});
+
+	this->environment_ = env;
+
+	for (const auto& stmt:stmts)
+	{
+		execute(stmt);
+	}
 }
 
 

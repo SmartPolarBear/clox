@@ -92,6 +92,10 @@ private:
 
 	std::shared_ptr<statement> var_declaration();
 
+	/// block -> "{" declaration* "}" ;
+	/// \return
+	std::vector<std::shared_ptr<statement>> block();
+
 	void synchronize();
 
 	token consume(scanning::token_type t, std::string msg);

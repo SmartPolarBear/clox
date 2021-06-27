@@ -5,7 +5,8 @@
     "parser/statement.h",
     "any",
     "memory",
-    "stdexcept"
+    "stdexcept",
+    "vector"
   ],
   "secondary_includes": [
     "scanner/scanner.h",
@@ -171,6 +172,19 @@
         {
           "type": "std::shared_ptr<expression>",
           "name": "initializer_"
+        }
+      ]
+    },
+    {
+      "name": "block_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "std::vector<std::shared_ptr<statement>>",
+          "name": "stmts_"
         }
       ]
     }

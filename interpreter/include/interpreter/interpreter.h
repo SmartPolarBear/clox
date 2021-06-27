@@ -50,7 +50,7 @@ public:
 	interpreter() : expression_visitor<evaluating_result>(),
 					parsing::statement_visitor<void>(),
 					base::singleton<interpreter>(),
-					environment_(std::make_unique<environment>())
+					environment_(std::make_shared<environment>())
 	{
 	}
 
@@ -77,8 +77,14 @@ public:
 	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
+	void visit_block_statement(const std::shared_ptr<parsing::block_statement>& ptr) override;
+
+
 private:
 	void execute(const std::shared_ptr<parsing::statement>& s);
+
+	void execute_block(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
+			const std::shared_ptr<environment>& env);
 
 	evaluating_result evaluate(const std::shared_ptr<parsing::expression>& expr);
 
@@ -94,6 +100,7 @@ private:
 
 	static bool is_truthy(evaluating_result res);
 
-	std::unique_ptr<environment> environment_{ nullptr };
+
+	std::shared_ptr<environment> environment_{ nullptr };
 };
 }

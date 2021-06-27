@@ -212,8 +212,14 @@ std::shared_ptr<statement> parser::stmt()
 	{
 		return print_stmt();
 	}
-
-	return expr_stmt();
+	else if (match({ token_type::LEFT_BRACE }))
+	{
+		return make_shared<block_statement>(block_statement{ block() });
+	}
+	else
+	{
+		return expr_stmt();
+	}
 }
 
 std::shared_ptr<statement> parser::print_stmt()
@@ -260,5 +266,19 @@ std::shared_ptr<statement> parser::var_declaration()
 
 	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
 	return make_shared<variable_statement>(name, initializer);
+}
+
+std::vector<std::shared_ptr<statement>> parser::block()
+{
+	std::vector<std::shared_ptr<statement>> stmts{};
+
+	while (!check(scanning::token_type::RIGHT_BRACE) && !is_end())
+	{
+		stmts.push_back(declaration());
+	}
+
+	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after a block.");
+
+	return stmts;
 }
 
