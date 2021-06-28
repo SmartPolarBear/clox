@@ -1,0 +1,9 @@
+var alpha="a";
+
+while(alpha!="aaaaaaaaa")
+{
+    print alpha;
+    alpha=alpha+"a";
+}
+
+print "fin";

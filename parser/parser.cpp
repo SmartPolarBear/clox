@@ -256,7 +256,7 @@ std::shared_ptr<statement> parser::stmt()
 	{
 		return if_stmt();
 	}
-	else if (match({ token_type::WHILE }))
+	else if (match({ token_type::FOR }))
 	{
 		return for_stmt();
 	}
