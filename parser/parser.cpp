@@ -256,6 +256,10 @@ std::shared_ptr<statement> parser::stmt()
 	{
 		return if_stmt();
 	}
+	else if (match({ token_type::WHILE }))
+	{
+		return for_stmt();
+	}
 	else if (match({ token_type::PRINT }))
 	{
 		return print_stmt();
@@ -360,6 +364,62 @@ std::shared_ptr<statement> parser::while_stmt()
 	auto body = stmt();
 
 	return make_shared<while_statement>(cond, body);
+}
+
+std::shared_ptr<statement> parser::for_stmt()
+{
+	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'for'.");
+
+	shared_ptr<statement> initializer{ nullptr };
+	if (match({ token_type::SEMICOLON }))
+	{
+		// Do nothing
+	}
+	else if (match({ token_type::VAR }))
+	{
+		initializer = var_declaration();
+	}
+	else
+	{
+		initializer = expr_stmt();
+	}
+
+	shared_ptr<expression> cond{ nullptr };
+	if (!check(token_type::SEMICOLON))
+	{
+		cond = expr();
+	}
+	consume(scanning::token_type::SEMICOLON, "';' is expected after the condition of for loop.");
+
+	shared_ptr<expression> increment{ nullptr };
+	if (!check(scanning::token_type::RIGHT_PAREN))
+	{
+		increment = expr();
+	}
+	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after for clauses.");
+
+	auto body = stmt();
+
+	// de-sugaring the for loop to a while loop
+
+	if (increment)
+	{
+		body = make_shared<block_statement>(vector<shared_ptr<statement>>{
+				body,
+				make_shared<expression_statement>(increment) });
+	}
+
+	if (!cond)cond = make_shared<literal_expression>(true);
+	body = make_shared<while_statement>(cond, body);
+
+	if (initializer)
+	{
+		body = make_shared<block_statement>(vector<shared_ptr<statement>>{
+				initializer,
+				body });
+	}
+
+	return body;
 }
 
 

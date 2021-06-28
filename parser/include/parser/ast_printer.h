@@ -30,7 +30,7 @@
 
 namespace clox::parsing
 {
-class ast_printer final : public expression_visitor<std::string>
+class [[maybe_unused]] ast_printer final : public expression_visitor<std::string>
 {
 public:
 	std::string to_string(const expression& expr);

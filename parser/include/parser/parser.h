@@ -71,6 +71,12 @@ private:
 	/// \return
 	std::shared_ptr<statement> if_stmt();
 
+	/// forStmt -> "for" "(" ( varDecl | exprStmt | ";" )
+	///                 expression? ";"
+	///                 expression? ")" statement ;
+	/// \return
+	std::shared_ptr<statement> for_stmt();
+
 	/// expr -> assigment
 	/// \return
 	std::shared_ptr<expression> expr();
