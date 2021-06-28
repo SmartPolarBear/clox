@@ -260,6 +260,10 @@ std::shared_ptr<statement> parser::stmt()
 	{
 		return print_stmt();
 	}
+	else if (match({ token_type::WHILE }))
+	{
+		return while_stmt();
+	}
 	else if (match({ token_type::LEFT_BRACE }))
 	{
 		return make_shared<block_statement>(block_statement{ block() });
@@ -345,6 +349,17 @@ std::shared_ptr<statement> parser::if_stmt()
 	}
 
 	return make_shared<if_statement>(cond, true_stmt, false_stmt);
+}
+
+std::shared_ptr<statement> parser::while_stmt()
+{
+	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'while'.");
+	auto cond = this->expr();
+	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after 'while''s condition.");
+
+	auto body = stmt();
+
+	return make_shared<while_statement>(cond, body);
 }
 
 

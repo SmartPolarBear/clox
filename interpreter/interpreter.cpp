@@ -377,4 +377,12 @@ evaluating_result interpreter::visit_logical_expression(const std::shared_ptr<lo
 	return evaluate(le->get_right());
 }
 
+void interpreter::visit_while_statement(const std::shared_ptr<while_statement>& ws)
+{
+	while (is_truthy(evaluate(ws->get_cond())))
+	{
+		execute(ws->get_body());
+	}
+}
+
 

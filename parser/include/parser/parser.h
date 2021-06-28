@@ -53,6 +53,7 @@ private:
 	/// statement -> exprStmt
 	///               | ifStmt
 	///               | printStmt
+	///	              | whileStmt
 	///               | block ;
 	/// \return
 	std::shared_ptr<statement> stmt();
@@ -60,6 +61,10 @@ private:
 	std::shared_ptr<statement> print_stmt();
 
 	std::shared_ptr<statement> expr_stmt();
+
+	/// whileStmt -> "while" "(" expression ")" statement ;
+	/// \return
+	std::shared_ptr<statement> while_stmt();
 
 	/// ifStmt -> "if" "(" expression ")" statement
 	///               ( "else" statement )? ;

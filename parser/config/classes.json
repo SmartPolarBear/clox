@@ -231,6 +231,23 @@
       ]
     },
     {
+      "name": "while_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "cond_"
+        },
+        {
+          "type": "std::shared_ptr<statement>",
+          "name": "body_"
+        }
+      ]
+    },
+    {
       "name": "if_statement",
       "base": [
         2,

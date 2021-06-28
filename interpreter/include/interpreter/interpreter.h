@@ -85,6 +85,8 @@ public:
 
 	void visit_if_statement(const std::shared_ptr<parsing::if_statement>& ptr) override;
 
+	void visit_while_statement(const std::shared_ptr<parsing::while_statement>& ws) override;
+
 private:
 	void execute(const std::shared_ptr<parsing::statement>& s);
 
@@ -105,6 +107,7 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
 
 	std::shared_ptr<environment> environment_{ nullptr };
 };
