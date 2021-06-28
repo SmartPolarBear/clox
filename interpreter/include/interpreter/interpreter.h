@@ -99,7 +99,8 @@ private:
 
 	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 
-	static bool is_equal(evaluating_result lhs, evaluating_result rhs);
+	static bool is_equal(const scanning::token& op, clox::interpreting::evaluating_result lhs,
+			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
 

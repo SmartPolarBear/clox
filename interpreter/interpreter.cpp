@@ -85,9 +85,9 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 
 
 	case scanning::token_type::BANG_EQUAL:
-		return !is_equal(left, right);
+		return !is_equal(be->get_op(), left, right);
 	case scanning::token_type::EQUAL_EQUAL:
-		return is_equal(left, right);
+		return is_equal(be->get_op(), left, right);
 
 	default:
 		//TODO: ERROR?
@@ -208,7 +208,7 @@ bool clox::interpreting::interpreter::is_truthy(clox::interpreting::evaluating_r
 	return true;
 }
 
-bool clox::interpreting::interpreter::is_equal(clox::interpreting::evaluating_result lhs,
+bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreting::evaluating_result lhs,
 		clox::interpreting::evaluating_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
@@ -222,14 +222,26 @@ bool clox::interpreting::interpreter::is_equal(clox::interpreting::evaluating_re
 
 	if (holds_alternative<long double>(lhs))
 	{
+		if (!holds_alternative<long double>(rhs))
+		{
+			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+		}
 		return get<long double>(lhs) == get<long double>(rhs);
 	}
 	else if (holds_alternative<string>(lhs))
 	{
+		if (!holds_alternative<string>(rhs))
+		{
+			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+		}
 		return get<string>(lhs) == get<string>(rhs);
 	}
 	else if (holds_alternative<bool>(lhs))
 	{
+		if (!holds_alternative<bool>(rhs))
+		{
+			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+		}
 		return get<bool>(lhs) == get<bool>(rhs);
 	}
 

@@ -1,4 +1,4 @@
-var num=10;
+var num=(10);
 if(num==11)
 {
     print "fuck";
@@ -8,7 +8,7 @@ else
     print "great";
 }
 
-print num==11?"fuck":"fuck fuck!";
+print num==11?"fuck":(num==10?"yes":"no");
 
 {
     var num;

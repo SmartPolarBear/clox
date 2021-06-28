@@ -163,7 +163,7 @@ std::shared_ptr<expression> parser::primary()
 
 	if (match({ token_type::LEFT_PAREN }))
 	{
-		auto expr = make_shared<expression>();
+		auto expr = this->expr();
 		consume(scanning::token_type::RIGHT_PAREN, "')' is expected after the expression");
 
 		return make_shared<grouping_expression>(expr);
