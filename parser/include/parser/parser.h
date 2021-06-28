@@ -50,12 +50,20 @@ public:
 	std::vector<std::shared_ptr<statement>> parse();
 
 private:
+	/// statement -> exprStmt
+	///               | ifStmt
+	///               | printStmt
+	///               | block ;
+	/// \return
 	std::shared_ptr<statement> stmt();
 
 	std::shared_ptr<statement> print_stmt();
 
 	std::shared_ptr<statement> expr_stmt();
 
+	/// ifStmt -> "if" "(" expression ")" statement
+	///               ( "else" statement )? ;
+	/// \return
 	std::shared_ptr<statement> if_stmt();
 
 	/// expr -> assigment
@@ -63,9 +71,17 @@ private:
 	std::shared_ptr<expression> expr();
 
 	/// assignment -> IDENTIFIER "=" assignment
-	///               | equality
+	///               | logical_or
 	/// \return
 	std::shared_ptr<expression> assigment();
+
+	/// logical_or -> logical_and ("or" logical_and)*
+	/// \return
+	std::shared_ptr<expression> logical_or();
+
+	/// logical_and -> equality ("and" equality)*
+	/// \return
+	std::shared_ptr<expression> logical_and();
 
 	/// equality -> comparison ( ( "!=" | "==" ) comparison )*
 	/// \return

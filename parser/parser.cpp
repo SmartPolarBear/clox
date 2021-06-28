@@ -39,7 +39,7 @@ std::shared_ptr<expression> clox::parsing::parser::expr()
 
 std::shared_ptr<expression> parser::assigment()
 {
-	auto expr = equality();
+	auto expr = logical_or();
 
 	if (match({ token_type::EQUAL }))
 	{
@@ -73,6 +73,35 @@ std::shared_ptr<expression> parser::assigment()
 
 	return expr;
 }
+
+std::shared_ptr<expression> parser::logical_or()
+{
+	auto expr = logical_and();
+
+	while (match({ token_type::OR }))
+	{
+		auto op = previous();
+		auto rhs = logical_and();
+		expr = make_shared<logical_expression>(expr, op, rhs);
+	}
+
+	return expr;
+}
+
+std::shared_ptr<expression> parser::logical_and()
+{
+	auto expr = equality();
+
+	while (match({ token_type::AND }))
+	{
+		auto op = previous();
+		auto rhs = equality();
+		expr = make_shared<logical_expression>(expr, op, rhs);
+	}
+
+	return expr;
+}
+
 
 std::shared_ptr<expression> clox::parsing::parser::equality()
 {
@@ -317,4 +346,5 @@ std::shared_ptr<statement> parser::if_stmt()
 
 	return make_shared<if_statement>(cond, true_stmt, false_stmt);
 }
+
 

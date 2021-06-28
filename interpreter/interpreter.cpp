@@ -354,4 +354,27 @@ evaluating_result interpreter::visit_ternary_expression(const std::shared_ptr<te
 	}
 }
 
+evaluating_result interpreter::visit_logical_expression(const std::shared_ptr<logical_expression>& le)
+{
+	auto left = evaluate(le->get_left());
+
+	// handle short circuit
+	if (auto op = le->get_op();op.type() == token_type::OR)
+	{
+		if (is_truthy(left))
+		{
+			return left;
+		}
+	}
+	else if (op.type() == token_type::AND)
+	{
+		if (!is_truthy(left))
+		{
+			return left;
+		}
+	}
+
+	return evaluate(le->get_right());
+}
+
 

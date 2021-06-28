@@ -76,6 +76,8 @@ public:
 
 	evaluating_result visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr) override;
 
+	evaluating_result visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& ptr) override;
+
 	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
@@ -103,7 +105,6 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
-
 
 	std::shared_ptr<environment> environment_{ nullptr };
 };
