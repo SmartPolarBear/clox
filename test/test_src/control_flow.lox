@@ -1,0 +1,31 @@
+var num=10;
+if(num==11)
+{
+    print "fuck";
+}
+else
+{
+    print "great";
+}
+
+{
+    var num;
+    if(num)
+    {
+        print "fuck";
+    }
+    else
+    {
+        print "great";
+    }
+}
+
+var str="xkzgreat";
+if(str=="xkzgreat")
+{
+    print "yes, xkz is great!";
+}
+else
+{
+    print "fuck, you are wrong.";
+}

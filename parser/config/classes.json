@@ -187,6 +187,27 @@
           "name": "stmts_"
         }
       ]
+    },
+    {
+      "name": "if_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "cond_"
+        },
+        {
+          "type": "std::shared_ptr<statement>",
+          "name": "true_stmt_"
+        },
+        {
+          "type": "std::shared_ptr<statement>",
+          "name": "false_stmt_"
+        }
+      ]
     }
   ]
 }

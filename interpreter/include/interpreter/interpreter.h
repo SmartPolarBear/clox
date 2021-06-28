@@ -79,6 +79,7 @@ public:
 
 	void visit_block_statement(const std::shared_ptr<parsing::block_statement>& ptr) override;
 
+	void visit_if_statement(const std::shared_ptr<parsing::if_statement>& ptr) override;
 
 private:
 	void execute(const std::shared_ptr<parsing::statement>& s);
@@ -99,7 +100,6 @@ private:
 	static bool is_equal(evaluating_result lhs, evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
-
 
 	std::shared_ptr<environment> environment_{ nullptr };
 };

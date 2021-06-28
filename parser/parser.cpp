@@ -208,7 +208,11 @@ std::vector<std::shared_ptr<statement>> parser::parse()
 
 std::shared_ptr<statement> parser::stmt()
 {
-	if (match({ token_type::PRINT }))
+	if (match({ token_type::IF }))
+	{
+		return if_stmt();
+	}
+	else if (match({ token_type::PRINT }))
 	{
 		return print_stmt();
 	}
@@ -280,5 +284,22 @@ std::vector<std::shared_ptr<statement>> parser::block()
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after a block.");
 
 	return stmts;
+}
+
+std::shared_ptr<statement> parser::if_stmt()
+{
+	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'if'.");
+	auto cond = expr();
+	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after 'if''s condition.");
+
+	auto true_stmt = stmt();
+	decltype(true_stmt) false_stmt{ nullptr };
+
+	if (match({ token_type::ELSE }))
+	{
+		false_stmt = stmt();
+	}
+
+	return make_shared<if_statement>(cond, true_stmt, false_stmt);
 }
 

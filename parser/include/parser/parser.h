@@ -56,6 +56,8 @@ private:
 
 	std::shared_ptr<statement> expr_stmt();
 
+	std::shared_ptr<statement> if_stmt();
+
 	/// expr -> assigment
 	/// \return
 	std::shared_ptr<expression> expr();

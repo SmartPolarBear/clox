@@ -318,4 +318,16 @@ interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& st
 	}
 }
 
+void interpreter::visit_if_statement(const std::shared_ptr<if_statement>& if_stmt)
+{
+	if (is_truthy(evaluate(if_stmt->get_cond())))
+	{
+		execute(if_stmt->get_true_stmt());
+	}
+	else if (if_stmt->get_false_stmt())
+	{
+		execute(if_stmt->get_false_stmt());
+	}
+}
+
 
