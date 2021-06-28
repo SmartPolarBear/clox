@@ -157,13 +157,13 @@ std::shared_ptr<expression> parser::primary()
 	throw error(peek(), "Expression is expected.");
 }
 
-token parser::consume(token_type t, std::string msg)
+token parser::consume(token_type t, const std::string& msg)
 {
 	if (check(t))return advance();
 	throw error(peek(), msg);
 }
 
-parse_error parser::error(token t, std::string msg)
+parse_error parser::error(token t, const std::string& msg)
 {
 	logging::logger::instance().error(t, msg);
 	return parse_error(msg);

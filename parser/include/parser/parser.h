@@ -30,7 +30,8 @@
 #include <concepts>
 #include <memory>
 #include <vector>
-
+#include <ranges>
+#include <algorithm>
 
 namespace clox::parsing
 {
@@ -98,9 +99,9 @@ private:
 
 	void synchronize();
 
-	token consume(scanning::token_type t, std::string msg);
+	token consume(scanning::token_type t, const std::string& msg);
 
-	parse_error error(token t, std::string msg);
+	parse_error error(token t, const std::string& msg);
 
 	bool match(std::initializer_list<scanning::token_type> types)
 	{

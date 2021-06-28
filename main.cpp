@@ -11,10 +11,11 @@ int main(int argc, char* argv[])
 {
 	argparse::ArgumentParser prog{ "clox" };
 
-	prog.add_argument("f", "--file")
+	prog.add_argument("-f", "--file")
 			.help("the script to run")
 			.default_value(string{ "" })
-			.implicit_value(string{ "" });
+			.implicit_value(string{ "" })
+			.nargs(1);
 
 	try
 	{
