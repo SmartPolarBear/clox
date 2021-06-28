@@ -55,6 +55,21 @@ std::shared_ptr<expression> parser::assigment()
 		// No throw, because of no need for synchronization
 		error(equals, "Invalid assignment to the token.");
 	}
+	else if (match({ token_type::QMARK }))
+	{
+		auto qmark = previous();
+		auto true_expr = this->expr();
+		decltype(true_expr) false_expr{ nullptr };
+		if (match({ token_type::COLON }))
+		{
+			false_expr = this->expr();
+			return make_shared<ternary_expression>(expr, true_expr, false_expr);
+		}
+		else
+		{
+			error(qmark, "Invalid ternary expression: missing ':' clause.");
+		}
+	}
 
 	return expr;
 }

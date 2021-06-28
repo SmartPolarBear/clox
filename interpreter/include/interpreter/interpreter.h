@@ -74,6 +74,8 @@ public:
 	evaluating_result
 	visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& expression) override;
 
+	evaluating_result visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr) override;
+
 	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
@@ -100,6 +102,7 @@ private:
 	static bool is_equal(evaluating_result lhs, evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
 
 	std::shared_ptr<environment> environment_{ nullptr };
 };

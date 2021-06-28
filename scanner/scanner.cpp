@@ -169,6 +169,12 @@ void scanner::scan_next_token()
 	case '*':
 		add_token(token_type::STAR);
 		break;
+	case '?':
+		add_token(token_type::QMARK);
+		break;
+	case ':':
+		add_token(token_type::COLON);
+		break;
 
 	case '!':
 		add_token(match('=') ? token_type::BANG_EQUAL : token_type::BANG);

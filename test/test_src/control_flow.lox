@@ -8,6 +8,8 @@ else
     print "great";
 }
 
+print num==11?"fuck":"fuck fuck!";
+
 {
     var num;
     if(num)
@@ -29,3 +31,5 @@ else
 {
     print "fuck, you are wrong.";
 }
+
+print str=="xkzgreat"?"he is really great!":"fuck!";

@@ -330,4 +330,16 @@ void interpreter::visit_if_statement(const std::shared_ptr<if_statement>& if_stm
 	}
 }
 
+evaluating_result interpreter::visit_ternary_expression(const std::shared_ptr<ternary_expression>& te)
+{
+	if (is_truthy(evaluate(te->get_cond())))
+	{
+		return evaluate(te->get_true_expr());
+	}
+	else
+	{
+		return evaluate(te->get_false_expr());
+	}
+}
+
 
