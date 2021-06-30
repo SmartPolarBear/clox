@@ -22,16 +22,33 @@
 // Created by cleve on 6/30/2021.
 //
 #pragma once
+
+#pragma once
+
 #include <interpreter/evaluating_result.h>
+#include <parser/gen/parser_classes.inc>
+
+
+#include <memory>
 
 namespace clox::interpreting
 {
-class clock_func final
+class lox_function final
 		: public callable
 {
 public:
+	explicit lox_function(const std::shared_ptr<parsing::function_statement>& decl)
+			: decl_(decl)
+	{
+	}
+
+	~lox_function() = default;
+
 	size_t arity() override;
 
-	evaluating_result call(struct interpreter* intp, const std::vector<evaluating_result>& args) override;
+	evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args) override;
+
+private:
+	std::shared_ptr<parsing::function_statement> decl_{ nullptr };
 };
 }

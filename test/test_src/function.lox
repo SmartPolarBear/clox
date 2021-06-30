@@ -1,1 +1,5 @@
-print clock();
+fun fuck(first, second) {
+    print "I fuck "+first+" firstly, then fucked "+second+".";
+}
+
+fuck("AA","BB");

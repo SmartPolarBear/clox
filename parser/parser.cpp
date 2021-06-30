@@ -341,7 +341,11 @@ std::shared_ptr<statement> parser::declaration()
 {
 	try
 	{
-		if (match({ token_type::VAR }))
+		if (match({ token_type::FUN }))
+		{
+			return func_declaration("function");
+		}
+		else if (match({ token_type::VAR }))
 		{
 			return var_declaration();
 		}
@@ -353,6 +357,33 @@ std::shared_ptr<statement> parser::declaration()
 		synchronize();
 		return nullptr;
 	}
+}
+
+std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
+{
+	auto name = consume(token_type::IDENTIFIER, std::format("{} name is expected.", kind));
+	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", kind));
+
+	vector<token> params{};
+
+	if (!check(scanning::token_type::RIGHT_PAREN))
+	{
+		do
+		{
+			if (params.size() >= FUNC_ARG_LIST_MAX)
+			{
+				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
+			}
+
+			params.push_back(consume(scanning::token_type::IDENTIFIER, "Parameter names are expected."));
+		} while (match({ token_type::COMMA }));
+	}
+
+	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", kind));
+	consume(token_type::LEFT_BRACE, std::format("'{' is expected after {} declaration and before its body.", kind));
+
+	auto body = block();
+	return make_shared<function_statement>(name, params, body);
 }
 
 std::shared_ptr<statement> parser::var_declaration()
@@ -466,5 +497,7 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
+
+
 
 

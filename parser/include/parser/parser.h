@@ -128,7 +128,17 @@ private:
 	/// \return
 	std::shared_ptr<expression> primary();
 
+	/// declaration -> funDecl
+	///               | varDecl
+	///               | statement ;
+	/// \return
 	std::shared_ptr<statement> declaration();
+
+	/// funDecl        → "fun" function ;
+	/// function       → IDENTIFIER "(" parameters? ")" block ;
+	/// parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+	/// \return
+	std::shared_ptr<statement> func_declaration(const std::string& kind);
 
 	std::shared_ptr<statement> var_declaration();
 

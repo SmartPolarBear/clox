@@ -57,6 +57,11 @@ public:
 		install_native_functions();
 	}
 
+	std::shared_ptr<environment> globals()
+	{
+		return globals_;
+	}
+
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
@@ -92,14 +97,18 @@ public:
 
 	void visit_while_statement(const std::shared_ptr<parsing::while_statement>& ws) override;
 
-private:
+	void visit_function_statement(const std::shared_ptr<parsing::function_statement>& ptr) override;
 
-	void install_native_functions();
 
+public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
 
 	void execute_block(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
 			const std::shared_ptr<environment>& env);
+
+private:
+
+	void install_native_functions();
 
 	evaluating_result evaluate(const std::shared_ptr<parsing::expression>& expr);
 

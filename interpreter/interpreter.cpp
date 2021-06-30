@@ -27,6 +27,7 @@
 #include <interpreter/interpreter.h>
 #include <interpreter/runtime_error.h>
 #include <interpreter/native_functions.h>
+#include <interpreter/lox_function.h>
 
 #include <logger/logger.h>
 
@@ -415,6 +416,12 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 void interpreter::install_native_functions()
 {
 	globals_->put("clock", make_shared<clock_func>());
+}
+
+void interpreter::visit_function_statement(const std::shared_ptr<function_statement>& stmt)
+{
+	auto func = make_shared<lox_function>(stmt);
+	environment_->put(stmt->get_name().lexeme(), func);
 }
 
 

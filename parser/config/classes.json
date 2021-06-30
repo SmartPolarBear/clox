@@ -288,6 +288,27 @@
           "name": "false_stmt_"
         }
       ]
+    },
+    {
+      "name": "function_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "name_"
+        },
+        {
+          "type": "std::vector<clox::scanning::token>",
+          "name": "params_"
+        },
+        {
+          "type": "std::vector<std::shared_ptr<statement>>",
+          "name": "body_"
+        }
+      ]
     }
   ]
 }

@@ -18,20 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-//
-// Created by cleve on 6/30/2021.
-//
-#pragma once
-#include <interpreter/evaluating_result.h>
+#include <scanner/nil_value.h>
 
-namespace clox::interpreting
-{
-class clock_func final
-		: public callable
-{
-public:
-	size_t arity() override;
+#include <interpreter/lox_function.h>
+#include <interpreter/interpreter.h>
 
-	evaluating_result call(struct interpreter* intp, const std::vector<evaluating_result>& args) override;
-};
+#include <memory>
+
+using namespace std;
+
+size_t clox::interpreting::lox_function::arity()
+{
+	return decl_->get_params().size();
+}
+
+clox::interpreting::evaluating_result
+clox::interpreting::lox_function::call(interpreter* intp, const std::vector<evaluating_result>& args)
+{
+	auto env = make_shared<environment>(intp->globals());
+
+	auto params = decl_->get_params();
+	for (size_t i = 0; i < params.size(); i++)
+	{
+		env->put(params[i].lexeme(), args[i]);
+	}
+
+	intp->execute_block(decl_->get_body(), env);
+	return scanning::nil_value_tag;
 }
