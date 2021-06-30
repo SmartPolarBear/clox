@@ -51,8 +51,10 @@ public:
 	interpreter() : expression_visitor<evaluating_result>(),
 					parsing::statement_visitor<void>(),
 					base::singleton<interpreter>(),
-					environment_(std::make_shared<environment>())
+					globals_(std::make_shared<environment>())
 	{
+		environment_ = globals_;
+		install_native_functions();
 	}
 
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
@@ -91,6 +93,9 @@ public:
 	void visit_while_statement(const std::shared_ptr<parsing::while_statement>& ws) override;
 
 private:
+
+	void install_native_functions();
+
 	void execute(const std::shared_ptr<parsing::statement>& s);
 
 	void execute_block(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
@@ -111,7 +116,7 @@ private:
 
 	static bool is_truthy(evaluating_result res);
 
-
+	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
 };
 }

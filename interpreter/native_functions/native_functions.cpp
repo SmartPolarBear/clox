@@ -19,32 +19,22 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/19/2021.
+// Created by cleve on 6/30/2021.
 //
-#pragma once
 
-#include <scanner/scanner.h>
+#include <cstddef>
+#include <interpreter/evaluating_result.h>
+#include <interpreter/native_functions.h>
 
-#include <variant>
-#include <string>
+using namespace clox::interpreting;
 
-namespace clox::interpreting
+size_t clox::interpreting::clock_func::arity()
 {
+	return callable::arity();
+}
 
-using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type, class callable>;
-
-class callable
+evaluating_result
+clox::interpreting::clock_func::call(struct interpreter* intp, const std::vector <evaluating_result>& args)
 {
-public:
-	virtual size_t arity()
-	{
-		return -1;
-	}
-
-	virtual evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args)
-	{
-		return evaluating_result{};
-	}
-};
-
+	return callable::call(intp, args);
 }

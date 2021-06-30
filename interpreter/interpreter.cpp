@@ -26,6 +26,7 @@
 
 #include <interpreter/interpreter.h>
 #include <interpreter/runtime_error.h>
+#include <interpreter/native_functions.h>
 
 #include <logger/logger.h>
 
@@ -400,7 +401,21 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		throw clox::interpreting::runtime_error{ ce->get_paren(), "Expression isn't callable." };
 	}
 
-	return get<callable>(callee).call(this, args);
+	auto func = get<callable>(callee);
+	if (args.size() != func.arity())
+	{
+		throw clox::interpreting::runtime_error{ ce->get_paren(),
+												 std::format("{} arguments are expected, but {} are found.",
+														 func.arity(), args.size()) };
+
+	}
+
+	return func.call(this, args);
+}
+
+void interpreter::install_native_functions()
+{
+	globals_->put("clock", clock_func{});
 }
 
 
