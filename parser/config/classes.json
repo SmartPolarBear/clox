@@ -309,6 +309,23 @@
           "name": "body_"
         }
       ]
+    },
+    {
+      "name": "return_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "return_keyword_"
+        },
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "val_"
+        }
+      ]
     }
   ]
 }

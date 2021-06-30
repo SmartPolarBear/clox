@@ -309,6 +309,10 @@ std::shared_ptr<statement> parser::stmt()
 	{
 		return print_stmt();
 	}
+	else if (match({ token_type::RETURN }))
+	{
+		return return_stmt();
+	}
 	else if (match({ token_type::WHILE }))
 	{
 		return while_stmt();
@@ -431,6 +435,20 @@ std::shared_ptr<statement> parser::if_stmt()
 	return make_shared<if_statement>(cond, true_stmt, false_stmt);
 }
 
+std::shared_ptr<statement> parser::return_stmt()
+{
+	auto ret_keyword = previous();
+	shared_ptr<expression> val{ nullptr };
+	if (!check(scanning::token_type::SEMICOLON))
+	{
+		val = this->expr();
+	}
+
+	consume(scanning::token_type::SEMICOLON, "';' is expected after return value.");
+	return make_shared<return_statement>(ret_keyword, val);
+}
+
+
 std::shared_ptr<statement> parser::while_stmt()
 {
 	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'while'.");
@@ -497,7 +515,6 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
-
 
 
 

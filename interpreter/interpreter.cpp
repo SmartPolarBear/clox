@@ -28,6 +28,7 @@
 #include <interpreter/runtime_error.h>
 #include <interpreter/native_functions.h>
 #include <interpreter/lox_function.h>
+#include <interpreter/return.h>
 
 #include <logger/logger.h>
 
@@ -422,6 +423,17 @@ void interpreter::visit_function_statement(const std::shared_ptr<function_statem
 {
 	auto func = make_shared<lox_function>(stmt);
 	environment_->put(stmt->get_name().lexeme(), func);
+}
+
+void interpreter::visit_return_statement(const std::shared_ptr<return_statement>& rs)
+{
+	evaluating_result ret{ nil_value_tag };
+	if (auto val = rs->get_val();val)
+	{
+		ret = evaluate(val);
+	}
+
+	throw return_value{ ret };
 }
 
 

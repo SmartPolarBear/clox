@@ -55,6 +55,7 @@ private:
 	/// statement -> exprStmt
 	///               | ifStmt
 	///               | printStmt
+	///				  | returnStmt
 	///	              | whileStmt
 	///               | block ;
 	/// \return
@@ -78,6 +79,10 @@ private:
 	///                 expression? ")" statement ;
 	/// \return
 	std::shared_ptr<statement> for_stmt();
+
+	/// returnStmt -> "return" expression? ";" ;
+	/// \return
+	std::shared_ptr<statement> return_stmt();
 
 	/// expr -> assigment
 	/// \return

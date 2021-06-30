@@ -18,46 +18,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <scanner/nil_value.h>
+//
+// Created by cleve on 6/30/2021.
+//
 
-#include <interpreter/lox_function.h>
-#include <interpreter/interpreter.h>
-#include <interpreter/return.h>
+#pragma once
 
-#include <memory>
+#include <stdexcept>
+#include <utility>
 
-using namespace std;
+#include <interpreter/evaluating_result.h>
 
-using namespace clox::interpreting;
-
-size_t clox::interpreting::lox_function::arity()
+namespace clox::interpreting
 {
-	return decl_->get_params().size();
-}
-
-clox::interpreting::evaluating_result
-clox::interpreting::lox_function::call(interpreter* intp, const std::vector<evaluating_result>& args)
+class return_value final
 {
-	auto env = make_shared<environment>(intp->globals());
-
-	auto params = decl_->get_params();
-	for (size_t i = 0; i < params.size(); i++)
+public:
+	explicit return_value(evaluating_result val) : val_{std::move( val )}
 	{
-		env->put(params[i].lexeme(), args[i]);
 	}
 
-	try
+	[[nodiscard]] evaluating_result value() const
 	{
-		intp->execute_block(decl_->get_body(), env);
-	}
-	catch (const return_value& rv)
-	{
-		return rv.value();
-	}
-	catch (...)
-	{
-		throw;
+		return val_;
 	}
 
-	return scanning::nil_value_tag;
+private:
+	evaluating_result val_{};
+};
 }

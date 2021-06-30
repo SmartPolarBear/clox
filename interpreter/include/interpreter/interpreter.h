@@ -99,6 +99,7 @@ public:
 
 	void visit_function_statement(const std::shared_ptr<parsing::function_statement>& ptr) override;
 
+	void visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr) override;
 
 public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
