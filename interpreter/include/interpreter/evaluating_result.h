@@ -28,23 +28,23 @@
 #include <variant>
 #include <string>
 
+#include <memory>
+
 namespace clox::interpreting
 {
 
-using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type, class callable>;
+using evaluating_result = std::variant<long double,
+		bool,
+		std::string,
+		scanning::nil_value_tag_type,
+		std::shared_ptr<class callable>>;
 
 class callable
 {
 public:
-	virtual size_t arity()
-	{
-		return -1;
-	}
+	virtual size_t arity() = 0;
 
-	virtual evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args)
-	{
-		return evaluating_result{};
-	}
+	virtual evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args) = 0;
 };
 
 }

@@ -396,26 +396,25 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		args.push_back(evaluate(arg));
 	}
 
-	if (!holds_alternative<callable>(callee))
+	if (!holds_alternative<shared_ptr<callable>>(callee))
 	{
 		throw clox::interpreting::runtime_error{ ce->get_paren(), "Expression isn't callable." };
 	}
 
-	auto func = get<callable>(callee);
-	if (args.size() != func.arity())
+	auto func = get<shared_ptr<callable>>(callee);
+	if (args.size() != func->arity())
 	{
 		throw clox::interpreting::runtime_error{ ce->get_paren(),
 												 std::format("{} arguments are expected, but {} are found.",
-														 func.arity(), args.size()) };
-
+														 func->arity(), args.size()) };
 	}
 
-	return func.call(this, args);
+	return func->call(this, args);
 }
 
 void interpreter::install_native_functions()
 {
-	globals_->put("clock", clock_func{});
+	globals_->put("clock", make_shared<clock_func>());
 }
 
 
