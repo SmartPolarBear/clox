@@ -25,6 +25,7 @@
 #include <logger/logger.h>
 
 #include <vector>
+#include <format>
 
 using namespace clox::parsing;
 using namespace clox::scanning;
@@ -171,7 +172,51 @@ std::shared_ptr<expression> parser::unary()
 		return make_shared<unary_expression>(op, right);
 	}
 
-	return primary();
+	return call();
+}
+
+std::shared_ptr<expression> parser::call()
+{
+	auto expr = primary();
+	while (true)
+	{
+		if (match({ token_type::LEFT_PAREN }))
+		{
+			expr = call_finish_parse(0);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return expr;
+}
+
+
+std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expression>& callee)
+{
+	vector<shared_ptr<expression>> args{};
+	if (!check(scanning::token_type::RIGHT_PAREN))
+	{
+		do
+		{
+			if (args.size() > FUNC_ARG_LIST_MAX)
+			{
+				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
+			}
+			args.push_back(this->expr());
+		} while (match({ token_type::COMMA }));
+	}
+
+	token paren = consume(scanning::token_type::RIGHT_PAREN, "')' is expected for argument list.");
+	return make_shared<call_expression>(callee, paren, args);
+}
+
+
+std::shared_ptr<expression> parser::arguments()
+{
+	return std::shared_ptr<expression>();
 }
 
 std::shared_ptr<expression> parser::primary()

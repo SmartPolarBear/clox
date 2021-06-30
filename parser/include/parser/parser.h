@@ -42,6 +42,8 @@ class parser final
 public:
 	using token = scanning::token;
 
+	static constexpr size_t FUNC_ARG_LIST_MAX = 1024;
+
 	[[nodiscard]] explicit parser(std::vector<scanning::token>&& tokens)
 			: tokens_{ tokens }
 	{
@@ -110,9 +112,17 @@ private:
 	/// \return
 	std::shared_ptr<expression> factor();
 
-	/// unary -> ( "!" | "-" ) unary|primary ;
+	/// unary -> ( "!" | "-" ) unary|call ;
 	/// \return
 	std::shared_ptr<expression> unary();
+
+	/// call -> primary ( "(" arguments? ")" )* ;
+	/// \return
+	std::shared_ptr<expression> call();
+
+	/// arguments      → expression ( "," expression )* ;
+	/// \return
+	std::shared_ptr<expression> arguments();
 
 	/// primary -> NUMBER|STRING|"true"|"false"|"nil"|"(" expr ")"
 	/// \return
@@ -125,6 +135,11 @@ private:
 	/// block -> "{" declaration* "}" ;
 	/// \return
 	std::vector<std::shared_ptr<statement>> block();
+
+private:
+	/// finish parsing argument list and things
+	/// \return
+	std::shared_ptr<expression> call_finish_parse(const std::shared_ptr<expression>& expr);
 
 	void synchronize();
 

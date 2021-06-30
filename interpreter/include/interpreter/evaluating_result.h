@@ -30,5 +30,16 @@
 
 namespace clox::interpreting
 {
-using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type>;
+
+using evaluating_result = std::variant<long double, bool, std::string, scanning::nil_value_tag_type, class callable>;
+
+class callable
+{
+public:
+	virtual evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args)
+	{
+			return evaluating_result{};
+	}
+};
+
 }

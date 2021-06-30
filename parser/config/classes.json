@@ -175,6 +175,27 @@
       ]
     },
     {
+      "name": "call_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "callee"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "paren_"
+        },
+        {
+          "type": "std::vector<std::shared_ptr<expression>>",
+          "name": "args_"
+        }
+      ]
+    },
+    {
       "name": "expression_statement",
       "base": [
         2,

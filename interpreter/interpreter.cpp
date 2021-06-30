@@ -385,4 +385,22 @@ void interpreter::visit_while_statement(const std::shared_ptr<while_statement>& 
 	}
 }
 
+evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_expression>& ce)
+{
+	auto callee = evaluate(ce->get_calle());
+
+	vector<evaluating_result> args(ce->get_args().size());
+	for (const auto& arg:ce->get_args())
+	{
+		args.push_back(evaluate(arg));
+	}
+
+	if (!holds_alternative<callable>(callee))
+	{
+		throw clox::interpreting::runtime_error{ ce->get_paren(), "Expression isn't callable." };
+	}
+
+	return get<callable>(callee).call(this, args);
+}
+
 

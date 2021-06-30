@@ -46,6 +46,7 @@ class interpreter final :
 		virtual parsing::statement_visitor<void>,
 		public base::singleton<interpreter>
 {
+
 public:
 	interpreter() : expression_visitor<evaluating_result>(),
 					parsing::statement_visitor<void>(),
@@ -77,6 +78,8 @@ public:
 	evaluating_result visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr) override;
 
 	evaluating_result visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& ptr) override;
+
+	evaluating_result visit_call_expression(const std::shared_ptr<parsing::call_expression>& ptr) override;
 
 	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
