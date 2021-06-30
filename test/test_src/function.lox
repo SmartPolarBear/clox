@@ -1,5 +1,16 @@
 fun fuck(first, second) {
-    print "I fuck "+first+" firstly, then fucked "+second+".";
+    print "I fucked "+first+" firstly, and then fucked "+second+".";
 }
 
 fuck("AA","BB");
+
+fun recursive_fuck(ch) {
+    if(ch != "AAAAAA")
+    {
+        print "fuck "+ch;
+        ch=ch+"A";
+        recursive_fuck(ch);
+    }
+}
+
+recursive_fuck("A");

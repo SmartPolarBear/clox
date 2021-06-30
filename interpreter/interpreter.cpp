@@ -391,7 +391,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 {
 	auto callee = evaluate(ce->get_calle());
 
-	vector<evaluating_result> args(ce->get_args().size());
+	vector<evaluating_result> args{};
 	for (const auto& arg:ce->get_args())
 	{
 		args.push_back(evaluate(arg));
