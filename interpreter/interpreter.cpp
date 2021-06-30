@@ -421,7 +421,7 @@ void interpreter::install_native_functions()
 
 void interpreter::visit_function_statement(const std::shared_ptr<function_statement>& stmt)
 {
-	auto func = make_shared<lox_function>(stmt);
+	auto func = make_shared<lox_function>(stmt, environment_);
 	environment_->put(stmt->get_name().lexeme(), func);
 }
 

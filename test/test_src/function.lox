@@ -25,3 +25,19 @@ fun fib(n){
 for(var i=1;i<10;i=i+1){
     print fib(i);
 }
+
+fun closure()
+{
+    var i=0;
+    fun count(){
+        i=i+1;
+        print i;
+    }
+
+    return count;
+}
+
+for(var i=0;i<5;i=i+1)
+{
+    closure();
+}

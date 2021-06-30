@@ -38,7 +38,7 @@ size_t clox::interpreting::lox_function::arity()
 clox::interpreting::evaluating_result
 clox::interpreting::lox_function::call(interpreter* intp, const std::vector<evaluating_result>& args)
 {
-	auto env = make_shared<environment>(intp->globals());
+	auto env = make_shared<environment>(closure_);
 
 	auto params = decl_->get_params();
 	for (size_t i = 0; i < params.size(); i++)

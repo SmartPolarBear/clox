@@ -26,10 +26,13 @@
 #pragma once
 
 #include <interpreter/evaluating_result.h>
+#include <interpreter/environment.h>
+
 #include <parser/gen/parser_classes.inc>
 
 
 #include <memory>
+#include <utility>
 
 namespace clox::interpreting
 {
@@ -37,8 +40,13 @@ class lox_function final
 		: public callable
 {
 public:
-	explicit lox_function(const std::shared_ptr<parsing::function_statement>& decl)
-			: decl_(decl)
+	explicit lox_function(std::shared_ptr<parsing::function_statement> decl)
+			: decl_(std::move(decl))
+	{
+	}
+
+	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure)
+			: decl_(std::move(decl)), closure_(std::move(closure))
 	{
 	}
 
@@ -49,6 +57,7 @@ public:
 	evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args) override;
 
 private:
+	std::shared_ptr<environment> closure_{ nullptr };
 	std::shared_ptr<parsing::function_statement> decl_{ nullptr };
 };
 }
