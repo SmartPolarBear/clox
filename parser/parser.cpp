@@ -380,7 +380,7 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 	}
 
 	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", kind));
-	consume(token_type::LEFT_BRACE, std::format("'{' is expected after {} declaration and before its body.", kind));
+	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", kind));
 
 	auto body = block();
 	return make_shared<function_statement>(name, params, body);
