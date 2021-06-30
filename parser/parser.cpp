@@ -182,7 +182,7 @@ std::shared_ptr<expression> parser::call()
 	{
 		if (match({ token_type::LEFT_PAREN }))
 		{
-			expr = call_finish_parse(0);
+			expr = call_finish_parse(expr);
 		}
 		else
 		{

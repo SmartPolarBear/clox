@@ -23,18 +23,22 @@
 //
 
 #include <cstddef>
+#include <chrono>
+
 #include <interpreter/evaluating_result.h>
 #include <interpreter/native_functions.h>
 
 using namespace clox::interpreting;
 
+using namespace std::chrono;
+
 size_t clox::interpreting::clock_func::arity()
 {
-	return callable::arity();
+	return 0;
 }
 
 evaluating_result
-clox::interpreting::clock_func::call(struct interpreter* intp, const std::vector <evaluating_result>& args)
+clox::interpreting::clock_func::call(struct interpreter* intp, const std::vector<evaluating_result>& args)
 {
-	return callable::call(intp, args);
+	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
