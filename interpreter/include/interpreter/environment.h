@@ -37,10 +37,17 @@ namespace clox::interpreting
 class environment final
 {
 public:
-	environment() = default;
+	using map_type = std::unordered_map<std::string, evaluating_result>;
+
+	environment() : parent_(),
+					values_(std::make_shared<map_type>())
+	{
+
+	}
 
 	explicit environment(const std::shared_ptr<environment>& parent)
-			: parent_(parent)
+			: parent_(parent),
+			  values_(std::make_shared<map_type>())
 	{
 
 	}
@@ -52,7 +59,7 @@ public:
 	void assign(const scanning::token& name, evaluating_result val);
 
 private:
-	std::unordered_map<std::string, evaluating_result> values_{};
+	std::shared_ptr<map_type> values_{};
 
 	std::weak_ptr<environment> parent_{};
 };

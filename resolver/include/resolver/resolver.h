@@ -26,7 +26,11 @@
 
 #include <parser/gen/parser_classes.inc>
 
-#include <interpreter/interpreter.h>s
+#include <interpreter/interpreter.h>
+
+#include <vector>
+#include <stack>
+#include <memory>
 
 namespace clox::resolver
 {
@@ -75,7 +79,43 @@ public:
 
 	void visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr) override;
 
+public:
+	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
+
+	void resolve(const std::shared_ptr<parsing::statement>& stmt);
+
+	void resolve(const std::shared_ptr<parsing::expression>& expr);
+
 private:
+	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
+
+	void resolve_function(const std::shared_ptr<parsing::function_statement>& func);
+
+	void scope_begin();
+
+	void scope_end();
+
+	void declare(const scanning::token& t);
+
+	void define(const scanning::token& t);
+
+	std::shared_ptr<std::unordered_map<std::string, bool>> scope_top()
+	{
+		return scopes_.back();
+	}
+
+	void scope_push(const std::shared_ptr<std::unordered_map<std::string, bool>>& s)
+	{
+		scopes_.push_back(s);
+	}
+
+	void scope_pop()
+	{
+		scopes_.pop_back();
+	}
+
+	std::vector<std::shared_ptr<std::unordered_map<std::string, bool>>> scopes_{};
+
 	interpreting::interpreter* intp_{ nullptr };
 };
 }

@@ -24,89 +24,215 @@
 
 #include <resolver/resolver.h>
 
+#include <logger/logger.h>
+
+#include <memory>
+#include <format>
+#include <ranges>
+
+#include <gsl/gsl>
+
+using namespace clox::logging;
 using namespace clox::resolver;
+using namespace clox::interpreting;
 
-void resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr)
+using namespace std;
+using namespace gsl;
+
+void resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& e)
 {
-
+	resolve(e->get_value());
+	resolve_local(e, e->get_name());
 }
 
-void resolver::visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& ptr)
+void resolver::visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expr)
 {
-
+	resolve(expr->get_left());
+	resolve(expr->get_right());
 }
 
-void resolver::visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ptr)
+void resolver::visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ue)
 {
-
+	resolve(ue->get_right());
 }
 
 void resolver::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr)
 {
+	// Do nothing for this
+}
+
+void resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)
+{
+	resolve(ge->get_expr());
+}
+
+void resolver::visit_var_expression(const std::shared_ptr<parsing::var_expression>& ve)
+{
+	if (!scopes_.empty() && !scope_top()->at(ve->get_name().lexeme()))
+	{
+		logger::instance().error(ve->get_name(),
+				std::format("Reading {} before its initialization.", ve->get_name().lexeme()));
+	}
+
+	resolve_local(ve, ve->get_name());
+}
+
+void resolver::visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& te)
+{
+	resolve(te->get_cond());
+	resolve(te->get_true_expr());
+	resolve(te->get_false_expr());
+}
+
+void resolver::visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& le)
+{
+	resolve(le->get_left());
+	resolve(le->get_right());
+}
+
+void resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
+{
+	resolve(ce->get_calle());
+
+	for (const auto& arg:ce->get_args())
+	{
+		resolve(arg);
+	}
+}
+
+void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
+{
+	resolve(es->get_expr());
+}
+
+void resolver::visit_print_statement(const std::shared_ptr<parsing::print_statement>& pe)
+{
+	resolve(pe->get_expr());
+}
+
+void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& stmt)
+{
+	declare(stmt->get_name());
+	auto _ = finally([this, &stmt]
+	{
+		this->define(stmt->get_name());
+	});
+
+	if (stmt->get_initializer())
+	{
+		resolve(stmt->get_initializer());
+	}
+}
+
+void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)
+{
+	scope_begin();
+	auto _ = finally([this]
+	{
+		this->scope_end();
+	});
+
+	resolve(blk->get_stmts());
+}
+
+void resolver::visit_while_statement(const std::shared_ptr<parsing::while_statement>& ws)
+{
+	resolve(ws->get_cond());
+	resolve(ws->get_body());
+}
+
+void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& stmt)
+{
+	resolve(stmt->get_cond());
+	resolve(stmt->get_true_stmt());
+	if (stmt->get_false_stmt())resolve(stmt->get_false_stmt());
+}
+
+void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
+{
+	declare(stmt->get_name());
+	define(stmt->get_name());
+
+	resolve_function(stmt);
+}
+
+void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
+{
+	if (rs->get_val())
+	{
+		resolve(rs->get_val());
+	}
+}
+
+void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
+{
+	for (const auto& stmt:stmts)
+	{
+		resolve(stmt);
+	}
+}
+
+void resolver::resolve(const std::shared_ptr<parsing::statement>& stmt)
+{
+	parsing::accept(*stmt, *this);
+}
+
+void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
+{
+	accept(*expr, *this);
+}
+
+void resolver::scope_begin()
+{
+	scope_push(make_shared<unordered_map<string, bool>>());
+}
+
+void resolver::scope_end()
+{
+	scope_pop();
+}
+
+void resolver::declare(const clox::scanning::token& t)
+{
+	if (scopes_.empty())return;
+
+	(*scope_top())[t.lexeme()] = false;
+}
+
+void resolver::define(const clox::scanning::token& t)
+{
+	if (scopes_.empty())return;
+	(*scope_top())[t.lexeme()] = true;
 
 }
 
-void resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ptr)
+void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const clox::scanning::token& tk)
 {
-
+	int64_t depth = 0;
+	for (const auto& s:scopes_)
+	{
+		if (s->contains(tk.lexeme()))
+		{
+			intp_->resolve(expr, depth);
+			return;
+		}
+		depth++;
+	}
 }
 
-void resolver::visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr)
+void resolver::resolve_function(const shared_ptr<parsing::function_statement>& func)
 {
+	scope_begin();
+	auto _ = finally([this]
+	{
+		this->scope_end();
+	});
 
-}
+	for (const auto& tk:func->get_params())
+	{
+		declare(tk);
+		define(tk);
+	}
 
-void resolver::visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr)
-{
-
-}
-
-void resolver::visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& ptr)
-{
-
-}
-
-void resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ptr)
-{
-
-}
-
-void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr)
-{
-
-}
-
-void resolver::visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr)
-{
-
-}
-
-void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& ptr)
-{
-
-}
-
-void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& ptr)
-{
-
-}
-
-void resolver::visit_while_statement(const std::shared_ptr<parsing::while_statement>& ptr)
-{
-
-}
-
-void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& ptr)
-{
-
-}
-
-void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& ptr)
-{
-
-}
-
-void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr)
-{
-
+	resolve(func->get_body());
 }

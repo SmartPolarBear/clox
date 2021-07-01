@@ -436,4 +436,9 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 	throw return_value{ ret };
 }
 
+void interpreter::resolve(const shared_ptr<parsing::expression>& expr, int64_t depth)
+{
+
+}
+
 
