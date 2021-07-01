@@ -35,6 +35,7 @@
 namespace clox::interpreting
 {
 class environment final
+		: public std::enable_shared_from_this<environment>
 {
 public:
 	using map_type = std::unordered_map<std::string, evaluating_result>;
@@ -54,11 +55,19 @@ public:
 
 	std::optional<evaluating_result> get(const scanning::token& name);
 
+	std::optional<evaluating_result> get_at(const std::string& name, int64_t depth);
+
 	void put(const std::string& name, evaluating_result value);
+
 
 	void assign(const scanning::token& name, evaluating_result val);
 
+	void assign_at(const scanning::token& name, evaluating_result val, int64_t depth);
+
+
 private:
+	std::weak_ptr<environment> ancestor(int64_t dist);
+
 	std::shared_ptr<map_type> values_{};
 
 	std::weak_ptr<environment> parent_{};

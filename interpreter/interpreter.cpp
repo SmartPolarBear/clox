@@ -156,9 +156,8 @@ std::string clox::interpreting::interpreter::result_to_string(const clox::interp
 	return "";
 }
 
-void clox::interpreting::interpreter::interpret(vector<shared_ptr<statement>>&& t_stmts)
+void clox::interpreting::interpreter::interpret(const vector<shared_ptr<parsing::statement>>& stmts)
 {
-	auto stmts = t_stmts;
 	try
 	{
 		for (const auto& s:stmts)
@@ -283,7 +282,8 @@ void interpreter::execute(const shared_ptr<parsing::statement>& s)
 
 evaluating_result interpreter::visit_var_expression(const std::shared_ptr<var_expression>& e)
 {
-	auto opt_val = environment_->get(e->get_name());
+//	auto opt_val = environment_->get(e->get_name());
+	auto opt_val = variable_lookup(e->get_name(), e);
 	if (opt_val.has_value())
 	{
 		return *opt_val;
@@ -306,7 +306,8 @@ void interpreter::visit_variable_statement(const std::shared_ptr<variable_statem
 evaluating_result interpreter::visit_assignment_expression(const std::shared_ptr<struct assignment_expression>& ae)
 {
 	auto val = evaluate(ae->get_value());
-	environment_->assign(ae->get_name(), val);
+//	environment_->assign(ae->get_name(), val);
+	variable_assign(ae->get_name(), ae, val);
 	return val;
 }
 
@@ -438,7 +439,34 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 void interpreter::resolve(const shared_ptr<parsing::expression>& expr, int64_t depth)
 {
+	locals_[expr] = depth;
+}
 
+std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
+{
+	auto dist = locals_.contains(expr) ? locals_.at(expr) : -1;
+	if (dist != -1)
+	{
+		return environment_->get_at(tk.lexeme(), dist);
+	}
+	else
+	{
+		return globals_->get(tk);
+	}
+}
+
+void
+interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
+{
+	auto dist = locals_.contains(expr) ? locals_.at(expr) : -1;
+	if (dist != -1)
+	{
+		environment_->assign_at(tk, val, dist);
+	}
+	else
+	{
+		globals_->assign(tk, val);
+	}
 }
 
 

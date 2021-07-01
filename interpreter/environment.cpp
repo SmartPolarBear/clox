@@ -66,3 +66,43 @@ void environment::assign(const clox::scanning::token& name, evaluating_result va
 
 	throw clox::interpreting::runtime_error{ name, std::format("Undefined variable '{}'.", name.lexeme()) };
 }
+
+std::optional<evaluating_result> environment::get_at(const string& name, int64_t depth)
+{
+	auto an = ancestor(depth);
+	if (auto p = an.lock())
+	{
+		return p->values_->at(name);
+	}
+	return std::nullopt;
+}
+
+std::weak_ptr<environment> environment::ancestor(int64_t dist)
+{
+	weak_ptr<environment> ret{ this->shared_from_this() };
+	for (int i = 0; i < dist; i++)
+	{
+		if (auto p = ret.lock())
+		{
+			ret = p->parent_;
+		}
+		else
+		{
+			throw std::runtime_error{ "Internal error" };
+		}
+	}
+	return ret;
+}
+
+void environment::assign_at(const clox::scanning::token& name, evaluating_result val, int64_t depth)
+{
+	auto an = ancestor(depth);
+	if (auto p = an.lock())
+	{
+		(*(p->values_))[name.lexeme()] = std::move(val);
+	}
+	else
+	{
+		throw std::runtime_error{ "Internal error" };
+	}
+}

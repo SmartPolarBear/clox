@@ -9,6 +9,8 @@
 
 #include <interpreter/interpreter.h>
 
+#include <resolver/resolver.h>
+
 #include <utility>
 #include <iostream>
 #include <fstream>
@@ -20,6 +22,7 @@ using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::logging;
+using namespace clox::resolver;
 using namespace clox::interpreting;
 
 static inline int run(string code)
@@ -33,8 +36,10 @@ static inline int run(string code)
 	else if (logger::instance().has_runtime_errors())return 67;
 
 	interpreter intp{};
-	
-	intp.interpret(std::move(stmts));
+	resolver resolv{ &intp };
+
+	resolv.resolve(stmts);
+	intp.interpret(stmts);
 
 	return 0;
 }

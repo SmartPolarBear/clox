@@ -66,7 +66,7 @@ public:
 
 	void visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& ptr) override;
 
-	void interpret(std::vector<std::shared_ptr<parsing::statement>>&& stmts);
+	void interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
 	evaluating_result visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
 
@@ -113,6 +113,12 @@ private:
 
 	evaluating_result evaluate(const std::shared_ptr<parsing::expression>& expr);
 
+	std::optional<evaluating_result>
+	variable_lookup(const scanning::token& tk, const std::shared_ptr<parsing::expression>& expr);
+
+	void variable_assign(const scanning::token& tk, const std::shared_ptr<parsing::expression>& expr,
+			const evaluating_result& val);
+
 	static std::string result_to_string(const evaluating_result& res);
 
 	static constexpr std::string_view bool_to_string(bool b);
@@ -128,5 +134,6 @@ private:
 
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
+	std::unordered_map<std::shared_ptr<parsing::expression>, int64_t> locals_{};
 };
 }
