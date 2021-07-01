@@ -32,8 +32,9 @@ static inline int run(string code)
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-
-	interpreter::instance().interpret(std::move(stmts));
+	interpreter intp{};
+	
+	intp.interpret(std::move(stmts));
 
 	return 0;
 }

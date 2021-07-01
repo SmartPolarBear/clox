@@ -43,14 +43,12 @@ namespace clox::interpreting
 {
 class interpreter final :
 		virtual parsing::expression_visitor<evaluating_result>,
-		virtual parsing::statement_visitor<void>,
-		public base::singleton<interpreter>
+		virtual parsing::statement_visitor<void>
 {
 
 public:
 	interpreter() : expression_visitor<evaluating_result>(),
 					parsing::statement_visitor<void>(),
-					base::singleton<interpreter>(),
 					globals_(std::make_shared<environment>())
 	{
 		environment_ = globals_;
