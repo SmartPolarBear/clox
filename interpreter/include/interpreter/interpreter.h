@@ -55,11 +55,6 @@ public:
 		install_native_functions();
 	}
 
-	std::shared_ptr<environment> globals()
-	{
-		return globals_;
-	}
-
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;

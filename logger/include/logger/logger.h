@@ -16,7 +16,7 @@ class logger final
 public:
 	void error(size_t line, const std::string& message);
 
-	void error(scanning::token token, std::string msg);
+	void error(const scanning::token& token, const std::string& msg);
 
 	void runtime_error(const interpreting::runtime_error &re);
 

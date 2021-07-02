@@ -15,7 +15,7 @@ void clox::logging::logger::error(size_t line, const std::string& message)
 	cout << format("[Line {}] Error: {}", line, message) << endl;
 }
 
-void clox::logging::logger::error(clox::scanning::token token, std::string msg)
+void clox::logging::logger::error(const clox::scanning::token& token, const std::string& msg)
 {
 	if (token.type() == token_type::FEND)
 	{
