@@ -1,0 +1,5 @@
+fun fuck(first, second) {
+    print "I fucked "+first+" firstly, and then fucked "+second+".";
+}
+
+fuck("AA","BB");

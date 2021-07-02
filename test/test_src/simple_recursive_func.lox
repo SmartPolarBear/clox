@@ -1,0 +1,10 @@
+fun recursive_fuck(ch) {
+    if(ch != "AAAAAA")
+    {
+        print "I fucked "+ch;
+        ch=ch+"A";
+        recursive_fuck(ch);
+    }
+}
+
+recursive_fuck("A");

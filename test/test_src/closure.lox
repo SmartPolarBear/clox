@@ -1,0 +1,17 @@
+fun closure()
+{
+    var i=0;
+    fun count(){
+        i=i+1;
+        print i;
+    }
+
+    return count;
+}
+
+var c=closure();
+c();
+c();
+c();
+c();
+c();
