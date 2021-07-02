@@ -122,12 +122,9 @@ private:
 	std::shared_ptr<expression> unary();
 
 	/// call -> primary ( "(" arguments? ")" )* ;
-	/// \return
-	std::shared_ptr<expression> call();
-
 	/// arguments      → expression ( "," expression )* ;
 	/// \return
-	std::shared_ptr<expression> arguments();
+	std::shared_ptr<expression> call();
 
 	/// primary -> NUMBER|STRING|"true"|"false"|"nil"|"(" expr ")"
 	/// \return

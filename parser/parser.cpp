@@ -214,10 +214,7 @@ std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expressio
 }
 
 
-std::shared_ptr<expression> parser::arguments()
-{
-	return std::shared_ptr<expression>();
-}
+
 
 std::shared_ptr<expression> parser::primary()
 {
