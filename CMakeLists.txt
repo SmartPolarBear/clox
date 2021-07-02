@@ -29,6 +29,14 @@ target_link_libraries(clox
         PUBLIC GSL
         PUBLIC argparse)
 
+if (${ENABLE_ASAN})
+    message(STATUS "Use address sanitizer.")
+
+    # TODO
+else ()
+    message(STATUS "Not use address sanitizer.")
+endif ()
+
 
 add_custom_target(parser_classes_inc
         COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
