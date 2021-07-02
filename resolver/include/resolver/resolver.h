@@ -104,6 +104,13 @@ private:
 		return scopes_.back();
 	}
 
+	std::optional<bool> scope_top_find(const std::string& key)
+	{
+		auto top = scope_top();
+		if (!top->contains(key))return std::nullopt;
+		else return top->at(key);
+	}
+
 	void scope_push(const std::shared_ptr<std::unordered_map<std::string, bool>>& s)
 	{
 		scopes_.push_back(s);
@@ -113,6 +120,7 @@ private:
 	{
 		scopes_.pop_back();
 	}
+
 
 	std::vector<std::shared_ptr<std::unordered_map<std::string, bool>>> scopes_{};
 

@@ -72,6 +72,11 @@ std::optional<evaluating_result> environment::get_at(const string& name, int64_t
 	auto an = ancestor(depth);
 	if (auto p = an.lock())
 	{
+		if(!p->values_->contains(name))
+		{
+			return std::nullopt;
+		}
+
 		return p->values_->at(name);
 	}
 	return std::nullopt;

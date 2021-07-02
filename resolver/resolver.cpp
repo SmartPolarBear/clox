@@ -68,10 +68,14 @@ void resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping
 
 void resolver::visit_var_expression(const std::shared_ptr<parsing::var_expression>& ve)
 {
-	if (!scopes_.empty() && !scope_top()->at(ve->get_name().lexeme()))
+	if (!scopes_.empty())
 	{
-		logger::instance().error(ve->get_name(),
-				std::format("Reading {} before its initialization.", ve->get_name().lexeme()));
+		if (auto existence = scope_top_find(ve->get_name().lexeme());existence.has_value() &&
+																	 !existence.value())
+		{
+			logger::instance().error(ve->get_name(),
+					std::format("Reading {} before its initialization.", ve->get_name().lexeme()));
+		}
 	}
 
 	resolve_local(ve, ve->get_name());
@@ -202,6 +206,7 @@ void resolver::declare(const clox::scanning::token& t)
 void resolver::define(const clox::scanning::token& t)
 {
 	if (scopes_.empty())return;
+
 	(*scope_top())[t.lexeme()] = true;
 
 }
