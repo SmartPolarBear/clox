@@ -22,6 +22,7 @@
 // Created by cleve on 6/16/2021.
 //
 #pragma once
+
 #include <stdexcept>
 
 namespace clox::interpreting
@@ -30,14 +31,13 @@ class runtime_error final
 		: public std::runtime_error
 {
 public:
-	runtime_error() = default;
 
 	runtime_error(scanning::token tk, const std::string& msg)
 			: tk_(std::move(tk)), std::runtime_error(msg)
 	{
 	}
 
-	~runtime_error() = default;
+	~runtime_error() override = default;
 
 	[[nodiscard]]scanning::token token() const
 	{

@@ -260,7 +260,7 @@ parse_error parser::error(token t, const std::string& msg)
 
 void parser::synchronize()
 {
-	auto _ = advance(); // discard it
+	[[maybe_unused]] auto _ = advance(); // discard it
 	while (!is_end())
 	{
 		if (previous().type() == token_type::SEMICOLON)return;

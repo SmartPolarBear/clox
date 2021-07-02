@@ -66,7 +66,7 @@ int clox::driver::run_command()
 	cout << ">>> ";
 	while (std::getline(std::cin, line))
 	{
-		auto _ = run(line);
+		[[maybe_unused]] auto _ = run(line);
 
 		cout << ">>> ";
 	}

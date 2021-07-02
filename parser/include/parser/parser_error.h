@@ -37,14 +37,13 @@ class parse_error final
 		: public std::runtime_error
 {
 public:
-	parse_error() = default;
 
-	parse_error(const std::string& msg)
+	explicit parse_error(const std::string& msg)
 			: std::runtime_error(msg)
 	{
 	}
 
-	~parse_error() = default;
+	~parse_error() override = default;
 
 };
 

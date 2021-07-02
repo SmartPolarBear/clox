@@ -37,6 +37,4 @@ int main(int argc, char* argv[])
 	{
 		return clox::driver::run_command();
 	}
-
-	return 0;
 }
