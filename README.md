@@ -1,5 +1,5 @@
 # Clox
-C++ implementation of lox languages in [Crafting Interpreters](https://craftinginterpreters.com/).
+C++ implementation of the lox programing language described in [Crafting Interpreters](https://craftinginterpreters.com/).
 
 ## Usage
 `clox` to enter REPL mode.  
