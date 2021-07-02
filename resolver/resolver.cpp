@@ -178,7 +178,7 @@ void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& s
 
 void resolver::resolve(const std::shared_ptr<parsing::statement>& stmt)
 {
-	parsing::accept(*stmt, *this);
+	accept(*stmt, *this);
 }
 
 void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
@@ -214,7 +214,8 @@ void resolver::define(const clox::scanning::token& t)
 void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const clox::scanning::token& tk)
 {
 	int64_t depth = 0;
-	for (const auto& s:scopes_)
+
+	for (const auto& s:scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
 		if (s->contains(tk.lexeme()))
 		{
