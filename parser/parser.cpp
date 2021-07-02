@@ -257,7 +257,7 @@ parse_error parser::error(token t, const std::string& msg)
 
 void parser::synchronize()
 {
-	[[maybe_unused]] auto _ = advance(); // discard it
+	[[maybe_unused]] auto _discard1 = advance(); // discard it
 	while (!is_end())
 	{
 		if (previous().type() == token_type::SEMICOLON)return;
@@ -274,7 +274,7 @@ void parser::synchronize()
 		case token_type::RETURN:
 			return;
 		default:
-			_ = advance();  // discard it
+			[[maybe_unused]] auto _discard2 = advance();  // discard it
 			continue;
 		}
 	}
