@@ -36,7 +36,7 @@ size_t clox::interpreting::lox_function::arity()
 }
 
 clox::interpreting::evaluating_result
-clox::interpreting::lox_function::call(interpreter* intp, const std::vector<evaluating_result>& args)
+clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::vector<evaluating_result>& args)
 {
 	auto env = make_shared<environment>(closure_);
 
@@ -48,7 +48,7 @@ clox::interpreting::lox_function::call(interpreter* intp, const std::vector<eval
 
 	try
 	{
-		intp->execute_block(decl_->get_body(), env);
+		the_interpreter->execute_block(decl_->get_body(), env);
 	}
 	catch (const return_value& rv)
 	{

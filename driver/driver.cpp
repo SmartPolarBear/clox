@@ -33,15 +33,15 @@ static inline int run(string code)
 	auto stmts = ps.parse();
 	if (logger::instance().has_errors())return 65;
 
-	interpreter intp{};
+	interpreter the_interpreter{};
 
-	resolver resolv{ &intp };
-	resolv.resolve(stmts);
+	resolver rsv{ &the_interpreter };
+	rsv.resolve(stmts);
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	intp.interpret(stmts);
+	the_interpreter.interpret(stmts);
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;

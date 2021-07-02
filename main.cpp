@@ -9,9 +9,9 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	argparse::ArgumentParser prog{ "clox" };
+	argparse::ArgumentParser arg_parser{ "clox" };
 
-	prog.add_argument("-f", "--file")
+	arg_parser.add_argument("-f", "--file")
 			.help("the script to run")
 			.default_value(string{ "" })
 			.implicit_value(string{ "" })
@@ -19,16 +19,16 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		prog.parse_args(argc, argv);
+		arg_parser.parse_args(argc, argv);
 	}
 	catch (const std::runtime_error& err)
 	{
 		cout << err.what() << endl;
-		cout << prog;
+		cout << arg_parser;
 		return 1;
 	}
 
-	auto file = prog.get<string>("--file");
+	auto file = arg_parser.get<string>("--file");
 	if (!file.empty())
 	{
 		return clox::driver::run_file(file);

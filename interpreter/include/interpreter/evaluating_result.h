@@ -44,7 +44,7 @@ class callable
 public:
 	virtual size_t arity() = 0;
 
-	virtual evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args) = 0;
+	virtual evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) = 0;
 };
 
 }

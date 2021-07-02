@@ -54,7 +54,7 @@ public:
 
 	size_t arity() override;
 
-	evaluating_result call(class interpreter* intp, const std::vector<evaluating_result>& args) override;
+	evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
 
 private:
 	std::shared_ptr<environment> closure_{ nullptr };

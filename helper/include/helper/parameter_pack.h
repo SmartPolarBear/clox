@@ -25,7 +25,7 @@
 
 namespace clox::helper
 {
-/// \brief convert the parameter pack to a array of given type T and size Size at compile time
+/// \brief convert the parameter pack to an array of given type T and given size at compile time
 /// \tparam T type, all elements of parameter pack should be able to be cast to T
 /// \tparam Size size of the parameter_pack
 template<typename T, std::size_t Size>
