@@ -157,11 +157,16 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 	declare(stmt->get_name());
 	define(stmt->get_name());
 
-	resolve_function(stmt);
+	resolve_function(stmt, function_type::FT_FUNCTION);
 }
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
 {
+	if (cur_func_ == function_type::FT_NONE)
+	{
+		logger::instance().error(rs->get_return_keyword(), "Return statement in none-function scoop.");
+	}
+
 	if (rs->get_val())
 	{
 		resolve(rs->get_val());
@@ -200,7 +205,14 @@ void resolver::declare(const clox::scanning::token& t)
 {
 	if (scopes_.empty())return;
 
-	(*scope_top())[t.lexeme()] = false;
+	auto top = scope_top();
+
+	if (top->contains(t.lexeme()))
+	{
+		logger::instance().error(t, std::format("{} already exists in this scoop.", t.lexeme()));
+	}
+
+	(*top)[t.lexeme()] = false;
 }
 
 void resolver::define(const clox::scanning::token& t)
@@ -226,12 +238,16 @@ void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const 
 	}
 }
 
-void resolver::resolve_function(const shared_ptr<parsing::function_statement>& func)
+void resolver::resolve_function(const shared_ptr<parsing::function_statement>& func, function_type type)
 {
+	auto parent_type = cur_func_;
+	cur_func_ = type;
 	scope_begin();
-	auto _ = finally([this]
+
+	auto _ = finally([this, parent_type]
 	{
 		this->scope_end();
+		cur_func_ = parent_type;
 	});
 
 	for (const auto& tk:func->get_params())

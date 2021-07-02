@@ -31,15 +31,20 @@ static inline int run(string code)
 	parser ps{ sc.scan() };
 
 	auto stmts = ps.parse();
+	if (logger::instance().has_errors())return 65;
+
+	interpreter intp{};
+
+	resolver resolv{ &intp };
+	resolv.resolve(stmts);
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	interpreter intp{};
-	resolver resolv{ &intp };
-
-	resolv.resolve(stmts);
 	intp.interpret(stmts);
+
+	if (logger::instance().has_errors())return 65;
+	else if (logger::instance().has_runtime_errors())return 67;
 
 	return 0;
 }

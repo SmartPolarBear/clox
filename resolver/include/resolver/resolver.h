@@ -39,6 +39,13 @@ class resolver final
 		  public parsing::statement_visitor<void>
 {
 public:
+	enum class [[clang::enum_extensibility(closed)]] function_type
+	{
+		FT_NONE,
+		FT_FUNCTION,
+	};
+
+public:
 	explicit resolver(interpreting::interpreter* intp) : intp_(intp)
 	{
 	}
@@ -89,7 +96,7 @@ public:
 private:
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	void resolve_function(const std::shared_ptr<parsing::function_statement>& func);
+	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
 	void scope_begin();
 
@@ -123,6 +130,8 @@ private:
 
 
 	std::vector<std::shared_ptr<std::unordered_map<std::string, bool>>> scopes_{};
+
+	function_type cur_func_{ function_type::FT_NONE };
 
 	interpreting::interpreter* intp_{ nullptr };
 };
