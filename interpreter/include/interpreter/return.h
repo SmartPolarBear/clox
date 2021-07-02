@@ -32,9 +32,10 @@
 namespace clox::interpreting
 {
 class return_value final
+		: public std::exception
 {
 public:
-	explicit return_value(evaluating_result val) : val_{std::move( val )}
+	explicit return_value(evaluating_result val) : val_{ std::move(val) }
 	{
 	}
 
