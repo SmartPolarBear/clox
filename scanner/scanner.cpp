@@ -195,6 +195,10 @@ void scanner::scan_next_token()
 			// this is a comment
 			while (peek() != '\n' && !is_end())advance();
 		}
+		else if (match('*'))
+		{
+			consume_block_comment();
+		}
 		else
 		{
 			add_token(token_type::SLASH);
@@ -230,6 +234,31 @@ void scanner::scan_next_token()
 		}
 
 		break;
+	}
+}
+
+void scanner::consume_block_comment()
+{
+	while (!is_end())
+	{
+		auto c = advance();
+		if (c == '\n')line_++;
+		else if (c == '*' && peek() == '/')
+		{
+			[[maybe_unused]]auto _ = advance(); // eat "/"
+			return;
+		}
+		else if (c == '/' && peek() == '*') // nested block comment
+		{
+			[[maybe_unused]]auto _ = advance(); // eat "*"
+			consume_block_comment();
+		}
+	}
+
+	// not enough code to find next close sign */, so it's an error
+	if (is_end())
+	{
+		logging::logger::instance().error(line_, "Unclosed block comment found.");
 	}
 }
 

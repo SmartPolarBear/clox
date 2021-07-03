@@ -186,6 +186,9 @@ private:
 
 	void scan_identifier();
 
+	/// handle block comment like /**/
+	void consume_block_comment();
+
 	std::string src_;
 	std::vector<token> tokens_{};
 	size_t start_{ 0 }, cur_{ 0 }, line_{ 1 };

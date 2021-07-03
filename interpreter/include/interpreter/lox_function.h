@@ -23,8 +23,6 @@
 //
 #pragma once
 
-#pragma once
-
 #include <interpreter/evaluating_result.h>
 #include <interpreter/environment.h>
 
