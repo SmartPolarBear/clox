@@ -84,9 +84,13 @@ private:
 	/// \return
 	std::shared_ptr<statement> return_stmt();
 
-	/// expr -> assigment
+	/// expr -> comma
 	/// \return
 	std::shared_ptr<expression> expr();
+
+	/// comma ->  assignment ( "," assignment )* ;
+	/// \return
+	std::shared_ptr<expression> comma();
 
 	/// assignment -> IDENTIFIER "=" assignment
 	///               | logical_or

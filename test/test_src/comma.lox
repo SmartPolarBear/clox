@@ -1,0 +1,12 @@
+print 1,2,3,4,5;
+
+var a=10;
+var b=20;
+
+print a,b,a+b;
+
+fun add(a,b){
+    return a+b;
+}
+
+print add(1,2),add(3,4);

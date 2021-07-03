@@ -35,8 +35,24 @@ using namespace std;
 
 std::shared_ptr<expression> clox::parsing::parser::expr()
 {
-	return assigment();
+	return comma();
 }
+
+
+std::shared_ptr<expression> parser::comma()
+{
+	auto expr = assigment();
+	while (match({ token_type::COMMA }))
+	{
+		auto op = previous();
+		auto right = assigment();
+
+		expr = make_shared<binary_expression>(expr, op, right);
+	}
+
+	return expr;
+}
+
 
 std::shared_ptr<expression> parser::assigment()
 {
@@ -205,15 +221,13 @@ std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expressio
 			{
 				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
 			}
-			args.push_back(this->expr());
+			args.push_back(this->assigment() /* not expr() because I want skip comma rule */);
 		} while (match({ token_type::COMMA }));
 	}
 
 	token paren = consume(scanning::token_type::RIGHT_PAREN, "')' is expected for argument list.");
 	return make_shared<call_expression>(callee, paren, args);
 }
-
-
 
 
 std::shared_ptr<expression> parser::primary()

@@ -92,8 +92,13 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	case scanning::token_type::EQUAL_EQUAL:
 		return is_equal(be->get_op(), left, right);
 
+	case scanning::token_type::COMMA:
+		return right;
+
 	default:
-		//TODO: ERROR?
+		// should not reach here
+		throw clox::interpreting::runtime_error(be->get_op(),
+				std::format("{} is not a valid binary operator.", be->get_op().lexeme()));
 		break;
 	}
 
