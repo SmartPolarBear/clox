@@ -190,12 +190,11 @@ void scanner::scan_next_token()
 		break;
 
 	case '/':
-		if (match('/'))
+		if (match('/')) // this is a line comment
 		{
-			// this is a comment
-			while (peek() != '\n' && !is_end())advance();
+			consume_line_comment();
 		}
-		else if (match('*'))
+		else if (match('*')) // this is a block comment
 		{
 			consume_block_comment();
 		}
@@ -260,5 +259,10 @@ void scanner::consume_block_comment()
 	{
 		logging::logger::instance().error(line_, "Unclosed block comment found.");
 	}
+}
+
+void scanner::consume_line_comment()
+{
+	while (peek() != '\n' && !is_end())advance();
 }
 

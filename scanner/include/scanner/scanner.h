@@ -189,6 +189,9 @@ private:
 	/// handle block comment like /**/
 	void consume_block_comment();
 
+	/// handle normal line comment
+	void consume_line_comment();
+
 	std::string src_;
 	std::vector<token> tokens_{};
 	size_t start_{ 0 }, cur_{ 0 }, line_{ 1 };
