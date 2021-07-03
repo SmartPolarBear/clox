@@ -55,7 +55,7 @@ std::shared_ptr<expression> parser::comma()
 
 std::shared_ptr<expression> parser::conditional()
 {
-	auto expr = equality();
+	auto expr = assigment();
 	if (match({ token_type::QMARK }))
 	{
 		auto true_expr = this->expr();
