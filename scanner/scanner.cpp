@@ -158,16 +158,37 @@ void scanner::scan_next_token()
 		add_token(token_type::DOT);
 		break;
 	case '-':
-		add_token(token_type::MINUS);
+		if (match('-'))
+		{
+			add_token(token_type::MINUS_MINUS);
+		}
+		else
+		{
+			add_token(token_type::MINUS);
+		}
 		break;
 	case '+':
-		add_token(token_type::PLUS);
+		if (match('+'))
+		{
+			add_token(token_type::PLUS_PLUS);
+		}
+		else
+		{
+			add_token(token_type::PLUS);
+		}
 		break;
 	case ';':
 		add_token(token_type::SEMICOLON);
 		break;
 	case '*':
-		add_token(token_type::STAR);
+		if(match('*'))
+		{
+			add_token(token_type::STAR);
+		}
+		else
+		{
+			add_token(token_type::STAR);
+		}
 		break;
 	case '?':
 		add_token(token_type::QMARK);

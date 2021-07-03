@@ -94,6 +94,23 @@
       ]
     },
     {
+      "name": "postfix_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "left_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "op_"
+        }
+      ]
+    },
+    {
       "name": "literal_expression",
       "base": [
         1,

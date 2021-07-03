@@ -125,9 +125,13 @@ private:
 	/// \return
 	std::shared_ptr<expression> factor();
 
-	/// unary -> ( "!" | "-" ) unary|call ;
+	/// unary -> ( "!" | "-" | "--" | "++" ) unary | postfix;
 	/// \return
 	std::shared_ptr<expression> unary();
+
+	/// postfix -> call ("--"|"++")* ;
+	/// \return
+	std::shared_ptr<expression> postfix();
 
 	/// call -> primary ( "(" arguments? ")" )* ;
 	/// arguments      → expression ( "," expression )* ;

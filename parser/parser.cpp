@@ -79,7 +79,7 @@ std::shared_ptr<expression> parser::assigment()
 
 		if (expr->get_type() == PC_TYPE_var_expression)
 		{
-			auto name = dynamic_cast<var_expression*>(expr.get())->get_name();
+			auto name = dynamic_pointer_cast<var_expression>(expr)->get_name();
 			return make_shared<assignment_expression>(name, val);
 		}
 
@@ -179,15 +179,27 @@ std::shared_ptr<expression> parser::factor()
 
 std::shared_ptr<expression> parser::unary()
 {
-	if (match({ token_type::BANG, token_type::SLASH }))
+	if (match({ token_type::BANG, token_type::SLASH, token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
 	{
 		auto op = previous();
 		auto right = unary();
 
 		return make_shared<unary_expression>(op, right);
 	}
+	else
+	{
+		return postfix();
+	}
+}
 
-	return call();
+std::shared_ptr<expression> parser::postfix()
+{
+	auto expr = call();
+	while (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
+	{
+		expr = make_shared<postfix_expression>(expr, previous());
+	}
+	return expr;
 }
 
 std::shared_ptr<expression> parser::call()
@@ -375,6 +387,7 @@ std::shared_ptr<statement> parser::declaration()
 
 std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 {
+
 	auto name = consume(token_type::IDENTIFIER, std::format("{} name is expected.", kind));
 	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", kind));
 
@@ -525,4 +538,3 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
-

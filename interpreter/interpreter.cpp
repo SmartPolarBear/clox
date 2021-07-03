@@ -38,6 +38,7 @@
 
 #include <gsl/gsl>
 
+#define DEF V
 using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
@@ -472,6 +473,11 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 	{
 		globals_->assign(tk, val);
 	}
+}
+
+evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing::postfix_expression>& pe)
+{
+	return clox::interpreting::evaluating_result();
 }
 
 

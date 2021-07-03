@@ -40,13 +40,18 @@ enum class token_type
 {
 	// Single-character tokens.
 	LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-	COMMA, DOT, MINUS, PLUS, SEMICOLON, COLON /* : */, SLASH, STAR, QMARK /* ? */,
+	COMMA, DOT,
+	SEMICOLON, COLON /* : */, SLASH,
+	QMARK /* ? */,
 
 	// One or two character tokens.
 	BANG, BANG_EQUAL,
 	EQUAL, EQUAL_EQUAL,
 	GREATER, GREATER_EQUAL,
 	LESS, LESS_EQUAL,
+	MINUS, MINUS_MINUS,
+	PLUS, PLUS_PLUS,
+	STAR, STAR_STAR,
 
 	// Literals.
 	IDENTIFIER, STRING, NUMBER,
