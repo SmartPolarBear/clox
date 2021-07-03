@@ -88,9 +88,13 @@ private:
 	/// \return
 	std::shared_ptr<expression> expr();
 
-	/// comma ->  assignment ( "," assignment )* ;
+	/// comma ->  conditional ( "," conditional )* ;
 	/// \return
 	std::shared_ptr<expression> comma();
+
+	/// conditional -> assigment ("?" expr ":" conditional )? ;
+	/// \return
+	std::shared_ptr<expression> conditional();
 
 	/// assignment -> IDENTIFIER "=" assignment
 	///               | logical_or

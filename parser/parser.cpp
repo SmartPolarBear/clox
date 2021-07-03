@@ -41,13 +41,27 @@ std::shared_ptr<expression> clox::parsing::parser::expr()
 
 std::shared_ptr<expression> parser::comma()
 {
-	auto expr = assigment();
+	auto expr = conditional();
 	while (match({ token_type::COMMA }))
 	{
 		auto op = previous();
-		auto right = assigment();
+		auto right = conditional();
 
 		expr = make_shared<binary_expression>(expr, op, right);
+	}
+
+	return expr;
+}
+
+std::shared_ptr<expression> parser::conditional()
+{
+	auto expr = equality();
+	if (match({ token_type::QMARK }))
+	{
+		auto true_expr = this->expr();
+		consume(scanning::token_type::COLON, "Invalid ternary expression: missing ':' clause.");
+		auto false_expr = this->conditional();
+		expr = make_shared<ternary_expression>(expr, true_expr, false_expr);
 	}
 
 	return expr;
@@ -71,21 +85,6 @@ std::shared_ptr<expression> parser::assigment()
 
 		// No throw, because of no need for synchronization
 		error(equals, "Invalid assignment to the token.");
-	}
-	else if (match({ token_type::QMARK }))
-	{
-		auto qmark = previous();
-		auto true_expr = this->expr();
-		decltype(true_expr) false_expr{ nullptr };
-		if (match({ token_type::COLON }))
-		{
-			false_expr = this->expr();
-			return make_shared<ternary_expression>(expr, true_expr, false_expr);
-		}
-		else
-		{
-			error(qmark, "Invalid ternary expression: missing ':' clause.");
-		}
 	}
 
 	return expr;
@@ -221,7 +220,7 @@ std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expressio
 			{
 				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
 			}
-			args.push_back(this->assigment() /* not expr() because I want skip comma rule */);
+			args.push_back(this->conditional() /* not expr() because I want skip comma rule */);
 		} while (match({ token_type::COMMA }));
 	}
 
@@ -526,6 +525,4 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
-
-
 
