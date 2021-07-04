@@ -32,6 +32,7 @@
 
 #include <gsl/gsl>
 
+using namespace clox::parsing;
 using namespace clox::logging;
 using namespace clox::resolver;
 using namespace clox::interpreting;
@@ -257,4 +258,9 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 	}
 
 	resolve(func->get_body());
+}
+
+void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
+{
+	resolve(pe->get_left());
 }

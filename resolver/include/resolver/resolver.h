@@ -72,6 +72,8 @@ public:
 
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
+	void visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
+
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
 
 	void visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& ptr) override;
@@ -92,6 +94,7 @@ public:
 	void resolve(const std::shared_ptr<parsing::statement>& stmt);
 
 	void resolve(const std::shared_ptr<parsing::expression>& expr);
+
 
 private:
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);

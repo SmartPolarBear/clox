@@ -125,11 +125,21 @@ private:
 	/// \return
 	std::shared_ptr<expression> factor();
 
-	/// unary -> ( "!" | "-" | "--" | "++" ) unary | postfix;
+	/// unary -> ( "!" | "-" ) unary | exponent;
 	/// \return
 	std::shared_ptr<expression> unary();
 
-	/// postfix -> call ("--"|"++")* ;
+	/// exponent -> (prefix "**" unary)
+	///            | prefix ;
+	/// \return
+	std::shared_ptr<expression> exponent();
+
+	/// prefix -> ("++" | "--") primary
+	///            | postfix
+	/// \return
+	std::shared_ptr<expression> prefix();
+
+	/// postfix -> primary ("--"|"++")* | call ;
 	/// \return
 	std::shared_ptr<expression> postfix();
 
@@ -171,11 +181,11 @@ private:
 
 	parse_error error(token t, const std::string& msg);
 
-	bool match(std::initializer_list<scanning::token_type> types)
+	bool match(std::initializer_list<scanning::token_type> types, int64_t next)
 	{
 		for (const auto& t:types)
 		{
-			if (check(t))
+			if (check(t, next))
 			{
 				[[maybe_unused]]auto _ = advance();
 				return true;
@@ -185,10 +195,30 @@ private:
 		return false;
 	}
 
-	[[nodiscard]] bool check(scanning::token_type t)
+	bool match(std::initializer_list<scanning::token_type> types)
+	{
+		return match(types, 0);
+	}
+
+	[[nodiscard]] bool check(scanning::token_type t, int64_t next)
 	{
 		if (is_end())return false;
-		return peek().type() == t;
+		return peek(next).type() == t;
+	}
+
+	[[nodiscard]] bool check(scanning::token_type t)
+	{
+		return check(t, 0);
+	}
+
+	[[nodiscard]]token peek(int64_t offset)
+	{
+		return tokens_.at(cur_ + offset);
+	}
+
+	[[nodiscard]]token peek()
+	{
+		return peek(0);
 	}
 
 	[[nodiscard]]token advance()
@@ -200,11 +230,6 @@ private:
 	[[nodiscard]]bool is_end()
 	{
 		return peek().type() == scanning::token_type::FEND;
-	}
-
-	[[nodiscard]]token peek()
-	{
-		return tokens_.at(cur_);
 	}
 
 	[[nodiscard]]token previous()

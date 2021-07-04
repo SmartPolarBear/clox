@@ -179,27 +179,69 @@ std::shared_ptr<expression> parser::factor()
 
 std::shared_ptr<expression> parser::unary()
 {
-	if (match({ token_type::BANG, token_type::SLASH, token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
+	if (match({ token_type::BANG, token_type::SLASH }))
 	{
 		auto op = previous();
 		auto right = unary();
 
 		return make_shared<unary_expression>(op, right);
 	}
-	else
+
+	return exponent();
+}
+
+std::shared_ptr<expression> parser::exponent()
+{
+	auto expr = prefix();
+	if (match({ token_type::STAR_STAR }))
 	{
-		return postfix();
+		auto op = previous();
+		auto right = unary();
+		return make_shared<binary_expression>(expr, op, right);
 	}
+	return expr;
+}
+
+std::shared_ptr<expression> parser::prefix()
+{
+	if (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
+	{
+		auto op = previous();
+		auto right = unary();
+
+		return make_shared<unary_expression>(op, right);
+	}
+
+	return postfix();
 }
 
 std::shared_ptr<expression> parser::postfix()
 {
-	auto expr = call();
-	while (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
+	if (check(token_type::PLUS_PLUS, 1))
 	{
-		expr = make_shared<postfix_expression>(expr, previous());
+		while (check(token_type::PLUS_PLUS, 1))
+		{
+			auto op = peek(1);
+			auto left = primary();
+			consume(token_type::PLUS_PLUS, "Invalid postfix expression");
+
+			return make_shared<postfix_expression>(left, op);
+		}
 	}
-	return expr;
+	else if (check(token_type::MINUS_MINUS, 1))
+	{
+		while (check(token_type::MINUS_MINUS, 1))
+		{
+			auto op = peek(1);
+			auto left = primary();
+			consume(token_type::MINUS_MINUS, "Invalid postfix expression");
+
+			return make_shared<postfix_expression>(left, op);
+		}
+	}
+
+
+	return call();
 }
 
 std::shared_ptr<expression> parser::call()
@@ -538,3 +580,5 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
+
+
