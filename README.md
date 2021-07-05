@@ -31,7 +31,7 @@ C++20 support, especially support for `std::format` and concepts are required fo
 
 |Naive CLOX|Typed CLOX|CLOXc
 |----------|----------|---------|
-✅ Basic language features<br>  |  🔄 Extended language features <br> 🔄 Make CLOX a static-typed language <br> ❌ Introduce the LOX standard library | ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
+✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  🔄 Extended language features <br> 🔄 Make CLOX a static-typed language <br> ❌ Introduce the LOX standard library | ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
