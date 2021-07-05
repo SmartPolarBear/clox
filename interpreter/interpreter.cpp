@@ -118,6 +118,11 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 		return -get<long double>(right);
 	case scanning::token_type::BANG:
 		return !is_truthy(right);
+	case scanning::token_type::PLUS_PLUS:
+		if(right->get)
+		break;
+	case scanning::token_type::MINUS_MINUS:
+		break;
 	default:
 		//TODO: ERROR?
 		break;
