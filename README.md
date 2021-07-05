@@ -3,11 +3,11 @@ Interpreter and compiler implemented in modern C++ for the lox programing langua
 
 In a long run, this project will support compile to binary and JIT with LLVM.  
 
-![issues](https://img.shields.io/github/issues/SmartPolarBear/clox)
-![forks](https://img.shields.io/github/forks/SmartPolarBear/clox)
-![stars](https://img.shields.io/github/stars/SmartPolarBear/clox)
-![license](https://img.shields.io/github/license/SmartPolarBear/clox)
-![twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2F___zirconium___)   
+[![issues](https://img.shields.io/github/issues/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/issues)
+[![forks](https://img.shields.io/github/forks/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/fork)
+[![stars](https://img.shields.io/github/stars/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/stargazers)
+[![license](https://img.shields.io/github/license/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/blob/master/LICENSE)
+[![twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2F___zirconium___)](https://twitter.com/___zirconium___)
 
 ### Built With
 #### Environment
@@ -16,7 +16,7 @@ This project is built with
 - MSVC 17.0
 - CMAKE, 3.19 and above.
 
-C++20 support, especially support for `std::format` and concepts are required for compiling most of the codes.  
+**Note:** C++20 support of compilers, especially support for `std::format` and concepts are required for compiling most of the codes. Now, only Visual Studio 16.9 and above are known to support them all. And LLVM 13 may work because it claims its test formatting features are "In progress".  
 
 #### Third-party Libraries
 - [microsoft/GSL](https://github.com/microsoft/GSL)  
@@ -31,7 +31,7 @@ C++20 support, especially support for `std::format` and concepts are required fo
 
 |Naive CLOX|Typed CLOX|CLOXc
 |----------|----------|---------|
-✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  🔄 Extended language features <br> 🔄 Make CLOX a static-typed language <br> ❌ Introduce the LOX standard library | ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
+✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  🔄 Extended language features <br> 🔄 Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Introduce the LOX standard library | ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
@@ -66,12 +66,12 @@ Contributions are what make the open source community such an amazing place to b
 
 Furthermore, you are welcomed to:  
 
-1. [Ask a question]()  
-   Also, have a look at our [FAQs]().
-2. [Start a discussion]()  
-   Discussions can be about any topics or ideas related to CLOX.
-3. [Make a feature proposal]()
-   Language features do you want to appear or not to appear in CLOX? For example, you can propose a new grammar making the lox better, or an idea for library features. 
+1. [Ask a question](https://github.com/SmartPolarBear/clox/discussions/categories/q-a)   
+   Also, have a look at our [FAQs]().  
+2. [Start a discussion](https://github.com/SmartPolarBear/clox/discussions/categories/general)    
+   Discussions can be about any topics or ideas related to CLOX.  
+3. [Make a feature proposal](https://github.com/SmartPolarBear/clox/issues)   
+   Language features do you want to appear or not to appear in CLOX? For example, you can propose a new grammar making the lox better, or an idea for library features.   
     
 ## License
 
