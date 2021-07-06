@@ -120,7 +120,10 @@ private:
 
 	static constexpr std::string_view bool_to_string(bool b);
 
+	static void check_numeric_operand(scanning::token, const evaluating_result& es);
+
 	static void check_numeric_operands(scanning::token, const evaluating_result& l, const evaluating_result& r);
+
 
 	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 

@@ -111,17 +111,45 @@ clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
 	auto right = evaluate(ue->get_right());
+	auto op = ue->get_op();
 
-	switch (ue->get_op().type())
+	switch (op.type())
 	{
 	case scanning::token_type::MINUS:
+		check_numeric_operand(op, right);
 		return -get<long double>(right);
 	case scanning::token_type::BANG:
 		return !is_truthy(right);
 	case scanning::token_type::PLUS_PLUS:
-		if(right->get)
+		if (ue->get_right()->get_type() != parsing::PC_TYPE_var_expression)
+		{
+			throw clox::interpreting::runtime_error(op, "++ applies only to variables");
+		}
+
+		{
+			check_numeric_operand(op, right);
+			auto value = get<long double>(right);
+			auto expr = static_pointer_cast<var_expression>(ue->get_right());
+			environment_->assign(expr->get_name(), value + 1);
+			return value + 1;
+		}
+
 		break;
 	case scanning::token_type::MINUS_MINUS:
+
+		if (ue->get_right()->get_type() != parsing::PC_TYPE_var_expression)
+		{
+			throw clox::interpreting::runtime_error(ue->get_op(), "-- applies only to variables");
+		}
+
+		{
+			check_numeric_operand(op, right);
+			auto value = get<long double>(right);
+			auto expr = static_pointer_cast<var_expression>(ue->get_right());
+			environment_->assign(expr->get_name(), value - 1);
+			return value - 1;
+		}
+
 		break;
 	default:
 		//TODO: ERROR?
@@ -131,6 +159,56 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	// Should not reach here
 	return nil_value_tag;
 }
+
+
+evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing::postfix_expression>& pe)
+{
+	auto left = evaluate(pe->get_left());
+	auto op = pe->get_op();
+
+	switch (op.type())
+	{
+
+	case scanning::token_type::PLUS_PLUS:
+		if (pe->get_left()->get_type() != parsing::PC_TYPE_var_expression)
+		{
+			throw clox::interpreting::runtime_error(pe->get_op(), "Postfix ++ applies only to variables");
+		}
+
+		{
+			check_numeric_operand(op, left);
+			auto value = get<long double>(left);
+			auto expr = static_pointer_cast<var_expression>(pe->get_left());
+			environment_->assign(expr->get_name(), value + 1);
+			return value;
+		}
+
+
+	case scanning::token_type::MINUS_MINUS:
+
+		if (pe->get_left()->get_type() != parsing::PC_TYPE_var_expression)
+		{
+			throw clox::interpreting::runtime_error(pe->get_op(), "Postfix -- applies only to variables");
+		}
+
+		{
+			check_numeric_operand(op, left);
+			auto value = get<long double>(left);
+			auto expr = static_pointer_cast<var_expression>(pe->get_left());
+			environment_->assign(expr->get_name(), value - 1);
+			return value;
+		}
+
+		break;
+	default:
+		//TODO: ERROR?
+		break;
+	}
+
+	// Should not reach here
+	return nil_value_tag;
+}
+
 
 clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_literal_expression(
@@ -269,6 +347,14 @@ void clox::interpreting::interpreter::check_numeric_operands(token op, const clo
 
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }
+
+void interpreter::check_numeric_operand(token op, const evaluating_result& es)
+{
+	if (holds_alternative<long double>(es))return;
+
+	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
+}
+
 
 constexpr std::string_view interpreter::bool_to_string(bool b)
 {
@@ -479,10 +565,3 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 		globals_->assign(tk, val);
 	}
 }
-
-evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing::postfix_expression>& pe)
-{
-	return clox::interpreting::evaluating_result();
-}
-
-
