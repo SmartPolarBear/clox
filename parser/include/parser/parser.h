@@ -152,11 +152,16 @@ private:
 	/// \return
 	std::shared_ptr<expression> primary();
 
-	/// declaration -> funDecl
+	/// declaration -> classDecl
+	/// 			  | funDecl
 	///               | varDecl
 	///               | statement ;
 	/// \return
 	std::shared_ptr<statement> declaration();
+
+	/// classDecl      → "class" IDENTIFIER "{" function* "}" ;
+	/// \return
+	std::shared_ptr<statement> class_declaration();
 
 	/// funDecl        → "fun" function ;
 	/// function       → IDENTIFIER "(" parameters? ")" block ;

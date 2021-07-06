@@ -409,7 +409,11 @@ std::shared_ptr<statement> parser::declaration()
 {
 	try
 	{
-		if (match({ token_type::FUN }))
+		if (match({ token_type::CLASS }))
+		{
+			return class_declaration();
+		}
+		else if (match({ token_type::FUN }))
 		{
 			return func_declaration("function");
 		}
@@ -579,6 +583,21 @@ std::shared_ptr<statement> parser::for_stmt()
 	}
 
 	return body;
+}
+
+std::shared_ptr<statement> parser::class_declaration()
+{
+	auto name = consume(scanning::token_type::IDENTIFIER, "Class name is expected.");
+	consume(scanning::token_type::LEFT_BRACE, "'{' is expected after class name.");
+
+	vector<shared_ptr<function_statement>> methods{};
+	while (!check(scanning::token_type::RIGHT_BRACE) && !is_end())
+	{
+		methods.push_back(static_pointer_cast<function_statement>(func_declaration("method")));
+	}
+
+	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
+	return make_shared<class_statement>(name, methods);
 }
 
 

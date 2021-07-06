@@ -88,6 +88,9 @@ public:
 
 	void visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr) override;
 
+	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
+
+
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 

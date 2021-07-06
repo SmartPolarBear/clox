@@ -565,3 +565,8 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 		globals_->assign(tk, val);
 	}
 }
+
+void interpreter::visit_class_statement(const std::shared_ptr< class_statement>& ptr)
+{
+
+}

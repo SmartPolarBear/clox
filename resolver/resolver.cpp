@@ -264,3 +264,8 @@ void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_e
 {
 	resolve(pe->get_left());
 }
+
+void resolver::visit_class_statement(const std::shared_ptr< class_statement>& ptr)
+{
+
+}

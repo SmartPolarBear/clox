@@ -55,6 +55,8 @@ public:
 		install_native_functions();
 	}
 
+public:
+
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
@@ -95,6 +97,9 @@ public:
 	void visit_function_statement(const std::shared_ptr<parsing::function_statement>& ptr) override;
 
 	void visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr) override;
+
+	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
+
 
 public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
