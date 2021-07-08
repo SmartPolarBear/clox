@@ -29,6 +29,7 @@
 #include <interpreter/native_functions.h>
 #include <interpreter/lox_function.h>
 #include <interpreter/lox_class.h>
+#include <interpreter/lox_instance.h>
 #include <interpreter/return.h>
 
 #include <logger/logger.h>
@@ -39,7 +40,6 @@
 
 #include <gsl/gsl>
 
-#define DEF V
 using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
@@ -571,4 +571,17 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 {
 	environment_->put(cls->get_name().lexeme(), nil_value_tag);
 	environment_->assign(cls->get_name(), make_shared<lox_class>(cls->get_name().lexeme()));
+}
+
+evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_expression>& expr)
+{
+	auto obj = evaluate(expr->get_object());
+
+	if (auto inst = dynamic_pointer_cast<lox_instance>(expr);inst)
+	{
+		return inst->get(expr->get_name());
+	}
+
+	throw clox::interpreting::runtime_error{ expr->get_name(),
+											 std::format("Properties access is not allowed except instances") };
 }

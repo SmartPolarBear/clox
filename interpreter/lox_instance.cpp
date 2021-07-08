@@ -25,8 +25,18 @@
 #include <format>
 
 #include <interpreter/lox_instance.h>
+#include <interpreter/runtime_error.h>
+
+using namespace clox::interpreting;
 
 std::string clox::interpreting::lox_instance::printable_string()
 {
 	return std::format("Instance of class {} at {}", class_->name(), (uintptr_t)this);
+}
+
+clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(const clox::scanning::token& tk) const
+{
+	if (fields_.contains(tk.lexeme()))return fields_.at(tk.lexeme());
+
+	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
 }

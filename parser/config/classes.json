@@ -213,6 +213,23 @@
       ]
     },
     {
+      "name": "get_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "object_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "name_"
+        }
+      ]
+    },
+    {
       "name": "expression_statement",
       "base": [
         2,

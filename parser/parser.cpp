@@ -253,6 +253,11 @@ std::shared_ptr<expression> parser::call()
 		{
 			expr = call_finish_parse(expr);
 		}
+		else if (match({ token_type::DOT }))
+		{
+			auto name = consume(scanning::token_type::IDENTIFIER, "Property name is expected after '.' .");
+			expr = make_shared<get_expression>(expr, name);
+		}
 		else
 		{
 			break;

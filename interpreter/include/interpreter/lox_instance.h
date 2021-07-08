@@ -27,6 +27,7 @@
 
 #include <memory>
 #include <utility>
+#include <unordered_map>
 
 namespace clox::interpreting
 {
@@ -40,7 +41,9 @@ public:
 
 	std::string printable_string() override;
 
+	evaluating_result get(const scanning::token &tk) const;
 private:
 	std::shared_ptr<lox_class> class_{ nullptr };
+	std::unordered_map<std::string, evaluating_result> fields_{};
 };
 }

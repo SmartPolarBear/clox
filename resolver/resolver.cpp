@@ -270,3 +270,8 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	declare(cls->get_name());
 	define(cls->get_name());
 }
+
+void resolver::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
+{
+	resolve(ptr->get_object());
+}

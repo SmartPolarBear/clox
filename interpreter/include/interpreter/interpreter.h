@@ -88,6 +88,8 @@ public:
 	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
+	evaluating_result visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
+
 	void visit_block_statement(const std::shared_ptr<parsing::block_statement>& ptr) override;
 
 	void visit_if_statement(const std::shared_ptr<parsing::if_statement>& ptr) override;
@@ -136,7 +138,6 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
-
 
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
