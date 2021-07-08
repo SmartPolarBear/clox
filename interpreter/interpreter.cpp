@@ -574,7 +574,8 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 	unordered_map<string, std::shared_ptr<lox_function>> methods{};
 	for (const auto& me:cls->get_methods())
 	{
-		methods[me->get_name().lexeme()] = make_shared<lox_function>(me, environment_);
+		methods[me->get_name().lexeme()] = make_shared<lox_function>(me, environment_,
+				me->get_name().lexeme() == "init");
 	}
 
 	environment_->assign(cls->get_name(),

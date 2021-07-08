@@ -49,16 +49,23 @@ public:
 	{
 	}
 
+	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure,
+			bool is_initializer)
+			: decl_(std::move(decl)), closure_(std::move(closure)), is_init_(is_initializer)
+	{
+	}
+
 	~lox_function() = default;
 
 	size_t arity() override;
 
 	evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
 
-	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance> &inst);
+	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance>& inst);
 
 private:
 	std::shared_ptr<environment> closure_{ nullptr };
 	std::shared_ptr<parsing::function_statement> decl_{ nullptr };
+	bool is_init_{ false };
 };
 }

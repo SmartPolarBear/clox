@@ -52,11 +52,29 @@ clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::
 	}
 	catch (const return_value& rv)
 	{
+		if (is_init_)
+		{
+			auto this_val = closure_->get_at("this", 0);
+			if (this_val)
+			{
+				return this_val.value();
+			}
+		}
+		
 		return rv.value();
 	}
 	catch (...)
 	{
 		throw;
+	}
+
+	if (is_init_)
+	{
+		auto this_val = closure_->get_at("this", 0);
+		if (this_val)
+		{
+			return this_val.value();
+		}
 	}
 
 	return scanning::nil_value_tag;
@@ -66,5 +84,5 @@ std::shared_ptr<lox_function> lox_function::bind(const shared_ptr<lox_instance>&
 {
 	auto env = make_shared<environment>(closure_);
 	env->put("this", inst);
-	return make_shared<lox_function>(decl_, env);
+	return make_shared<lox_function>(decl_, env, is_init_);
 }

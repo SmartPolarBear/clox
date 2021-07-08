@@ -170,6 +170,11 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 
 	if (rs->get_val())
 	{
+		if (cur_func_ == function_type::FT_CTOR)
+		{
+			logger::instance().error(rs->get_return_keyword(), "Constructor can't return a value.");
+		}
+
 		resolve(rs->get_val());
 	}
 }
@@ -285,6 +290,10 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	for (const auto& method:cls->get_methods())
 	{
 		auto decl = function_type::FT_METHOD;
+		if (method->get_name().lexeme() == "init")
+		{
+			decl = function_type::FT_CTOR;
+		}
 		resolve_function(method, decl);
 	}
 }

@@ -43,6 +43,7 @@ public:
 	{
 		FT_NONE,
 		FT_METHOD,
+		FT_CTOR,
 		FT_FUNCTION,
 	};
 
