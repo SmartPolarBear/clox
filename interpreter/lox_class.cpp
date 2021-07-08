@@ -41,3 +41,13 @@ std::string clox::interpreting::lox_class::printable_string()
 {
 	return std::format("class {}", name_);
 }
+
+std::shared_ptr<lox_function> clox::interpreting::lox_class::lookup_method(const std::string& name)
+{
+	if(methods_.contains(name))
+	{
+		return methods_.at(name)
+	}
+
+	return nullptr;
+}

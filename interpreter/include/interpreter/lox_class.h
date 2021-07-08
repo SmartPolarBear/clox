@@ -26,10 +26,13 @@
 
 #include <helper/printable.h>
 
+#include <interpreter/lox_function.h>
 #include <interpreter/evaluating_result.h>
 #include <interpreter/environment.h>
 
 #include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace clox::interpreting
 {
@@ -38,7 +41,12 @@ class lox_class final
 		  public helper::printable
 {
 public:
-	explicit lox_class(const std::string& name) : name_(name)
+	explicit lox_class(std::string name) : name_(std::move(name))
+	{
+	}
+
+	explicit lox_class(std::string name, std::unordered_map<std::string, std::shared_ptr<lox_function>> methods)
+			: name_(std::move(name)), methods_(std::move(methods))
 	{
 	}
 
@@ -48,12 +56,16 @@ public:
 
 	std::string printable_string() override;
 
-	[[nodiscard]] std::string name()const
+	[[nodiscard]] std::string name() const
 	{
 		return name_;
 	}
 
+	std::shared_ptr<lox_function> lookup_method(const std::string &name);
+
+
 private:
 	std::string name_{};
+	std::unordered_map<std::string, std::shared_ptr<lox_function>> methods_{};
 };
 }

@@ -570,7 +570,15 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
 	environment_->put(cls->get_name().lexeme(), nil_value_tag);
-	environment_->assign(cls->get_name(), make_shared<lox_class>(cls->get_name().lexeme()));
+
+	unordered_map<string, std::shared_ptr<lox_function>> methods{};
+	for (const auto& me:cls->get_methods())
+	{
+		methods[me->get_name().lexeme()] = make_shared<lox_function>(me, environment_);
+	}
+
+	environment_->assign(cls->get_name(),
+			make_shared<lox_class>(cls->get_name().lexeme(), methods));
 }
 
 evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_expression>& expr)

@@ -44,6 +44,7 @@ public:
 	evaluating_result get(const scanning::token &tk) const;
 
 	void set(const scanning::token &tk,evaluating_result val);
+
 private:
 	std::shared_ptr<lox_class> class_{ nullptr };
 	std::unordered_map<std::string, evaluating_result> fields_{};

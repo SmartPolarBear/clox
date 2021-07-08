@@ -42,6 +42,7 @@ public:
 	enum class [[clang::enum_extensibility(closed)]] function_type
 	{
 		FT_NONE,
+		FT_METHOD,
 		FT_FUNCTION,
 	};
 

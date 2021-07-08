@@ -39,6 +39,8 @@ clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(cons
 {
 	if (fields_.contains(tk.lexeme()))return fields_.at(tk.lexeme());
 
+	if (auto method = class_->lookup_method(tk.lexeme());method)return method;
+
 	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
 }
 
@@ -46,3 +48,4 @@ void lox_instance::set(const clox::scanning::token& tk, evaluating_result val)
 {
 	fields_[tk.lexeme()] = std::move(val);
 }
+
