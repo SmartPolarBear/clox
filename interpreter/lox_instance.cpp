@@ -23,6 +23,7 @@
 //
 
 #include <format>
+#include <utility>
 
 #include <interpreter/lox_instance.h>
 #include <interpreter/runtime_error.h>
@@ -39,4 +40,9 @@ clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(cons
 	if (fields_.contains(tk.lexeme()))return fields_.at(tk.lexeme());
 
 	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
+}
+
+void lox_instance::set(const clox::scanning::token& tk, evaluating_result val)
+{
+	fields_[tk.lexeme()] = std::move(val);
 }

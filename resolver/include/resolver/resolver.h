@@ -92,6 +92,8 @@ public:
 
 	void visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
 
+	void visit_set_expression(const std::shared_ptr<parsing:: set_expression>& ptr) override;
+
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 

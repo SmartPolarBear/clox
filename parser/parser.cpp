@@ -82,6 +82,11 @@ std::shared_ptr<expression> parser::assigment()
 			auto name = dynamic_pointer_cast<var_expression>(expr)->get_name();
 			return make_shared<assignment_expression>(name, val);
 		}
+		else if (expr->get_type() == PC_TYPE_get_expression)
+		{
+			auto ge = static_pointer_cast<get_expression>(expr);
+			return make_shared<set_expression>(ge->get_object(), ge->get_name(), val);
+		}
 
 		// No throw, because of no need for synchronization
 		error(equals, "Invalid assignment to the token.");

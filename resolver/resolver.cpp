@@ -275,3 +275,9 @@ void resolver::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
 {
 	resolve(ptr->get_object());
 }
+
+void resolver::visit_set_expression(const std::shared_ptr<set_expression>& se)
+{
+	resolve(se->get_val());
+	resolve(se->get_object());
+}

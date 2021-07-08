@@ -585,3 +585,17 @@ evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_ex
 	throw clox::interpreting::runtime_error{ expr->get_name(),
 											 std::format("Properties access is not allowed except instances") };
 }
+
+evaluating_result interpreter::visit_set_expression(const std::shared_ptr<struct set_expression>& se)
+{
+	auto obj = evaluate(se->get_object());
+
+	if (auto inst = dynamic_pointer_cast<lox_instance>(se);!inst)
+	{
+		return inst->get(se->get_name());
+	}
+
+	auto val = evaluate(se->get_val());
+	dynamic_pointer_cast<lox_instance>(se)->set(se->get_name(), val);
+	return val;
+}

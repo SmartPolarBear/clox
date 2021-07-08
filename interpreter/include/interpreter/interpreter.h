@@ -102,6 +102,8 @@ public:
 
 	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
 
+	evaluating_result visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
+
 
 public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
@@ -138,6 +140,7 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
 
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
