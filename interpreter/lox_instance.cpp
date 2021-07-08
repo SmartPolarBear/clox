@@ -28,6 +28,9 @@
 #include <interpreter/lox_instance.h>
 #include <interpreter/runtime_error.h>
 
+
+using namespace std;
+
 using namespace clox::interpreting;
 
 std::string clox::interpreting::lox_instance::printable_string()
@@ -44,7 +47,7 @@ clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(cons
 
 	if (auto method = class_->lookup_method(tk.lexeme());method)
 	{
-		return method;
+		return method->bind(const_pointer_cast<lox_instance>(shared_from_this()));
 	}
 
 	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
