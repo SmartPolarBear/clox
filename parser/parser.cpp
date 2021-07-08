@@ -298,7 +298,7 @@ std::shared_ptr<expression> parser::primary()
 	if (match({ token_type::FALSE }))return make_shared<literal_expression>(false);
 	if (match({ token_type::TRUE }))return make_shared<literal_expression>(true);
 	if (match({ token_type::NIL }))return make_shared<literal_expression>(nil_value_tag);
-
+	if (match({ token_type::THIS }))return make_shared<this_expression>(previous());
 	if (match({ token_type::NUMBER, token_type::STRING }))
 	{
 		return make_shared<literal_expression>(previous().literal());

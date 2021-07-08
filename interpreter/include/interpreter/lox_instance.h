@@ -32,21 +32,22 @@
 namespace clox::interpreting
 {
 class lox_instance final
-		: public helper::printable
+		: public helper::printable,
+		  public std::enable_shared_from_this<lox_instance>
 {
 public:
-	explicit lox_instance(std::shared_ptr<lox_class> cls) : class_(std::move(cls))
+	explicit lox_instance(std::shared_ptr<class lox_class> cls) : class_(std::move(cls))
 	{
 	}
 
 	std::string printable_string() override;
 
-	evaluating_result get(const scanning::token &tk) const;
+	evaluating_result get(const scanning::token& tk) const;
 
-	void set(const scanning::token &tk,evaluating_result val);
+	void set(const scanning::token& tk, evaluating_result val);
 
 private:
-	std::shared_ptr<lox_class> class_{ nullptr };
+	std::shared_ptr<class lox_class> class_{ nullptr };
 	std::unordered_map<std::string, evaluating_result> fields_{};
 };
 }

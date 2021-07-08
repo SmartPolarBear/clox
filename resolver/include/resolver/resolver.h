@@ -46,6 +46,12 @@ public:
 		FT_FUNCTION,
 	};
 
+	enum class [[clang::enum_extensibility(closed)]] class_type
+	{
+		CT_NONE,
+		CT_CLASS,
+	};
+
 public:
 	explicit resolver(interpreting::interpreter* intp) : intp_(intp)
 	{
@@ -62,6 +68,8 @@ public:
 	void visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr) override;
 
 	void visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ptr) override;
+
+	void visit_this_expression(const std::shared_ptr<parsing::this_expression>& ptr) override;
 
 	void visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
@@ -93,7 +101,7 @@ public:
 
 	void visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
 
-	void visit_set_expression(const std::shared_ptr<parsing:: set_expression>& ptr) override;
+	void visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
 
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
@@ -142,6 +150,8 @@ private:
 	std::vector<std::shared_ptr<std::unordered_map<std::string, bool>>> scopes_{};
 
 	function_type cur_func_{ function_type::FT_NONE };
+
+	class_type cur_cls_{ class_type::CT_NONE };
 
 	interpreting::interpreter* intp_{ nullptr };
 };

@@ -25,6 +25,7 @@
 
 #include <interpreter/evaluating_result.h>
 #include <interpreter/environment.h>
+#include <interpreter/lox_instance.h>
 
 #include <parser/gen/parser_classes.inc>
 
@@ -53,6 +54,8 @@ public:
 	size_t arity() override;
 
 	evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
+
+	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance> &inst);
 
 private:
 	std::shared_ptr<environment> closure_{ nullptr };

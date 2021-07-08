@@ -71,6 +71,8 @@ public:
 
 	evaluating_result visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& expression) override;
 
+	evaluating_result visit_this_expression(const std::shared_ptr<parsing:: this_expression>& ptr) override;
+
 	evaluating_result
 	visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& expression) override;
 

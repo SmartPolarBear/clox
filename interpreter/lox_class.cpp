@@ -23,8 +23,14 @@
 //
 
 #include <format>
+#include <memory>
 
+#include <interpreter/lox_function.h>
 #include <interpreter/lox_class.h>
+
+using namespace std;
+
+using namespace clox::interpreting;
 
 size_t clox::interpreting::lox_class::arity()
 {
@@ -34,7 +40,7 @@ size_t clox::interpreting::lox_class::arity()
 clox::interpreting::evaluating_result
 clox::interpreting::lox_class::call(struct interpreter* the_interpreter, const std::vector<evaluating_result>& args)
 {
-	return clox::interpreting::evaluating_result();
+	return make_shared<lox_instance>(shared_from_this());
 }
 
 std::string clox::interpreting::lox_class::printable_string()
@@ -44,9 +50,9 @@ std::string clox::interpreting::lox_class::printable_string()
 
 std::shared_ptr<lox_function> clox::interpreting::lox_class::lookup_method(const std::string& name)
 {
-	if(methods_.contains(name))
+	if (methods_.contains(name))
 	{
-		return methods_.at(name)
+		return methods_.at(name);
 	}
 
 	return nullptr;

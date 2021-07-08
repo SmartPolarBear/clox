@@ -39,7 +39,10 @@ clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(cons
 {
 	if (fields_.contains(tk.lexeme()))return fields_.at(tk.lexeme());
 
-	if (auto method = class_->lookup_method(tk.lexeme());method)return method;
+	if (auto method = class_->lookup_method(tk.lexeme());method)
+	{
+		return method;
+	}
 
 	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
 }

@@ -607,3 +607,14 @@ evaluating_result interpreter::visit_set_expression(const std::shared_ptr<struct
 	dynamic_pointer_cast<lox_instance>(se)->set(se->get_name(), val);
 	return val;
 }
+
+evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_expression>& this_expr)
+{
+	auto this_val = variable_lookup(this_expr->get_keyword(), this_expr);
+	if (this_val)
+	{
+		return this_val.value();
+	}
+
+	throw runtime_error{ this_expr->get_keyword(), std::format("Internal error: cannot look up 'this'.") };
+}

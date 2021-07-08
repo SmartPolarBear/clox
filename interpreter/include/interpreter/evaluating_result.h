@@ -37,7 +37,8 @@ using evaluating_result = std::variant<long double,
 		bool,
 		std::string,
 		scanning::nil_value_tag_type,
-		std::shared_ptr<class callable>>;
+		std::shared_ptr<class callable>,
+		std::shared_ptr<class lox_instance>>;
 
 class callable
 {

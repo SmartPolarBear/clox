@@ -267,8 +267,20 @@ void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_e
 
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
+	class_type enclosing = cur_cls_;
+	cur_cls_ = class_type::CT_CLASS;
+
 	declare(cls->get_name());
 	define(cls->get_name());
+
+	scope_begin();
+	auto _ = finally([this, enclosing]
+	{
+		this->scope_end();
+		this->cur_cls_ = enclosing;
+	});
+
+	(*scope_top())["this"] = true;
 
 	for (const auto& method:cls->get_methods())
 	{
@@ -286,4 +298,15 @@ void resolver::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
 	resolve(se->get_val());
 	resolve(se->get_object());
+}
+
+void resolver::visit_this_expression(const std::shared_ptr<this_expression>& expr)
+{
+	if (cur_cls_ == class_type::CT_NONE)
+	{
+		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
+		return;
+	}
+
+	resolve_local(expr, expr->get_keyword());
 }

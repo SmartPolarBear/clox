@@ -61,3 +61,10 @@ clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::
 
 	return scanning::nil_value_tag;
 }
+
+std::shared_ptr<lox_function> lox_function::bind(const shared_ptr<lox_instance>& inst)
+{
+	auto env = make_shared<environment>(closure_);
+	env->put("this", inst);
+	return make_shared<lox_function>(decl_, env);
+}
