@@ -37,7 +37,10 @@ std::string clox::interpreting::lox_instance::printable_string()
 
 clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(const clox::scanning::token& tk) const
 {
-	if (fields_.contains(tk.lexeme()))return fields_.at(tk.lexeme());
+	if (fields_.contains(tk.lexeme()))
+	{
+		return fields_.at(tk.lexeme());
+	}
 
 	if (auto method = class_->lookup_method(tk.lexeme());method)
 	{
