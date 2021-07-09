@@ -407,6 +407,10 @@
           "name": "name_"
         },
         {
+          "type": "std::shared_ptr<var_expression>",
+          "name": "base_class_"
+        },
+        {
           "type": "std::vector<std::shared_ptr<function_statement>>",
           "name": "methods_"
         }
