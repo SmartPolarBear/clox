@@ -278,6 +278,16 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	declare(cls->get_name());
 	define(cls->get_name());
 
+	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
+	{
+		logger::instance().error(cls->get_base_class()->get_name(),"A class cannot inherit from itself.");
+	}
+
+	if (cls->get_base_class())
+	{
+		resolve(cls->get_base_class());
+	}
+
 	scope_begin();
 	auto _ = finally([this, enclosing]
 	{

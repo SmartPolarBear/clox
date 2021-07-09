@@ -569,6 +569,16 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 
 void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
+	evaluating_result base_val{};
+	if (cls->get_base_class())
+	{
+		base_val = evaluate(cls->get_base_class());
+		if (!holds_alternative<shared_ptr<lox_class>>(base_val))
+		{
+
+		}
+	}
+
 	environment_->put(cls->get_name().lexeme(), nil_value_tag);
 
 	unordered_map<string, std::shared_ptr<lox_function>> methods{};
