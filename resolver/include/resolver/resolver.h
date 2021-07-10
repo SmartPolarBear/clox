@@ -51,6 +51,7 @@ public:
 	{
 		CT_NONE,
 		CT_CLASS,
+		CT_INHERITED_CLASS
 	};
 
 public:

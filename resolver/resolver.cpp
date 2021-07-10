@@ -285,6 +285,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	if (cls->get_base_class())
 	{
+		cur_cls_ = class_type::CT_INHERITED_CLASS;
 		resolve(cls->get_base_class());
 	}
 
@@ -346,5 +347,16 @@ void resolver::visit_this_expression(const std::shared_ptr<this_expression>& exp
 
 void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
+	if (cur_cls_ == class_type::CT_NONE)
+	{
+		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
+		return;
+	}
+	else if (cur_cls_ != class_type::CT_INHERITED_CLASS)
+	{
+		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
+		return;
+	}
+
 	resolve_local(be, be->get_keyword());
 }
