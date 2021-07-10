@@ -47,8 +47,9 @@ public:
 	{
 	}
 
-	explicit lox_class(std::string name, std::unordered_map<std::string, std::shared_ptr<class lox_function>> methods)
-			: name_(std::move(name)), methods_(std::move(methods))
+	explicit lox_class(std::string name, std::shared_ptr<lox_class> base,
+			std::unordered_map<std::string, std::shared_ptr<class lox_function>> methods)
+			: name_(std::move(name)), base_(base), methods_(std::move(methods))
 	{
 	}
 
@@ -68,6 +69,7 @@ public:
 
 private:
 	std::string name_{};
+	std::weak_ptr<lox_class> base_{};
 	std::unordered_map<std::string, std::shared_ptr<class lox_function>> methods_{};
 };
 }

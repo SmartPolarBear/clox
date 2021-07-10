@@ -570,12 +570,18 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
 	evaluating_result base_val{};
+	shared_ptr<lox_class> base{ nullptr };
+
 	if (cls->get_base_class())
 	{
 		base_val = evaluate(cls->get_base_class());
-		if (!holds_alternative<shared_ptr<lox_class>>(base_val))
-		{
 
+		if (!holds_alternative<shared_ptr<callable>>(base_val) ||
+			!(base = dynamic_pointer_cast<lox_class>(get<shared_ptr<callable>>(base_val))))
+		{
+			throw clox::interpreting::runtime_error{ cls->get_base_class()->get_name(),
+													 std::format("'{}' is not inheritable.",
+															 cls->get_base_class()->get_name().lexeme()) };
 		}
 	}
 
@@ -588,8 +594,10 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 				me->get_name().lexeme() == "init");
 	}
 
+	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base, methods);
+
 	environment_->assign(cls->get_name(),
-			make_shared<lox_class>(cls->get_name().lexeme(), methods));
+			lox_cls);
 }
 
 evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_expression>& expr)

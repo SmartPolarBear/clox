@@ -598,6 +598,14 @@ std::shared_ptr<statement> parser::for_stmt()
 std::shared_ptr<statement> parser::class_declaration()
 {
 	auto name = consume(scanning::token_type::IDENTIFIER, "Class name is expected.");
+
+	shared_ptr<var_expression> base_class{ nullptr };
+	if (match({ token_type::COLON }))
+	{
+		consume(scanning::token_type::IDENTIFIER, "Base class name is expected.");
+		base_class = make_shared<var_expression>(previous());
+	}
+
 	consume(scanning::token_type::LEFT_BRACE, "'{' is expected after class name.");
 
 	vector<shared_ptr<function_statement>> methods{};
@@ -607,7 +615,7 @@ std::shared_ptr<statement> parser::class_declaration()
 	}
 
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
-	return make_shared<class_statement>(name, methods);
+	return make_shared<class_statement>(name, base_class, methods);
 }
 
 

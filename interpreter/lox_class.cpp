@@ -67,5 +67,10 @@ std::shared_ptr<lox_function> clox::interpreting::lox_class::lookup_method(const
 		return methods_.at(name);
 	}
 
+	if (auto base = base_.lock();base)
+	{
+		return base->lookup_method(name);
+	}
+
 	return nullptr;
 }
