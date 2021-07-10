@@ -587,6 +587,12 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 
 	environment_->put(cls->get_name().lexeme(), nil_value_tag);
 
+	if (cls->get_base_class())
+	{
+		environment_ = make_shared<environment>(environment_);
+		environment_->put("base", base);
+	}
+
 	unordered_map<string, std::shared_ptr<lox_function>> methods{};
 	for (const auto& me:cls->get_methods())
 	{
@@ -595,6 +601,11 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 	}
 
 	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base, methods);
+
+	if (base)
+	{
+		environment_ = environment_->parent();
+	}
 
 	environment_->assign(cls->get_name(),
 			lox_cls);
@@ -637,4 +648,22 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 	}
 
 	throw runtime_error{ this_expr->get_keyword(), std::format("Internal error: cannot look up 'this'.") };
+}
+
+evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
+{
+	auto dist = locals_.at(expr);
+	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
+
+	auto this_inst = get<shared_ptr<lox_instance>>(environment_->get_at("this", dist - 1).value());
+
+	auto method = base->lookup_method(expr->get_method().lexeme());
+
+	if (!method)
+	{
+		throw clox::interpreting::runtime_error{ expr->get_method(),
+												 std::format("'{}' is undefined.", expr->get_method().lexeme()) };
+	}
+
+	return method->bind(this_inst);
 }

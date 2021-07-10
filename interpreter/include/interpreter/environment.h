@@ -53,6 +53,11 @@ public:
 
 	}
 
+	std::shared_ptr<environment> parent()
+	{
+		return parent_.lock();
+	}
+
 	std::optional<evaluating_result> get(const scanning::token& name);
 
 	std::optional<evaluating_result> get_at(const std::string& name, int64_t depth);

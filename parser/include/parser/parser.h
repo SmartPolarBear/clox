@@ -148,7 +148,9 @@ private:
 	/// \return
 	std::shared_ptr<expression> call();
 
-	/// primary -> NUMBER|STRING|"true"|"false"|"nil"|"(" expr ")"
+	///primary        → "true" | "false" | "nil" | "this"
+	///               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+	///               | "base" "." IDENTIFIER ;
 	/// \return
 	std::shared_ptr<expression> primary();
 

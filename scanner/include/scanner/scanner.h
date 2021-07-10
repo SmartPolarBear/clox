@@ -58,7 +58,7 @@ enum class token_type
 
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-	PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE,
 
 	FEND // not EOF because it conflicts with STL
 };
@@ -159,7 +159,7 @@ private:
 			{ "or",     token_type::OR },
 			{ "print",  token_type::PRINT },
 			{ "return", token_type::RETURN },
-			{ "super",  token_type::SUPER },
+			{ "base",   token_type::BASE },
 			{ "this",   token_type::THIS },
 			{ "true",   token_type::TRUE },
 			{ "var",    token_type::VAR },

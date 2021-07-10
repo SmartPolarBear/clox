@@ -296,20 +296,25 @@ std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expressio
 std::shared_ptr<expression> parser::primary()
 {
 	if (match({ token_type::FALSE }))return make_shared<literal_expression>(false);
-	if (match({ token_type::TRUE }))return make_shared<literal_expression>(true);
-	if (match({ token_type::NIL }))return make_shared<literal_expression>(nil_value_tag);
-	if (match({ token_type::NUMBER, token_type::STRING }))
+	else if (match({ token_type::TRUE }))return make_shared<literal_expression>(true);
+	else if (match({ token_type::NIL }))return make_shared<literal_expression>(nil_value_tag);
+	else if (match({ token_type::NUMBER, token_type::STRING }))
 	{
 		return make_shared<literal_expression>(previous().literal());
 	}
-	if (match({ token_type::THIS }))return make_shared<this_expression>(previous());
-
-	if (match({ token_type::IDENTIFIER }))
+	else if (match({ token_type::BASE }))
+	{
+		auto keyword = previous();
+		consume(scanning::token_type::DOT, "'.' is expected after base.");
+		auto method = consume(scanning::token_type::IDENTIFIER, "Identifier is expected after base.");
+		return make_shared<base_expression>(keyword, method);
+	}
+	else if (match({ token_type::THIS }))return make_shared<this_expression>(previous());
+	else if (match({ token_type::IDENTIFIER }))
 	{
 		return make_shared<var_expression>(previous());
 	}
-
-	if (match({ token_type::LEFT_PAREN }))
+	else if (match({ token_type::LEFT_PAREN }))
 	{
 		auto expr = this->expr();
 		consume(scanning::token_type::RIGHT_PAREN, "')' is expected after the expression");

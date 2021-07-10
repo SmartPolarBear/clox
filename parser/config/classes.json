@@ -107,6 +107,23 @@
       ]
     },
     {
+      "name": "base_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "keyword_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "method_"
+        }
+      ]
+    },
+    {
       "name": "postfix_expression",
       "base": [
         1,

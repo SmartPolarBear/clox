@@ -280,7 +280,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
 	{
-		logger::instance().error(cls->get_base_class()->get_name(),"A class cannot inherit from itself.");
+		logger::instance().error(cls->get_base_class()->get_name(), "A class cannot inherit from itself.");
 	}
 
 	if (cls->get_base_class())
@@ -288,10 +288,22 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		resolve(cls->get_base_class());
 	}
 
+	if (cls->get_base_class())
+	{
+		scope_begin();
+		(*scope_top())["base"] = true;
+	}
+
 	scope_begin();
-	auto _ = finally([this, enclosing]
+	auto _ = finally([this, &cls, enclosing]
 	{
 		this->scope_end();
+
+		if (cls->get_base_class())
+		{
+			this->scope_end();
+		}
+
 		this->cur_cls_ = enclosing;
 	});
 
@@ -306,6 +318,8 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		}
 		resolve_function(method, decl);
 	}
+
+
 }
 
 void resolver::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
@@ -328,4 +342,9 @@ void resolver::visit_this_expression(const std::shared_ptr<this_expression>& exp
 	}
 
 	resolve_local(expr, expr->get_keyword());
+}
+
+void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
+{
+	resolve_local(be, be->get_keyword());
 }
