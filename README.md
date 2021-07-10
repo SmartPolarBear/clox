@@ -31,7 +31,7 @@ This project is built with
 
 |Naive CLOX|Typed CLOX|CLOXc
 |----------|----------|---------|
-✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> 🔄 Full test coverage 🔄 Refined REPL experience <br> ❌ Introduce the LOX standard library | ❌ Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
+✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> 🔄 Full test coverage <br> 🔄 Refined REPL experience <br> ❌ Introduce the LOX standard library | ❌ Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
