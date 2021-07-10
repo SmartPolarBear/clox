@@ -16,7 +16,7 @@ This project is built with
 - MSVC 17.0
 - CMAKE, 3.19 and above.
 
-**Note:** C++20 support of compilers, especially support for `std::format` and concepts are required for compiling most of the codes. Now, only Visual Studio 16.9 and above are known to support them all. And LLVM 13 may work because it claims its test formatting features are "In progress".  
+**Note:** C++20 support of compilers, especially support for `std::format` and concepts are required for compiling most of the codes. Now, only Visual Studio 16.9 and above are known to support them all. And LLVM 13 may work because it claims its test formatting features are "In progress". Also for this reason, only releases for Windows is provided for the present.  
 
 #### Third-party Libraries
 - [microsoft/GSL](https://github.com/microsoft/GSL)  
@@ -31,7 +31,7 @@ This project is built with
 
 |Naive CLOX|Typed CLOX|CLOXc
 |----------|----------|---------|
-✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  🔄 Extended language features (Mainly OOP) <br> 🔄 Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Introduce the LOX standard library | ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
+✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> 🔄 Full test coverage 🔄 Refined REPL experience <br> ❌ Introduce the LOX standard library | ❌ Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ Complete implementation of LOX standard library |
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
