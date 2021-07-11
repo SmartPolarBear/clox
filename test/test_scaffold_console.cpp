@@ -22,3 +22,24 @@
 // Created by cleve on 7/11/2021.
 //
 
+#include <test_scaffold_console.h>
+
+void test_scaffold_console::write(const std::string& str)
+{
+	ss << str;
+}
+
+void test_scaffold_console::write(std::string_view sv)
+{
+	ss << sv;
+}
+
+std::ostream& test_scaffold_console::stream()
+{
+	return ss;
+}
+
+std::string test_scaffold_console::read_all_text() const
+{
+	return ss.str();
+}

@@ -18,45 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-//
-// Created by cleve on 7/11/2021.
-//
+#include <helper/console.h>
 
-#include <test_scaffold_console.h>
+#include <sstream>
+#include <string>
 
-#include <gtest/gtest.h>
-
-#include <cstring>
-
-
-class CommentTest : public ::testing::Test
+class test_scaffold_console final
+		: public clox::helper::console
 {
+public:
+	void write(const std::string& str) override;
 
-protected:
-	virtual void SetUp() override
-	{
-		assert(strlen(code_) != 0);
-	}
+	void write(std::string_view sv) override;
 
-	[[nodiscard]] std::string get_code() const
-	{
-		return code_;
-	}
+	std::ostream& stream() override;
+
+	[[nodiscard]] std::string read_all_text() const;
 
 private:
-	const char* code_ =
-
-#include "comment/bad_comment.txt";
+	std::stringstream ss{};
 };
-
-#include <driver/driver.h>
-
-using namespace clox::driver;
-
-TEST_F(CommentTest, BadCommentTest)
-{
-	test_scaffold_console cons{};
-
-	int ret = run(cons, get_code());
-	ASSERT_NE(ret, 0);
-}

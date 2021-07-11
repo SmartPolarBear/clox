@@ -3,11 +3,13 @@ cmake_minimum_required(VERSION 3.19)
 add_subdirectory(gtest)
 
 add_executable(clox_test
+        test_scaffold_console.cpp
         comment.cpp)
 
 add_test(NAME clox_test COMMAND clox_test)
 
 target_include_directories(clox_test
+        PRIVATE include
         PRIVATE test_src
         PRIVATE ${gtest_SOURCE_DIR}
         PRIVATE ${gtest_SOURCE_DIR}/include)
