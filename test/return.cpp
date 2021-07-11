@@ -72,12 +72,11 @@ TEST_F(ReturnTest, GoodReturnTest)
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
-	ASSERT_EQ(output, "fuck");
+	ASSERT_EQ(output, "fuck\n");
 }
 
 TEST_F(ReturnTest, BadReturnTest)
 {
-
 	test_scaffold_console cons{};
 
 	int ret = run(cons, bad_return_code());
