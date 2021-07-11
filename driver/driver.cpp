@@ -22,12 +22,12 @@ using namespace std;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::logging;
-using namespace clox::resolver;
+using namespace clox::resolving;
 using namespace clox::interpreting;
 
-static inline int run(string code)
+int clox::driver::run(const string& code)
 {
-	scanner sc{ std::move(code) };
+	scanner sc{ code };
 	parser ps{ sc.scan() };
 
 	auto stmts = ps.parse();

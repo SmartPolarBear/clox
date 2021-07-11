@@ -34,7 +34,7 @@
 
 using namespace clox::parsing;
 using namespace clox::logging;
-using namespace clox::resolver;
+using namespace clox::resolving;
 using namespace clox::interpreting;
 
 using namespace std;

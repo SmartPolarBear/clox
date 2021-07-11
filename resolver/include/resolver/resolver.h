@@ -32,7 +32,7 @@
 #include <stack>
 #include <memory>
 
-namespace clox::resolver
+namespace clox::resolving
 {
 class resolver final
 		: public parsing::expression_visitor<void>,

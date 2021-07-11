@@ -1,0 +1,10 @@
+R"(
+
+/*
+/*
+/*
+this is a bad comment
+*/
+*/
+
+)"
