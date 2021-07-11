@@ -46,6 +46,16 @@ using namespace clox::parsing;
 using namespace clox::interpreting;
 
 
+interpreter::interpreter(clox::helper::console& cons) : expression_visitor<evaluating_result>(),
+														parsing::statement_visitor<void>(),
+														globals_(std::make_shared<environment>()),
+														console_(&cons)
+{
+	environment_ = globals_;
+	install_native_functions();
+}
+
+
 clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
@@ -387,7 +397,7 @@ void interpreter::visit_expression_statement(const shared_ptr<parsing::expressio
 void interpreter::visit_print_statement(const shared_ptr<parsing::print_statement>& ps)
 {
 	auto val = evaluate(ps->get_expr());
-	cout << result_to_string(ps->get_keyword(), val) << endl;
+	console_->stream() << result_to_string(ps->get_keyword(), val) << endl;
 }
 
 void interpreter::execute(const shared_ptr<parsing::statement>& s)

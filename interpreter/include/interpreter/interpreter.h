@@ -26,6 +26,8 @@
 
 #include <base.h>
 
+#include <helper/console.h>
+
 #include <parser/gen/parser_classes.inc>
 
 #include <interpreter/evaluating_result.h>
@@ -47,13 +49,7 @@ class interpreter final :
 {
 
 public:
-	interpreter() : expression_visitor<evaluating_result>(),
-					parsing::statement_visitor<void>(),
-					globals_(std::make_shared<environment>())
-	{
-		environment_ = globals_;
-		install_native_functions();
-	}
+	explicit interpreter(helper::console& cons);
 
 public:
 
@@ -143,6 +139,8 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
+	mutable helper::console* console_{ nullptr };
 
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };

@@ -46,7 +46,7 @@ int clox::driver::run(helper::console& output_cons, const string& code)
 	auto stmts = ps.parse();
 	if (logger::instance().has_errors())return 65;
 
-	interpreter the_interpreter{};
+	interpreter the_interpreter{ output_cons };
 	resolver rsv{ &the_interpreter };
 
 	rsv.resolve(stmts);
@@ -65,9 +65,9 @@ int clox::driver::run(helper::console& output_cons, const string& code)
 int clox::driver::run_file(helper::console& cons, const std::string& name)
 {
 	ifstream src{ name };
+
 	stringstream ss{};
 	ss << src.rdbuf();
-
 
 	return run(cons, ss.str());
 }
