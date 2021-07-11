@@ -1,0 +1,6 @@
+fun get_fuck(){
+    return "fuck";
+}
+
+var str= get_fuck();
+print str;

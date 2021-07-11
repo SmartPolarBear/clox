@@ -28,34 +28,33 @@
 
 #include <cstring>
 
-
-class CommentTest : public ::testing::Test
+class ReturnTest : public ::testing::Test
 {
 
 protected:
-	virtual void SetUp() override
+	virtual void SetUp()
 	{
-		assert(strlen(good_comment_) != 0);
-		assert(strlen(bad_comment_) != 0);
+		assert(strlen(return_code_) != 0);
+		assert(strlen(bad_return_code_) != 0);
 	}
 
-	[[nodiscard]] std::string bad_comment_code() const
+	[[nodiscard]] std::string return_code()
 	{
-		return bad_comment_;
+		return return_code_;
 	}
 
-	[[nodiscard]] std::string good_comment_code() const
+	[[nodiscard]] std::string bad_return_code()
 	{
-		return good_comment_;
+		return bad_return_code_;
 	}
 
 private:
-	const char* bad_comment_{
-#include "comment/bad_comment.txt"
+	const char* return_code_{
+#include "return/return.txt"
 	};
 
-	const char* good_comment_{
-#include "comment/comment.txt"
+	const char* bad_return_code_{
+#include "return/bad_return.txt"
 	};
 };
 
@@ -65,36 +64,27 @@ using namespace std;
 
 using namespace clox::driver;
 
-TEST_F(CommentTest, GoodCommentTest)
+TEST_F(ReturnTest, GoodReturnTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, good_comment_code());
+	int ret = run(cons, return_code());
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
-	ASSERT_NE(output.find("fuck"), string::npos);
-
-	// count how many f-words are there.
-	auto find = output.find("fuck");
-	auto count = 1;
-	while ((find = output.find("fuck", find + 1)) != string::npos)
-	{
-		count++;
-	}
-
-	// we should have 2 f-words
-	ASSERT_EQ(count, 2);
+	ASSERT_EQ(output, "fuck");
 }
 
-
-TEST_F(CommentTest, BadCommentTest)
+TEST_F(ReturnTest, BadReturnTest)
 {
+
 	test_scaffold_console cons{};
 
-	int ret = run(cons, bad_comment_code());
+	int ret = run(cons, bad_return_code());
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_written_text();
-	ASSERT_NE(output.find("Error: Unclosed block comment found."), string::npos);
+
+	// TODO: make all error message a string constant.
+	ASSERT_NE(output.find("Return statement in none-function scoop."), string::npos);
 }
