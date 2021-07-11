@@ -6,3 +6,9 @@ target_sources(clox
         PRIVATE resolver.cpp)
 
 
+target_include_directories(clox_test PRIVATE include)
+
+target_sources(clox_test
+        PRIVATE resolver.cpp)
+
+
