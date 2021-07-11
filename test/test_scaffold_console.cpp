@@ -39,7 +39,7 @@ std::ostream& test_scaffold_console::stream()
 	return ss;
 }
 
-std::string test_scaffold_console::read_all_text() const
+std::string test_scaffold_console::get_written_text() const
 {
 	return ss.str();
 }

@@ -35,28 +35,65 @@ class CommentTest : public ::testing::Test
 protected:
 	virtual void SetUp() override
 	{
-		assert(strlen(code_) != 0);
+		assert(strlen(bad_comment_) != 0);
 	}
 
-	[[nodiscard]] std::string get_code() const
+	[[nodiscard]] std::string bad_comment_code() const
 	{
-		return code_;
+		return bad_comment_;
+	}
+
+	[[nodiscard]] std::string good_comment_code() const
+	{
+		return good_comment_;
 	}
 
 private:
-	const char* code_ =
+	const char* bad_comment_{
+#include "comment/bad_comment.txt"
+	};
 
-#include "comment/bad_comment.txt";
+	const char* good_comment_{
+#include "comment/comment.txt"
+	};
 };
 
 #include <driver/driver.h>
 
+using namespace std;
+
 using namespace clox::driver;
+
+TEST_F(CommentTest, GoodCommentTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, good_comment_code());
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find("fuck"), string::npos);
+
+	// count how many f-words are there.
+	auto find = output.find("fuck");
+	auto count = 1;
+	while ((find = output.find("fuck", find + 1)) != string::npos)
+	{
+		count++;
+	}
+
+	// we should have 2 f-words
+	ASSERT_EQ(count, 2);
+}
+
 
 TEST_F(CommentTest, BadCommentTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, get_code());
+	int ret = run(cons, bad_comment_code());
 	ASSERT_NE(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find("Error: Unclosed block comment found."), string::npos);
 }

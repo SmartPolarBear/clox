@@ -33,7 +33,7 @@ public:
 
 	std::ostream& stream() override;
 
-	[[nodiscard]] std::string read_all_text() const;
+	[[nodiscard]] std::string get_written_text() const;
 
 private:
 	std::stringstream ss{};

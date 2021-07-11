@@ -6,3 +6,6 @@ target_sources(clox
         PRIVATE std_console.cpp)
 
 target_include_directories(clox_test PRIVATE include)
+
+target_sources(clox_test
+        PRIVATE std_console.cpp)
