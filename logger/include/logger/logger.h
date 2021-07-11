@@ -25,7 +25,9 @@ public:
 
 	logger& operator=(const logger&) = delete;
 
-	void set_console(helper::console &);
+	void set_console(helper::console&);
+
+	helper::console& get_console();
 
 	void error(size_t line, const std::string& message);
 

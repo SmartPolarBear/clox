@@ -1,6 +1,8 @@
 #include <iostream>
 #include <format>
 
+#include <helper/std_console.h>
+
 #include <argparse/argparse.hpp>
 
 #include "driver/driver.h"
@@ -31,10 +33,10 @@ int main(int argc, char* argv[])
 	auto file = arg_parser.get<string>("--file");
 	if (!file.empty())
 	{
-		return clox::driver::run_file(file);
+		return clox::driver::run_file(clox::helper::std_console::instance(), file);
 	}
 	else
 	{
-		return clox::driver::run_command();
+		return clox::driver::run_command(clox::helper::std_console::instance());
 	}
 }

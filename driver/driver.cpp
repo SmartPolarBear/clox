@@ -1,5 +1,7 @@
 #include "driver/driver.h"
 
+#include <helper/std_console.h>
+
 #include <scanner/scanner.h>
 
 #include <parser/parser.h>
@@ -16,17 +18,28 @@
 #include <fstream>
 #include <sstream>
 
+#include <gsl/gsl>
 
 using namespace std;
 
+using namespace clox::helper;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::logging;
 using namespace clox::resolving;
 using namespace clox::interpreting;
 
-int clox::driver::run(const string& code)
+int clox::driver::run(helper::console& output_cons, const string& code)
 {
+	// switch to the desirable console for logging
+	auto& prev_cons = logger::instance().get_console();
+	auto _ = gsl::finally([&prev_cons]()
+	{
+		logger::instance().set_console(prev_cons);
+	});
+
+	logger::instance().set_console(output_cons);
+
 	scanner sc{ code };
 	parser ps{ sc.scan() };
 
@@ -34,8 +47,8 @@ int clox::driver::run(const string& code)
 	if (logger::instance().has_errors())return 65;
 
 	interpreter the_interpreter{};
-
 	resolver rsv{ &the_interpreter };
+
 	rsv.resolve(stmts);
 
 	if (logger::instance().has_errors())return 65;
@@ -49,26 +62,26 @@ int clox::driver::run(const string& code)
 	return 0;
 }
 
-int clox::driver::run_file(const std::string& name)
+int clox::driver::run_file(helper::console& cons, const std::string& name)
 {
 	ifstream src{ name };
 	stringstream ss{};
 	ss << src.rdbuf();
 
 
-	return run(ss.str());
+	return run(cons, ss.str());
 }
 
-int clox::driver::run_command()
+int clox::driver::run_command(helper::console& cons)
 {
 	std::string line;
 
-	cout << ">>> ";
+	cons.stream() << ">>> ";
 	while (std::getline(std::cin, line))
 	{
-		[[maybe_unused]] auto _ = run(line);
+		[[maybe_unused]] auto _ = run(cons, line);
 
-		cout << ">>> ";
+		cons.stream() << ">>> ";
 	}
 
 	return 0;

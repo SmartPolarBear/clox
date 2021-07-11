@@ -55,3 +55,8 @@ bool clox::logging::logger::has_runtime_errors() const
 	return runtime_errors_;
 }
 
+clox::helper::console& clox::logging::logger::get_console()
+{
+	return *console_;
+}
+
