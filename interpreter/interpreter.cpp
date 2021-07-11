@@ -225,11 +225,12 @@ clox::interpreting::interpreter::visit_grouping_expression(
 	return evaluate(expression->get_expr());
 }
 
-std::string clox::interpreting::interpreter::result_to_string(const clox::interpreting::evaluating_result& res)
+std::string clox::interpreting::interpreter::result_to_string(
+		const token& print_tk,
+		const clox::interpreting::evaluating_result& res)
 {
 	if (holds_alternative<nil_value_tag_type>(res))return "nil";
-
-	if (holds_alternative<long double>(res))
+	else if (holds_alternative<long double>(res))
 	{
 		return std::to_string(get<long double>(res));
 	}
@@ -241,9 +242,25 @@ std::string clox::interpreting::interpreter::result_to_string(const clox::interp
 	{
 		return get<string>(res);
 	}
+	else if (holds_alternative<shared_ptr<callable>>(res))
+	{
+		auto printable = dynamic_pointer_cast<helper::printable>(get<shared_ptr<callable>>(res));
+		if (!printable)
+		{
+			throw clox::interpreting::runtime_error{ print_tk, std::format("{} is not printable.",
+					typeid(get<shared_ptr<callable>>(res)).name()) };
+		}
+		return printable->printable_string();
+	}
+	else if (holds_alternative<shared_ptr<lox_instance>>(res))
+	{
+		auto inst = get<shared_ptr<lox_instance>>(res);
+		return inst->printable_string();
+	}
 
-	// FIXME: error?
-	return "";
+
+	throw clox::interpreting::runtime_error{ print_tk, std::format("{} is not printable.",
+			typeid(res).name()) };
 }
 
 void clox::interpreting::interpreter::interpret(const vector<shared_ptr<parsing::statement>>& stmts)
@@ -370,7 +387,7 @@ void interpreter::visit_expression_statement(const shared_ptr<parsing::expressio
 void interpreter::visit_print_statement(const shared_ptr<parsing::print_statement>& ps)
 {
 	auto val = evaluate(ps->get_expr());
-	cout << result_to_string(val) << endl;
+	cout << result_to_string(ps->get_keyword(), val) << endl;
 }
 
 void interpreter::execute(const shared_ptr<parsing::statement>& s)

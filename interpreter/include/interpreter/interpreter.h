@@ -128,7 +128,7 @@ private:
 	void variable_assign(const scanning::token& tk, const std::shared_ptr<parsing::expression>& expr,
 			const evaluating_result& val);
 
-	static std::string result_to_string(const evaluating_result& res);
+	static std::string result_to_string(const scanning::token& tk, const evaluating_result& res);
 
 	static constexpr std::string_view bool_to_string(bool b);
 

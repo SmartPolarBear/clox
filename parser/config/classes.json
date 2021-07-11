@@ -301,6 +301,10 @@
       ],
       "member": [
         {
+          "type": "clox::scanning::token",
+          "name": "keyword_"
+        },
+        {
           "type": "std::shared_ptr<expression>",
           "name": "expr_"
         }

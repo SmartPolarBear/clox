@@ -408,9 +408,10 @@ std::shared_ptr<statement> parser::stmt()
 
 std::shared_ptr<statement> parser::print_stmt()
 {
+	auto keyword = previous();
 	auto val = expr();
 	consume(token_type::SEMICOLON, "';' is expected after a value.");
-	return make_shared<print_statement>(val);
+	return make_shared<print_statement>(keyword, val);
 }
 
 std::shared_ptr<statement> parser::expr_stmt()
