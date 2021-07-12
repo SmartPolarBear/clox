@@ -24,6 +24,8 @@
 
 #include <test_scaffold_console.h>
 
+#include <logger/logger.h>
+
 #include <gtest/gtest.h>
 
 #include <cstring>
@@ -36,6 +38,12 @@ protected:
 	{
 		assert(strlen(return_code_) != 0);
 		assert(strlen(bad_return_code_) != 0);
+	}
+
+
+	virtual void TearDown()
+	{
+		clox::logging::logger::instance().clear_error();
 	}
 
 	[[nodiscard]] std::string return_code()
@@ -73,6 +81,8 @@ TEST_F(ReturnTest, GoodReturnTest)
 
 	auto output = cons.get_written_text();
 	ASSERT_EQ(output, "fuck\n");
+
+
 }
 
 TEST_F(ReturnTest, BadReturnTest)

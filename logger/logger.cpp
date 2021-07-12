@@ -60,3 +60,8 @@ clox::helper::console& clox::logging::logger::get_console()
 	return *console_;
 }
 
+void clox::logging::logger::clear_error()
+{
+	errors_ = runtime_errors_ = 0;
+}
+

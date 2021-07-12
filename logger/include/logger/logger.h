@@ -35,6 +35,8 @@ public:
 
 	void runtime_error(const interpreting::runtime_error& re);
 
+	void clear_error();
+
 	[[nodiscard]] bool has_errors() const;
 
 	[[nodiscard]] bool has_runtime_errors() const;

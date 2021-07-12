@@ -24,6 +24,8 @@
 
 #include <test_scaffold_console.h>
 
+#include <logger/logger.h>
+
 #include <gtest/gtest.h>
 
 #include <cstring>
@@ -35,9 +37,17 @@ class CommentTest : public ::testing::Test
 protected:
 	virtual void SetUp() override
 	{
+		clox::logging::logger::instance().clear_error();
+
 		assert(strlen(good_comment_) != 0);
 		assert(strlen(bad_comment_) != 0);
 	}
+
+	virtual void TearDown()
+	{
+		clox::logging::logger::instance().clear_error();
+	}
+
 
 	[[nodiscard]] std::string bad_comment_code() const
 	{
