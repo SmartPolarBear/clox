@@ -3,10 +3,12 @@ project(clox)
 
 set(CMAKE_CXX_STANDARD 20)
 
-if (${PYTHON} STREQUAL "")
+find_package(Python COMPONENTS Interpreter)
+
+if (!Python_FOUND)
     message(ERROR "A python interpreter with higher version than 3.9.0 is required")
 else ()
-    message(STATUS "Use python executable ${PYTHON}")
+    message(STATUS "Use python executable ${Python_EXECUTABLE}")
 endif ()
 
 add_subdirectory(test)
@@ -40,7 +42,7 @@ endif ()
 
 
 add_custom_target(parser_classes_inc
-        COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
         BYPRODUCTS {CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser_classes.inc
         COMMENT "Generating parser expression classes"
         )
