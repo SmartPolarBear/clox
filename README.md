@@ -3,6 +3,7 @@ Interpreter and compiler implemented in modern C++ for the lox programing langua
 
 In a long run, this project will support compile to binary and JIT with LLVM.  
 
+![example workflow](https://github.com/SmartPolarBear/clox/actions/workflows/build_and_test.yml/badge.svg)    
 [![issues](https://img.shields.io/github/issues/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/issues)
 [![forks](https://img.shields.io/github/forks/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/fork)
 [![stars](https://img.shields.io/github/stars/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/stargazers)
