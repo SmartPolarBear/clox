@@ -6,6 +6,7 @@ add_executable(clox_test
         test_scaffold_console.cpp
         comment.cpp
         return.cpp
+        scoop.cpp
         )
 
 add_test(NAME clox_test COMMAND clox_test)

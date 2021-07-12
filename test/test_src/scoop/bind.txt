@@ -1,0 +1,10 @@
+R"(
+var a="global";
+
+{
+    print a;
+    var a="local";
+    print a;
+}
+
+)"
