@@ -58,8 +58,16 @@ protected:
 #include <scoop/closure.txt>
 	};
 
+	const char* closure_out_{
+#include <scoop/closure.out>
+	};
+
 	const char* scoop_{
 #include <scoop/scoop.txt>
+	};
+
+	const char* scoop_out_{
+#include <scoop/scoop.out>
 	};
 };
 
@@ -70,7 +78,7 @@ using namespace std;
 using namespace clox::driver;
 
 
-TEST_F(ScoopTest, TestBind)
+TEST_F(ScoopTest, BindTest)
 {
 	test_scaffold_console cons{};
 
@@ -79,4 +87,26 @@ TEST_F(ScoopTest, TestBind)
 
 	auto output = cons.get_written_text();
 	ASSERT_NE(output.find("global\nlocal"), string::npos);
+}
+
+TEST_F(ScoopTest, ClosureTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, closure_);
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(closure_out_), string::npos);
+}
+
+TEST_F(ScoopTest, ScoopTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, scoop_);
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(scoop_out_), string::npos);
 }
