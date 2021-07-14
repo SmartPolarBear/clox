@@ -1,0 +1,11 @@
+R"(
+class Person {
+  sayName() {
+    print this.name;
+  }
+}
+
+var jane = Person();
+jane.name = "Jane";
+jane.sayName();
+)"
