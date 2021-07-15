@@ -9,6 +9,7 @@ add_executable(clox_test
         scoop.cpp
         class.cpp
         function.cpp
+        expression.cpp
         )
 
 add_test(NAME clox_test COMMAND clox_test)
