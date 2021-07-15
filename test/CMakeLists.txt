@@ -27,6 +27,4 @@ target_link_libraries(clox_test
         PUBLIC gtest_main
         PUBLIC GSL)
 
-gtest_add_tests(TARGET clox_test)
-
-add_test(NAME clox_test COMMAND $<TARGET_FILE:clox_test>)
+gtest_discover_tests(clox_test)
