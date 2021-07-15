@@ -27,14 +27,32 @@ class test_scaffold_console final
 		: public clox::helper::console
 {
 public:
+	test_scaffold_console() = default;
+
+	explicit test_scaffold_console(const std::string& in_str) : in_ss_(in_str)
+	{
+	}
+
 	void write(const std::string& str) override;
 
 	void write(std::string_view sv) override;
 
-	std::ostream& stream() override;
+	std::ostream& out() override;
 
 	[[nodiscard]] std::string get_written_text() const;
 
+	std::string read() override;
+
+	std::optional<std::string> read_line() override;
+
+	void write_line(const std::string& str) override;
+
+	void write_line(std::string_view sv) override;
+
+	std::istream& in() override;
+
 private:
-	std::stringstream ss{};
+	std::stringstream out_ss_{};
+	std::stringstream in_ss_{};
+
 };

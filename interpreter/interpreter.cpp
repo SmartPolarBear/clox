@@ -397,7 +397,7 @@ void interpreter::visit_expression_statement(const shared_ptr<parsing::expressio
 void interpreter::visit_print_statement(const shared_ptr<parsing::print_statement>& ps)
 {
 	auto val = evaluate(ps->get_expr());
-	console_->stream() << result_to_string(ps->get_keyword(), val) << endl;
+	console_->out() << result_to_string(ps->get_keyword(), val) << endl;
 }
 
 void interpreter::execute(const shared_ptr<parsing::statement>& s)

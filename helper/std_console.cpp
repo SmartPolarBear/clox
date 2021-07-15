@@ -24,17 +24,56 @@
 
 #include <helper/std_console.h>
 
+using namespace std;
+
 void clox::helper::std_console::write(const std::string& str)
 {
-	stream() << str;
+	out() << str;
 }
 
 void clox::helper::std_console::write(std::string_view sv)
 {
-	stream() << sv;
+	out() << sv;
 }
 
-std::ostream& clox::helper::std_console::stream()
+void clox::helper::std_console::write_line(const std::string& str)
+{
+	out() << str << endl;
+}
+
+void clox::helper::std_console::write_line(std::string_view sv)
+{
+	out() << sv << endl;
+}
+
+
+std::ostream& clox::helper::std_console::out()
 {
 	return *out_stream_;
+}
+
+std::string clox::helper::std_console::read()
+{
+	std::string ret{};
+	in() >> ret;
+	return ret;
+}
+
+std::optional<std::string> clox::helper::std_console::read_line()
+{
+	std::string line{};
+	if (std::getline(in(), line))
+	{
+		return line;
+	}
+	else
+	{
+		return std::nullopt;
+	}
+}
+
+
+std::istream& clox::helper::std_console::in()
+{
+	return std::cin;
 }

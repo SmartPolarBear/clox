@@ -27,6 +27,9 @@
 #include <string>
 #include <ostream>
 #include <string_view>
+#include <optional>
+
+#include <cstdint>
 
 namespace clox::helper
 {
@@ -44,11 +47,21 @@ public:
 
 	console& operator=(const console&) = delete;
 
+	virtual std::string read() = 0;
+
+	virtual std::optional<std::string> read_line() = 0;
+
 	virtual void write(const std::string& str) = 0;
 
 	virtual void write(std::string_view sv) = 0;
 
-	virtual std::ostream& stream() = 0;
+	virtual void write_line(const std::string& str) = 0;
+
+	virtual void write_line(std::string_view sv) = 0;
+
+	virtual std::istream& in() = 0;
+
+	virtual std::ostream& out() = 0;
 };
 
 }

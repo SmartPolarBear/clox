@@ -24,22 +24,61 @@
 
 #include <test_scaffold_console.h>
 
+using namespace std;
+
 void test_scaffold_console::write(const std::string& str)
 {
-	ss << str;
+	out_ss_ << str;
 }
 
 void test_scaffold_console::write(std::string_view sv)
 {
-	ss << sv;
+	out_ss_ << sv;
 }
 
-std::ostream& test_scaffold_console::stream()
+
+void test_scaffold_console::write_line(const std::string& str)
 {
-	return ss;
+	out_ss_ << str << endl;
+}
+
+void test_scaffold_console::write_line(std::string_view sv)
+{
+	out_ss_ << sv << endl;
+}
+
+std::ostream& test_scaffold_console::out()
+{
+	return out_ss_;
+}
+
+std::istream& test_scaffold_console::in()
+{
+	return in_ss_;
 }
 
 std::string test_scaffold_console::get_written_text() const
 {
-	return ss.str();
+	return out_ss_.str();
 }
+
+std::string test_scaffold_console::read()
+{
+	std::string ret{};
+	in() >> ret;
+	return ret;
+}
+
+std::optional<std::string> test_scaffold_console::read_line()
+{
+	std::string line{};
+	if (std::getline(in(), line))
+	{
+		return line;
+	}
+	else
+	{
+		return std::nullopt;
+	}
+}
+

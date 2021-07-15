@@ -74,14 +74,12 @@ int clox::driver::run_file(helper::console& cons, const std::string& name)
 
 int clox::driver::run_command(helper::console& cons)
 {
-	std::string line;
-
-	cons.stream() << ">>> ";
-	while (std::getline(std::cin, line))
+	cons.out() << ">>> ";
+	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{
-		[[maybe_unused]] auto _ = run(cons, line);
+		[[maybe_unused]] auto _ = run(cons, line.value_or(""));
 
-		cons.stream() << ">>> ";
+		cons.out() << ">>> ";
 	}
 
 	return 0;

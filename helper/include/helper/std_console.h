@@ -42,7 +42,17 @@ public:
 
 	void write(std::string_view sv) override;
 
-	std::ostream& stream() override;
+	std::ostream& out() override;
+
+	std::string read() override;
+
+	std::optional<std::string> read_line() override;
+
+	void write_line(const std::string& str) override;
+
+	void write_line(std::string_view sv) override;
+
+	std::istream& in() override;
 
 private:
 	mutable std::ostream* out_stream_{ &std::cout };
