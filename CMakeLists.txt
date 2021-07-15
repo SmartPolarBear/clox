@@ -14,6 +14,7 @@ else ()
     message(STATUS "Use python executable ${Python_EXECUTABLE}")
 endif ()
 
+
 add_executable(clox main.cpp)
 
 add_dependencies(clox parser_classes_inc)
@@ -41,8 +42,16 @@ target_link_libraries(clox
 
 if (${ENABLE_ASAN})
     message(STATUS "Use address sanitizer.")
+    target_link_libraries(clox
+            PRIVATE -fsanitize=address)
 
-    # TODO
+    target_link_options(clox
+            PRIVATE -fsanitize=address)
+
+    target_compile_options(clox
+            PRIVATE -fsanitize=address)
+
+    set(addressSanitizerEnabled true)
 else ()
     message(STATUS "Not use address sanitizer.")
 endif ()
