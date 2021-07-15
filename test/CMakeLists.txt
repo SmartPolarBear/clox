@@ -10,6 +10,8 @@ add_executable(clox_test
         class.cpp
         function.cpp
         expression.cpp
+        conditional.cpp
+        loop.cpp
         )
 
 add_test(NAME clox_test COMMAND clox_test)
