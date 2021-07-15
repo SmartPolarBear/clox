@@ -69,6 +69,14 @@ protected:
 	const char* scoop_out_{
 #include <scoop/scoop.out>
 	};
+
+	const char* replicated_vars_{
+#include <scoop/replicate_vars.txt>
+	};
+
+	const char* replicated_vars_out_{
+#include <scoop/replicate_vars.out>
+	};
 };
 
 #include <driver/driver.h>
@@ -109,4 +117,15 @@ TEST_F(ScoopTest, ScoopTest)
 
 	auto output = cons.get_written_text();
 	ASSERT_NE(output.find(scoop_out_), string::npos);
+}
+
+TEST_F(ScoopTest, ReplicateVariables)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, replicated_vars_);
+	ASSERT_NE(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(replicated_vars_out_), string::npos);
 }

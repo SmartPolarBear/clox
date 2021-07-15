@@ -30,46 +30,54 @@
 #include <cstring>
 
 
-
 class FunctionTest : public ::testing::Test
-		{
-		protected:
+{
+protected:
 
-			virtual void SetUp()
-			{
-				clox::logging::logger::instance().clear_error();
+	virtual void SetUp()
+	{
+		clox::logging::logger::instance().clear_error();
 
-				assert(strlen(naive_) != 0);
-				assert(strlen(simple_) != 0);
-				assert(strlen(complex_) != 0);
+		assert(strlen(naive_) != 0);
+		assert(strlen(simple_recursive_) != 0);
+		assert(strlen(complex_) != 0);
 
-			}
+	}
 
-			virtual void TearDown()
-			{
-				clox::logging::logger::instance().clear_error();
-			}
+	virtual void TearDown()
+	{
+		clox::logging::logger::instance().clear_error();
+	}
 
-			const char* naive_{
+	const char* naive_{
 #include <function/naive.txt>
-			};
+	};
 
-			const char* simple_{
+	const char* simple_{
+#include <function/simple.txt>
+	};
+
+	const char* simple_out_{
+#include <function/simple.out>
+	};
+
+
+	const char* simple_recursive_{
 #include <function/simple_recursive.txt>
-			};
+	};
 
-			const char* simple_out_{
+	const char* simple_recursive_out_{
 #include <function/simple_recursive.out>
-			};
+	};
 
-			const char* complex_{
+	const char* complex_{
 #include <function/recursive.txt>
-			};
+	};
 
-			const char* complex_out_{
+	const char* complex_out_{
 #include <function/recursive.out>
-			};
-		};
+	};
+};
 
 #include <driver/driver.h>
 
@@ -89,7 +97,7 @@ TEST_F(FunctionTest, Naive)
 	ASSERT_FALSE(output.empty());
 }
 
-TEST_F(FunctionTest, SimpleRecursiveTest)
+TEST_F(FunctionTest, SimpleTest)
 {
 	test_scaffold_console cons{};
 
@@ -98,6 +106,17 @@ TEST_F(FunctionTest, SimpleRecursiveTest)
 
 	auto output = cons.get_written_text();
 	ASSERT_NE(output.find(simple_out_), string::npos);
+}
+
+TEST_F(FunctionTest, SimpleRecursiveTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, simple_recursive_);
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(simple_recursive_out_), string::npos);
 }
 
 TEST_F(FunctionTest, RecursiveTest)

@@ -1,0 +1,9 @@
+R"(
+fun bad(){
+    var a="a";
+    var a="b";
+    print a;
+}
+
+bad();
+)"

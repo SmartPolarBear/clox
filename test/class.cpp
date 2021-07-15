@@ -56,6 +56,14 @@ protected:
 	const char* class_out_{
 #include "class/class.out"
 	};
+
+	const char* inheritance{
+#include "class/inheritance.txt"
+	};
+
+	const char* inheritance_out_{
+#include "class/inheritance.out"
+	};
 };
 
 #include <driver/driver.h>
@@ -73,4 +81,15 @@ TEST_F(ClassTest, ClassTest)
 
 	auto output = cons.get_written_text();
 	ASSERT_NE(output.find(class_out_), string::npos);
+}
+
+TEST_F(ClassTest, InheritanceTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run(cons, inheritance);
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(inheritance_out_), string::npos);
 }

@@ -1,0 +1,31 @@
+R"(
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+}
+
+class BostonCream : Doughnut {}
+
+BostonCream().cook();
+
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B : A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    base.method();
+  }
+}
+
+class C : B {}
+
+C().test();
+)"
