@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.19.2)
+
 project(clox)
+
+include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -11,12 +14,15 @@ else ()
     message(STATUS "Use python executable ${Python_EXECUTABLE}")
 endif ()
 
-add_subdirectory(test)
-add_subdirectory(libs)
-
 add_executable(clox main.cpp)
 
 add_dependencies(clox parser_classes_inc)
+
+add_subdirectory(libs)
+
+# Enable unit testing
+enable_testing()
+add_subdirectory(test)
 
 add_subdirectory(base)
 add_subdirectory(driver)
@@ -27,6 +33,7 @@ add_subdirectory(helper)
 add_subdirectory(interpreter)
 add_subdirectory(resolver)
 add_subdirectory(codegen)
+
 
 target_link_libraries(clox
         PUBLIC GSL

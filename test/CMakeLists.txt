@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
+include(GoogleTest)
+
 add_subdirectory(gtest)
 
 add_executable(clox_test
@@ -14,8 +16,6 @@ add_executable(clox_test
         loop.cpp
         )
 
-add_test(NAME clox_test COMMAND clox_test)
-
 target_include_directories(clox_test
         PRIVATE include
         PRIVATE test_src
@@ -26,3 +26,7 @@ target_link_libraries(clox_test
         PUBLIC gtest
         PUBLIC gtest_main
         PUBLIC GSL)
+
+gtest_add_tests(TARGET clox_test)
+
+add_test(NAME clox_test COMMAND $<TARGET_FILE:clox_test>)
