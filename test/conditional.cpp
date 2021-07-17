@@ -68,7 +68,7 @@ TEST_F(ConditionalTest, IfTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, if_);
+	int ret = run_code(cons, if_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

@@ -76,7 +76,7 @@ TEST_F(ReturnTest, GoodReturnTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, return_code());
+	int ret = run_code(cons, return_code());
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -89,7 +89,7 @@ TEST_F(ReturnTest, BadReturnTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, bad_return_code());
+	int ret = run_code(cons, bad_return_code());
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_written_text();

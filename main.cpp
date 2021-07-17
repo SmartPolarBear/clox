@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	argparse::ArgumentParser arg_parser{ "clox" };
 
 	arg_parser.add_argument("-f", "--file")
-			.help("the script to run")
+			.help("the script to run_code")
 			.default_value(string{ "" })
 			.implicit_value(string{ "" })
 			.nargs(1);
@@ -37,6 +37,6 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		return clox::driver::run_command(clox::helper::std_console::instance());
+		return clox::driver::run_repl(clox::helper::std_console::instance());
 	}
 }

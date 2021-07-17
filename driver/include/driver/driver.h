@@ -27,11 +27,11 @@
 namespace clox::driver
 {
 
-[[nodiscard]] int run(helper::console& output_cons,
+[[nodiscard]] int run_code(helper::console& output_cons,
 		const std::string& code);
 
 [[nodiscard]] int run_file(helper::console& cons, const std::string& name);
 
-[[nodiscard]] int run_command(helper::console& cons);
+[[nodiscard]] int run_repl(helper::console& cons);
 
 }

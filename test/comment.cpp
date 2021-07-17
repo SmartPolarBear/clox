@@ -79,7 +79,7 @@ TEST_F(CommentTest, GoodCommentTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, good_comment_code());
+	int ret = run_code(cons, good_comment_code());
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -102,7 +102,7 @@ TEST_F(CommentTest, BadCommentTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, bad_comment_code());
+	int ret = run_code(cons, bad_comment_code());
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_written_text();

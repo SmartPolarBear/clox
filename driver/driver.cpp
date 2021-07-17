@@ -29,7 +29,7 @@ using namespace clox::logging;
 using namespace clox::resolving;
 using namespace clox::interpreting;
 
-int clox::driver::run(helper::console& output_cons, const string& code)
+int clox::driver::run_code(helper::console& output_cons, const string& code)
 {
 	// switch to the desirable console for logging
 	auto& prev_cons = logger::instance().get_console();
@@ -69,19 +69,40 @@ int clox::driver::run_file(helper::console& cons, const std::string& name)
 	stringstream ss{};
 	ss << src.rdbuf();
 
-	return run(cons, ss.str());
+	return run_code(cons, ss.str());
 }
 
-int clox::driver::run_command(helper::console& cons)
+int clox::driver::run_repl(helper::console& cons)
 {
+	interpreter the_interpreter{ cons };
+	resolver rsv{ &the_interpreter };
+
 	cons.out() << ">>> ";
+
 	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{
+		auto _ = gsl::finally([&cons]
+		{
+			cons.out() << ">>> ";
+		});
+
 		logger::instance().clear_error();
 
-		[[maybe_unused]] auto _ = run(cons, line.value_or(""));
+		scanner sc{ line.value_or("") };
+		parser ps{ sc.scan() };
+		auto stmt = ps.parse();
 
-		cons.out() << ">>> ";
+		if (logger::instance().has_errors())
+			continue;
+
+		rsv.resolve(stmt);
+		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
+			continue;
+
+		the_interpreter.interpret(stmt);
+		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
+			continue;
+
 	}
 
 	return 0;

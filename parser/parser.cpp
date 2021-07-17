@@ -374,6 +374,7 @@ std::vector<std::shared_ptr<statement>> parser::parse()
 
 }
 
+
 std::shared_ptr<statement> parser::stmt()
 {
 	if (match({ token_type::IF }))
@@ -623,5 +624,3 @@ std::shared_ptr<statement> parser::class_declaration()
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
 	return make_shared<class_statement>(name, base_class, methods);
 }
-
-

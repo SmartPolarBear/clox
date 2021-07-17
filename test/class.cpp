@@ -76,7 +76,7 @@ TEST_F(ClassTest, ClassTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, class_);
+	int ret = run_code(cons, class_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -87,7 +87,7 @@ TEST_F(ClassTest, InheritanceTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, inheritance);
+	int ret = run_code(cons, inheritance);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

@@ -95,7 +95,7 @@ TEST_F(ExpressionTest, CommaTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, comma_);
+	int ret = run_code(cons, comma_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -106,7 +106,7 @@ TEST_F(ExpressionTest, PrePostfixTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, pre_post_fix_);
+	int ret = run_code(cons, pre_post_fix_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -117,7 +117,7 @@ TEST_F(ExpressionTest, SimpleTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, simple_);
+	int ret = run_code(cons, simple_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -129,7 +129,7 @@ TEST_F(ExpressionTest, TernaryTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, ternary_);
+	int ret = run_code(cons, ternary_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

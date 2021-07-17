@@ -73,7 +73,7 @@ TEST_F(LoopTest, ForTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, for_);
+	int ret = run_code(cons, for_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -84,7 +84,7 @@ TEST_F(LoopTest, WhileTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, while_);
+	int ret = run_code(cons, while_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

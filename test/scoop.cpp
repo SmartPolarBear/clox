@@ -90,7 +90,7 @@ TEST_F(ScoopTest, BindTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, bind_);
+	int ret = run_code(cons, bind_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -101,7 +101,7 @@ TEST_F(ScoopTest, ClosureTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, closure_);
+	int ret = run_code(cons, closure_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -112,7 +112,7 @@ TEST_F(ScoopTest, ScoopTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, scoop_);
+	int ret = run_code(cons, scoop_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -123,7 +123,7 @@ TEST_F(ScoopTest, ReplicateVariables)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, replicated_vars_);
+	int ret = run_code(cons, replicated_vars_);
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_written_text();

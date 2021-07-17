@@ -1,7 +1,7 @@
 # CLOX
 Interpreter and compiler implemented in modern C++ for the lox programing language described in [Crafting Interpreters](https://craftinginterpreters.com/) with extensions in grammars and other features. 
 
-In a long run, this project will support compile to binary and JIT with LLVM.  
+In a long run_code, this project will support compile to binary and JIT with LLVM.  
 
 ![example workflow](https://github.com/SmartPolarBear/clox/actions/workflows/build_and_test.yml/badge.svg)    
 [![issues](https://img.shields.io/github/issues/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/issues)
@@ -26,7 +26,7 @@ This project is built with
 
 ## Usage  
 `clox` to enter REPL mode.    
-`clox --file <source file>` to run a file.  
+`clox --file <source file>` to run_code a file.  
 
 ## Roadmap  
 

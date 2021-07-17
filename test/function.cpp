@@ -90,7 +90,7 @@ TEST_F(FunctionTest, Naive)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, naive_);
+	int ret = run_code(cons, naive_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -101,7 +101,7 @@ TEST_F(FunctionTest, SimpleTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, simple_);
+	int ret = run_code(cons, simple_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -112,7 +112,7 @@ TEST_F(FunctionTest, SimpleRecursiveTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, simple_recursive_);
+	int ret = run_code(cons, simple_recursive_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -123,7 +123,7 @@ TEST_F(FunctionTest, RecursiveTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run(cons, complex_);
+	int ret = run_code(cons, complex_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
