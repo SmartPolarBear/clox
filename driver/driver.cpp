@@ -100,7 +100,7 @@ int clox::driver::run_repl(helper::console& cons)
 		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
 			continue;
 
-		the_interpreter.interpret(stmt, false);
+		the_interpreter.interpret(stmt, true);
 		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
 			continue;
 

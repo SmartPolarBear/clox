@@ -278,7 +278,7 @@ clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<par
 {
 	try
 	{
-		repl_ = true;
+		repl_ = repl;
 		auto _ = gsl::finally([this]
 		{
 			repl_ = false;
