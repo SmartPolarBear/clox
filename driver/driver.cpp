@@ -54,7 +54,7 @@ int clox::driver::run_code(helper::console& output_cons, const string& code)
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	the_interpreter.interpret(stmts);
+	the_interpreter.interpret(stmts, false);
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
@@ -77,13 +77,13 @@ int clox::driver::run_repl(helper::console& cons)
 	interpreter the_interpreter{ cons };
 	resolver rsv{ &the_interpreter };
 
-	cons.out() << ">>> ";
+	cons.out() << ">>>";
 
 	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{
 		auto _ = gsl::finally([&cons]
 		{
-			cons.out() << ">>> ";
+			cons.out() << ">>>";
 		});
 
 		logger::instance().clear_error();
@@ -92,6 +92,7 @@ int clox::driver::run_repl(helper::console& cons)
 		parser ps{ sc.scan() };
 		auto stmt = ps.parse();
 
+
 		if (logger::instance().has_errors())
 			continue;
 
@@ -99,7 +100,7 @@ int clox::driver::run_repl(helper::console& cons)
 		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
 			continue;
 
-		the_interpreter.interpret(stmt);
+		the_interpreter.interpret(stmt, false);
 		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
 			continue;
 

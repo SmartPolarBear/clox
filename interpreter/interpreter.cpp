@@ -236,7 +236,7 @@ clox::interpreting::interpreter::visit_grouping_expression(
 }
 
 std::string clox::interpreting::interpreter::result_to_string(
-		const token& print_tk,
+		const token& error_prone,
 		const clox::interpreting::evaluating_result& res)
 {
 	if (holds_alternative<nil_value_tag_type>(res))return "nil";
@@ -257,7 +257,7 @@ std::string clox::interpreting::interpreter::result_to_string(
 		auto printable = dynamic_pointer_cast<helper::printable>(get<shared_ptr<callable>>(res));
 		if (!printable)
 		{
-			throw clox::interpreting::runtime_error{ print_tk, std::format("{} is not printable.",
+			throw clox::interpreting::runtime_error{ error_prone, std::format("{} is not printable.",
 					typeid(get<shared_ptr<callable>>(res)).name()) };
 		}
 		return printable->printable_string();
@@ -269,14 +269,21 @@ std::string clox::interpreting::interpreter::result_to_string(
 	}
 
 
-	throw clox::interpreting::runtime_error{ print_tk, std::format("{} is not printable.",
+	throw clox::interpreting::runtime_error{ error_prone, std::format("{} is not printable.",
 			typeid(res).name()) };
 }
 
-void clox::interpreting::interpreter::interpret(const vector<shared_ptr<parsing::statement>>& stmts)
+void
+clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts, bool repl)
 {
 	try
 	{
+		repl_ = true;
+		auto _ = gsl::finally([this]
+		{
+			repl_ = false;
+		});
+
 		for (const auto& s:stmts)
 		{
 			execute(s);
@@ -391,7 +398,30 @@ constexpr std::string_view interpreter::bool_to_string(bool b)
 
 void interpreter::visit_expression_statement(const shared_ptr<parsing::expression_statement>& es)
 {
-	evaluate(es->get_expr());
+	auto res = evaluate(es->get_expr());
+	if (repl_)
+	{
+		if (holds_alternative<nil_value_tag_type>(res))
+		{
+			console_->out() << "nil" << endl;
+		}
+		else if (holds_alternative<long double>(res))
+		{
+			console_->out() << std::to_string(get<long double>(res)) << endl;
+		}
+		else if (holds_alternative<bool>(res))
+		{
+			console_->out() << string{ bool_to_string(get<bool>(res)) } << endl;
+		}
+		else if (holds_alternative<string>(res))
+		{
+			console_->out() << get<string>(res) << endl;
+		}
+		else
+		{
+			console_->out() << "Unevaluable expression." << endl;
+		}
+	}
 }
 
 void interpreter::visit_print_statement(const shared_ptr<parsing::print_statement>& ps)

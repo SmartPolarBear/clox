@@ -59,7 +59,7 @@ public:
 
 	void visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& ptr) override;
 
-	void interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
+	void interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts, bool repl = false);
 
 	evaluating_result visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
 
@@ -124,7 +124,7 @@ private:
 	void variable_assign(const scanning::token& tk, const std::shared_ptr<parsing::expression>& expr,
 			const evaluating_result& val);
 
-	static std::string result_to_string(const scanning::token& tk, const evaluating_result& res);
+	static std::string result_to_string(const scanning::token& error_prone, const evaluating_result& res);
 
 	static constexpr std::string_view bool_to_string(bool b);
 
@@ -139,6 +139,8 @@ private:
 			clox::interpreting::evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
+	mutable bool repl_{ false };
 
 	mutable helper::console* console_{ nullptr };
 
