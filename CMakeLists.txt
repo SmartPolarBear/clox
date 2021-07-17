@@ -4,7 +4,7 @@ project(clox)
 
 include(CTest)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 find_package(Python COMPONENTS Interpreter)
 
@@ -56,6 +56,25 @@ else ()
     message(STATUS "Not use address sanitizer.")
 endif ()
 
+
+if (TemporaryFixStdFormat)
+
+    message(STATUS "Define __cpp_lib_format to workaround clion's disability to discover std::format.")
+
+    # Suppress Warning C4005 for macro redefinition.
+    # TODO: it's dangerous. Remove it right after CLion fix the bug.
+    target_compile_options(clox
+            PRIVATE /wd4005)
+
+    target_compile_definitions(clox
+            PRIVATE -D__cpp_lib_format)
+
+    target_compile_options(clox_test
+            PRIVATE /wd4214)
+
+    target_compile_definitions(clox_test
+            PRIVATE -D__cpp_lib_format)
+endif ()
 
 add_custom_target(parser_classes_inc
         COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc

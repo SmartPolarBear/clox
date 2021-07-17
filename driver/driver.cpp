@@ -77,6 +77,8 @@ int clox::driver::run_command(helper::console& cons)
 	cons.out() << ">>> ";
 	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{
+		logger::instance().clear_error();
+
 		[[maybe_unused]] auto _ = run(cons, line.value_or(""));
 
 		cons.out() << ">>> ";

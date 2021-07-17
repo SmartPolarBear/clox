@@ -674,6 +674,7 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 		return this_val.value();
 	}
 
+
 	throw runtime_error{ this_expr->get_keyword(), std::format("Internal error: cannot look up 'this'.") };
 }
 
