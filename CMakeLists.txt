@@ -59,10 +59,11 @@ endif ()
 
 if (TemporaryFixStdFormat)
 
-    message(STATUS "Define __cpp_lib_format to workaround clion's disability to discover std::format.")
+    message(STATUS "Define __cpp_lib_format to workaround IDE's disability to discover std::format.")
 
     # Suppress Warning C4005 for macro redefinition.
     # TODO: it's dangerous. Remove it right after CLion fix the bug.
+
     target_compile_options(clox
             PRIVATE /wd4005)
 
@@ -70,7 +71,7 @@ if (TemporaryFixStdFormat)
             PRIVATE -D__cpp_lib_format)
 
     target_compile_options(clox_test
-            PRIVATE /wd4214)
+            PRIVATE /wd4005)
 
     target_compile_definitions(clox_test
             PRIVATE -D__cpp_lib_format)
