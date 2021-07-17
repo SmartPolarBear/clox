@@ -53,14 +53,18 @@ enum class token_type
 	PLUS, PLUS_PLUS,
 	STAR, STAR_STAR,
 
+	// Two character tokens
+	ARROW, /* -> */
+
 	// Literals.
 	IDENTIFIER, STRING, NUMBER,
 
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE,
+	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
+	SIZEOF,
 
-	FEND // not EOF because it conflicts with STL
+	FEND // not EOF because it conflicts with Microsoft's STL
 };
 
 struct empty_literal_tag
@@ -164,6 +168,8 @@ private:
 			{ "true",   token_type::TRUE },
 			{ "var",    token_type::VAR },
 			{ "while",  token_type::WHILE },
+			{ "using",  token_type::USING },
+			{ "sizeof", token_type::SIZEOF }
 	};
 
 	void scan_next_token();

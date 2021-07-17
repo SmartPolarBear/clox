@@ -162,6 +162,10 @@ void scanner::scan_next_token()
 		{
 			add_token(token_type::MINUS_MINUS);
 		}
+		else if (match('>'))
+		{
+			add_token(token_type::ARROW);
+		}
 		else
 		{
 			add_token(token_type::MINUS);
@@ -181,7 +185,7 @@ void scanner::scan_next_token()
 		add_token(token_type::SEMICOLON);
 		break;
 	case '*':
-		if(match('*'))
+		if (match('*'))
 		{
 			add_token(token_type::STAR);
 		}

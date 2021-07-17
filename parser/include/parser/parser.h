@@ -172,6 +172,7 @@ private:
 	/// \return
 	std::shared_ptr<statement> func_declaration(const std::string& kind);
 
+
 	std::shared_ptr<statement> var_declaration();
 
 	/// block -> "{" declaration* "}" ;
