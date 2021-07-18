@@ -149,15 +149,17 @@ private:
 
 	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
-	std::optional<lox_type> resolve_type(const scanning::token &tk);
+	std::optional<lox_type> resolve_type(const scanning::token& tk);
 
 	void scope_begin();
 
 	void scope_end();
 
-	void declare(const scanning::token& t);
+	void declare_name(const scanning::token& t);
 
-	void define(const scanning::token& t);
+	void define_name(const scanning::token& t);
+
+	void define_type(const scanning::token& t, const lox_type& type, uint64_t depth = 1);
 
 	std::shared_ptr<scope> scope_top()
 	{

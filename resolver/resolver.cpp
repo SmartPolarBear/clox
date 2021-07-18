@@ -117,10 +117,10 @@ void resolver::visit_print_statement(const std::shared_ptr<parsing::print_statem
 
 void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& stmt)
 {
-	declare(stmt->get_name());
+	declare_name(stmt->get_name());
 	auto _ = finally([this, &stmt]
 	{
-		this->define(stmt->get_name());
+		this->define_name(stmt->get_name());
 	});
 
 	if (stmt->get_initializer())
@@ -155,8 +155,8 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
-	declare(stmt->get_name());
-	define(stmt->get_name());
+	declare_name(stmt->get_name());
+	define_name(stmt->get_name());
 
 	resolve_function(stmt, function_type::FT_FUNCTION);
 }
@@ -207,7 +207,7 @@ void resolver::scope_end()
 	scope_pop();
 }
 
-void resolver::declare(const clox::scanning::token& t)
+void resolver::declare_name(const clox::scanning::token& t)
 {
 	if (scopes_.empty())return;
 
@@ -221,13 +221,20 @@ void resolver::declare(const clox::scanning::token& t)
 	top->names()[t.lexeme()] = false;
 }
 
-void resolver::define(const clox::scanning::token& t)
+void resolver::define_name(const clox::scanning::token& t)
 {
 	if (scopes_.empty())return;
 
 	scope_top()->names()[t.lexeme()] = true;
 
 }
+
+void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
+{
+	if (scopes_.empty())return;
+	scopes_[depth]->types()[tk.lexeme()] = type;
+}
+
 
 void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const clox::scanning::token& tk)
 {
@@ -258,8 +265,8 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 
 	for (const auto& tk:func->get_params())
 	{
-		declare(tk);
-		define(tk);
+		declare_name(tk);
+		define_name(tk);
 	}
 
 	resolve(func->get_body());
@@ -289,8 +296,8 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	class_type enclosing = cur_cls_;
 	cur_cls_ = class_type::CT_CLASS;
 
-	declare(cls->get_name());
-	define(cls->get_name());
+	declare_name(cls->get_name());
+	define_name(cls->get_name());
 
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
 	{
@@ -379,4 +386,5 @@ lox_type resolver::visit_variable_type_expression(const std::shared_ptr<variable
 {
 	return lox_type();
 }
+
 
