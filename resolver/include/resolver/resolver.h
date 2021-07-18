@@ -61,7 +61,8 @@ private:
 
 class resolver final
 		: public parsing::expression_visitor<void>,
-		  public parsing::statement_visitor<void>
+		  public parsing::statement_visitor<void>,
+		  public parsing::type_expression_visitor<lox_type>
 {
 public:
 	enum class [[clang::enum_extensibility(closed)]] function_type
@@ -80,7 +81,9 @@ public:
 	};
 
 public:
-	explicit resolver(interpreting::interpreter* intp) : intp_(intp)
+	explicit resolver(interpreting::interpreter* intp) :
+			intp_(intp),
+			global_scope_{ std::make_shared<scope>() }
 	{
 	}
 
@@ -132,6 +135,8 @@ public:
 
 	void visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
 
+	lox_type visit_variable_type_expression(const std::shared_ptr<parsing::variable_type_expression>& ptr) override;
+
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
@@ -139,11 +144,12 @@ public:
 
 	void resolve(const std::shared_ptr<parsing::expression>& expr);
 
-
 private:
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
+
+	std::optional<lox_type> resolve_type(const scanning::token &tk);
 
 	void scope_begin();
 
@@ -176,7 +182,9 @@ private:
 	}
 
 
-	std::vector<std::shared_ptr<scope>> scopes_{};
+	std::shared_ptr<scope> global_scope_{ nullptr };
+
+	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
 
 	function_type cur_func_{ function_type::FT_NONE };
 

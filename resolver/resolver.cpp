@@ -265,6 +265,20 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 	resolve(func->get_body());
 }
 
+std::optional<lox_type> resolver::resolve_type(const scanning::token& tk)
+{
+	for (auto& scoop:scopes_)
+	{
+		if (scoop->types().contains(tk.lexeme()))
+		{
+			return scoop->types().at(tk.lexeme());
+		}
+	}
+
+	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
+	return nullopt;
+}
+
 void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
 {
 	resolve(pe->get_left());
@@ -360,3 +374,9 @@ void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 
 	resolve_local(be, be->get_keyword());
 }
+
+lox_type resolver::visit_variable_type_expression(const std::shared_ptr<variable_type_expression>& vte)
+{
+	return lox_type();
+}
+
