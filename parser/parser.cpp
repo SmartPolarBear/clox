@@ -480,6 +480,12 @@ std::shared_ptr<statement> parser::var_declaration()
 {
 	auto name = consume(token_type::IDENTIFIER, "Variable name is expected.");
 
+	decltype(type_expr()) type = nullptr;
+	if (match({ token_type::COLON }))
+	{
+		type = type_expr();
+	}
+
 	decltype(expr()) initializer = nullptr;
 	if (match({ token_type::EQUAL }))
 	{
@@ -487,7 +493,7 @@ std::shared_ptr<statement> parser::var_declaration()
 	}
 
 	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
-	return make_shared<variable_statement>(name, initializer);
+	return make_shared<variable_statement>(name, type, initializer);
 }
 
 std::vector<std::shared_ptr<statement>> parser::block()
@@ -623,4 +629,20 @@ std::shared_ptr<statement> parser::class_declaration()
 
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
 	return make_shared<class_statement>(name, base_class, methods);
+}
+
+std::shared_ptr<type_expression> parser::type_expr()
+{
+	return non_union_type();
+}
+
+std::shared_ptr<type_expression> parser::non_union_type()
+{
+	return generic_type();
+}
+
+std::shared_ptr<type_expression> parser::generic_type()
+{
+	auto name = consume(scanning::token_type::IDENTIFIER, "Type expected.");
+	return make_shared<variable_type_expression>(name);
 }

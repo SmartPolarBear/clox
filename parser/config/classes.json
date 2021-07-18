@@ -35,6 +35,13 @@
       "id": 3,
       "crtp": false,
       "visitable": true
+    },
+    {
+      "name": "type_expression",
+      "access": "public",
+      "id": 4,
+      "crtp": false,
+      "visitable": true
     }
   ],
   "expression_classes": [
@@ -322,6 +329,10 @@
           "name": "name_"
         },
         {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "type_"
+        },
+        {
           "type": "std::shared_ptr<expression>",
           "name": "initializer_"
         }
@@ -434,6 +445,20 @@
         {
           "type": "std::vector<std::shared_ptr<function_statement>>",
           "name": "methods_"
+        }
+      ]
+    },
+
+    {
+      "name": "variable_type_expression",
+      "base": [
+        4,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "name_"
         }
       ]
     }

@@ -1,0 +1,4 @@
+var a:int=12;
+var b:double=1.20;
+var c=a+b;
+print c;

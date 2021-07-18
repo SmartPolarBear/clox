@@ -62,7 +62,7 @@ enum class token_type
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
 	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
-	SIZEOF,
+	SIZEOF, ARRAY,
 
 	FEND // not EOF because it conflicts with Microsoft's STL
 };
@@ -169,7 +169,8 @@ private:
 			{ "var",    token_type::VAR },
 			{ "while",  token_type::WHILE },
 			{ "using",  token_type::USING },
-			{ "sizeof", token_type::SIZEOF }
+			{ "sizeof", token_type::SIZEOF },
+			{ "array",  token_type::ARRAY }
 	};
 
 	void scan_next_token();

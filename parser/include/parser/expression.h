@@ -17,5 +17,10 @@ class expression : public parser_class_base
 {
 };
 
+/// \brief base class for type_expression
+class type_expression : public expression
+{
+
+};
 
 }

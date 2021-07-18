@@ -172,8 +172,22 @@ private:
 	/// \return
 	std::shared_ptr<statement> func_declaration(const std::string& kind);
 
-
+	/// var_decl -> "var" IDENTIFIER (":" typeExpr)? ("=" expression)? ";"
+	/// \return
 	std::shared_ptr<statement> var_declaration();
+
+	/// type_expr -> non_union_type ;
+	/// \return
+	std::shared_ptr<type_expression> type_expr();
+
+	/// non_union_type -> generic_type
+	/// \return
+	std::shared_ptr<type_expression> non_union_type();
+
+	/// generic_type -> IDENTIFIER
+	/// \return
+	std::shared_ptr<type_expression> generic_type();
+
 
 	/// block -> "{" declaration* "}" ;
 	/// \return
