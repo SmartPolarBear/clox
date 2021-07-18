@@ -68,13 +68,15 @@ if (TemporaryFixStdFormat)
             PRIVATE /wd4005)
 
     target_compile_definitions(clox
-            PRIVATE -D__cpp_lib_format)
+            PRIVATE -D__cpp_lib_format
+            PRIVATE -D__cpp_lib_ranges)
 
     target_compile_options(clox_test
             PRIVATE /wd4005)
 
     target_compile_definitions(clox_test
-            PRIVATE -D__cpp_lib_format)
+            PRIVATE -D__cpp_lib_format
+            PRIVATE -D__cpp_lib_ranges)
 endif ()
 
 add_custom_target(parser_classes_inc

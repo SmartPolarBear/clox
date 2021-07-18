@@ -199,7 +199,7 @@ void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
 
 void resolver::scope_begin()
 {
-	scope_push(make_shared<unordered_map<string, bool>>());
+	scope_push(make_shared<scope>());
 }
 
 void resolver::scope_end()
@@ -213,19 +213,19 @@ void resolver::declare(const clox::scanning::token& t)
 
 	auto top = scope_top();
 
-	if (top->contains(t.lexeme()))
+	if (top->names().contains(t.lexeme()))
 	{
 		logger::instance().error(t, std::format("{} already exists in this scoop.", t.lexeme()));
 	}
 
-	(*top)[t.lexeme()] = false;
+	top->names()[t.lexeme()] = false;
 }
 
 void resolver::define(const clox::scanning::token& t)
 {
 	if (scopes_.empty())return;
 
-	(*scope_top())[t.lexeme()] = true;
+	scope_top()->names()[t.lexeme()] = true;
 
 }
 
@@ -235,7 +235,7 @@ void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const 
 
 	for (const auto& s:scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
-		if (s->contains(tk.lexeme()))
+		if (s->names().contains(tk.lexeme()))
 		{
 			intp_->resolve(expr, depth);
 			return;
@@ -292,7 +292,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	if (cls->get_base_class())
 	{
 		scope_begin();
-		(*scope_top())["base"] = true;
+		scope_top()->names()["base"] = true;
 	}
 
 	scope_begin();
@@ -308,7 +308,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		this->cur_cls_ = enclosing;
 	});
 
-	(*scope_top())["this"] = true;
+	scope_top()->names()["this"] = true;
 
 	for (const auto& method:cls->get_methods())
 	{

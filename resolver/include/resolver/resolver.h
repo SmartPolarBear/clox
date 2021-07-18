@@ -28,12 +28,37 @@
 
 #include <interpreter/interpreter.h>
 
+#include <resolver/lox_type.h>
+
 #include <vector>
 #include <stack>
 #include <memory>
 
 namespace clox::resolving
 {
+class scope final
+{
+public:
+	using name_table_type = std::unordered_map<std::string, bool>;
+	using type_table_type = std::unordered_map<std::string, lox_type>;
+
+	scope() = default;
+
+	name_table_type& names()
+	{
+		return names_;
+	}
+
+	type_table_type& types()
+	{
+		return types_;
+	}
+
+private:
+	mutable name_table_type names_{};
+	mutable type_table_type types_{};
+};
+
 class resolver final
 		: public parsing::expression_visitor<void>,
 		  public parsing::statement_visitor<void>
@@ -128,7 +153,7 @@ private:
 
 	void define(const scanning::token& t);
 
-	std::shared_ptr<std::unordered_map<std::string, bool>> scope_top()
+	std::shared_ptr<scope> scope_top()
 	{
 		return scopes_.back();
 	}
@@ -136,11 +161,11 @@ private:
 	std::optional<bool> scope_top_find(const std::string& key)
 	{
 		auto top = scope_top();
-		if (!top->contains(key))return std::nullopt;
-		else return top->at(key);
+		if (!top->names().contains(key))return std::nullopt;
+		else return top->names().at(key);
 	}
 
-	void scope_push(const std::shared_ptr<std::unordered_map<std::string, bool>>& s)
+	void scope_push(const std::shared_ptr<scope>& s)
 	{
 		scopes_.push_back(s);
 	}
@@ -151,7 +176,7 @@ private:
 	}
 
 
-	std::vector<std::shared_ptr<std::unordered_map<std::string, bool>>> scopes_{};
+	std::vector<std::shared_ptr<scope>> scopes_{};
 
 	function_type cur_func_{ function_type::FT_NONE };
 

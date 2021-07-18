@@ -1,4 +1,4 @@
-var a:int=12;
-var b:double=1.20;
+var a:number=12;
+var b:number=1.20;
 var c=a+b;
 print c;
