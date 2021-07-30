@@ -151,6 +151,8 @@ private:
 
 	std::optional<lox_type> resolve_type(const scanning::token& tk);
 
+	void check_type_capability(const scanning::token& tk,const lox_type &left,const lox_type &right);
+
 	void scope_begin();
 
 	void scope_end();

@@ -28,6 +28,27 @@ namespace clox::resolving
 {
 class lox_type
 {
+public:
+	enum lox_type_type
+	{
+		TYPE_PRIMITIVE,
+		TYPE_CLASS,
+	};
 
+
+	virtual lox_type_type type() = 0;
+
+	// {is_compatible, is_narrowing, is_down_casting}
+	virtual std::tuple<bool, bool, bool> compatible_with(const lox_type& another) = 0;
 };
+
+class lox_type_number final
+		: public lox_type
+{
+public:
+	lox_type_type type() override;
+
+	std::tuple<bool, bool, bool> compatible_with(const lox_type& another) override;
+};
+
 }

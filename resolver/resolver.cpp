@@ -387,4 +387,9 @@ lox_type resolver::visit_variable_type_expression(const std::shared_ptr<variable
 	return lox_type();
 }
 
+void resolver::check_type_capability(const clox::scanning::token& tk, const lox_type& left, const lox_type& right)
+{
+
+}
+
 
