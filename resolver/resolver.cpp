@@ -23,6 +23,7 @@
 //
 
 #include <resolver/resolver.h>
+#include <resolver/lox_type.h>
 
 #include <logger/logger.h>
 
@@ -197,6 +198,12 @@ void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
 	accept(*expr, *this);
 }
 
+void resolver::resolve(const shared_ptr<parsing::type_expression>& expr)
+{
+	accept(*expr, *this);
+}
+
+
 void resolver::scope_begin()
 {
 	scope_push(make_shared<scope>());
@@ -272,7 +279,7 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 	resolve(func->get_body());
 }
 
-std::optional<lox_type> resolver::resolve_type(const scanning::token& tk)
+std::shared_ptr<lox_type> resolver::resolve_type_name(const scanning::token& tk)
 {
 	for (auto& scoop:scopes_)
 	{
@@ -282,8 +289,7 @@ std::optional<lox_type> resolver::resolve_type(const scanning::token& tk)
 		}
 	}
 
-	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
-	return nullopt;
+	return type_error(tk);
 }
 
 void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
@@ -384,7 +390,6 @@ void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 
 lox_type resolver::visit_variable_type_expression(const std::shared_ptr<variable_type_expression>& vte)
 {
-	return lox_type();
 }
 
 void resolver::check_type_assignment(const clox::scanning::token& tk, const lox_type& left, const lox_type& right)
@@ -392,4 +397,9 @@ void resolver::check_type_assignment(const clox::scanning::token& tk, const lox_
 
 }
 
+std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk)
+{
+	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
+	return make_shared<error_type>();
+}
 

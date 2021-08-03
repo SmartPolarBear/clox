@@ -29,7 +29,7 @@
 namespace clox::resolving
 {
 
-enum class lox_type_flags : uint64_t
+enum lox_type_flags : uint64_t
 {
 	TYPE_PRIMITIVE = 1,
 	TYPE_CLASS = 2,
@@ -47,6 +47,12 @@ enum class lox_primitive_type_size : size_t
 class lox_type
 {
 public:
+	static bool is_error(lox_type& t)
+	{
+		return t.type() & lox_type_flags::TYPE_ERROR;
+	}
+
+public:
 	virtual lox_type_flags type() = 0;
 
 	virtual size_t size() = 0;
@@ -62,6 +68,34 @@ public:
 };
 
 class nil_type final
+		: public lox_type
+{
+public:
+	lox_type_flags type() override;
+
+	size_t size() override;
+};
+
+class integer_type final
+		: public lox_type
+{
+public:
+	lox_type_flags type() override;
+
+	size_t size() override;
+};
+
+class floating_type final
+		: public lox_type
+{
+public:
+	lox_type_flags type() override;
+
+	size_t size() override;
+};
+
+
+class boolean_type final
 		: public lox_type
 {
 public:

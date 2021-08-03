@@ -40,7 +40,7 @@ class scope final
 {
 public:
 	using name_table_type = std::unordered_map<std::string, bool>;
-	using type_table_type = std::unordered_map<std::string, lox_type>;
+	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
 
 	scope() = default;
 
@@ -142,14 +142,18 @@ public:
 
 	void resolve(const std::shared_ptr<parsing::statement>& stmt);
 
+	void resolve(const std::shared_ptr<parsing::type_expression>& expr);
+
 	void resolve(const std::shared_ptr<parsing::expression>& expr);
 
 private:
+	std::shared_ptr<lox_type> type_error(const scanning::token&tk);
+
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
-	lox_type resolve_type(const scanning::token& tk);
+	std::shared_ptr<lox_type> resolve_type_name(const scanning::token& tk);
 
 	void check_type_assignment(const scanning::token& tk, const lox_type& left, const lox_type& right);
 
