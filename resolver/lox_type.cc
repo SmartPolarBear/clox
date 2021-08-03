@@ -1,13 +1,30 @@
 
+#include <helper/enum.h>
+
 #include <resolver/lox_type.h>
+
 #include <tuple>
 
-clox::resolving::lox_type::lox_type_type clox::resolving::lox_type_number::type()
+using namespace clox;
+
+using namespace clox::helper;
+
+clox::resolving::lox_type_flags clox::resolving::error_type::type()
 {
-	return TYPE_PRIMITIVE;
+	return lox_type_flags::TYPE_ERROR;
 }
 
-std::tuple<bool, bool, bool> clox::resolving::lox_type_number::compatible_with(const lox_type& another)
+size_t clox::resolving::error_type::size()
 {
-	return std::tuple<bool, bool, bool>();
+	return 0;
+}
+
+clox::resolving::lox_type_flags clox::resolving::nil_type::type()
+{
+	return lox_type_flags::TYPE_PRIMITIVE;
+}
+
+size_t clox::resolving::nil_type::size()
+{
+	return enum_cast(lox_primitive_type_size::NIL);
 }

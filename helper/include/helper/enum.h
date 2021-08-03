@@ -19,55 +19,26 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/18/2021.
+// Created by cleve on 8/3/2021.
 //
 
 #pragma once
 
-#include <tuple>
+#include <concepts>
 
-namespace clox::resolving
+namespace clox::helper
 {
 
-enum class lox_type_flags : uint64_t
+namespace _internals
 {
-	TYPE_PRIMITIVE = 1,
-	TYPE_CLASS = 2,
-	TYPE_ERROR = 4,
-};
+template<typename E>
+concept Enum=std::is_enum_v<E>;
+}
 
-enum class lox_primitive_type_size : size_t
+template<_internals::Enum E>
+auto enum_cast(E val) -> std::underlying_type_t<E>
 {
-	INTEGER = 8,
-	FLOATING = 8,
-	BOOLEAN = INTEGER,
-	NIL = INTEGER,
-};
-
-class lox_type
-{
-public:
-	virtual lox_type_flags type() = 0;
-
-	virtual size_t size() = 0;
-};
-
-class error_type final
-		: public lox_type
-{
-public:
-	lox_type_flags type() override;
-
-	size_t size() override;
-};
-
-class nil_type final
-		: public lox_type
-{
-public:
-	lox_type_flags type() override;
-
-	size_t size() override;
-};
+	return static_cast<std::underlying_type_t<E>>(val);
+}
 
 }

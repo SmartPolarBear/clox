@@ -149,9 +149,9 @@ private:
 
 	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
-	std::optional<lox_type> resolve_type(const scanning::token& tk);
+	lox_type resolve_type(const scanning::token& tk);
 
-	void check_type_capability(const scanning::token& tk,const lox_type &left,const lox_type &right);
+	void check_type_assignment(const scanning::token& tk, const lox_type& left, const lox_type& right);
 
 	void scope_begin();
 
