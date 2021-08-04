@@ -114,8 +114,6 @@ public:
 	void execute_block(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
 			const std::shared_ptr<environment>& env);
 
-	void resolve(const std::shared_ptr<parsing::expression>& expr, int64_t depth);
-
 private:
 
 	void install_native_functions();

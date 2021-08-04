@@ -41,8 +41,7 @@ using namespace clox::interpreting;
 using namespace std;
 using namespace gsl;
 
-resolver::resolver(interpreter* intp, shared_ptr<symbol_table> st) :
-		intp_(intp),
+resolver::resolver(shared_ptr<symbol_table> st) :
 		symbols_(std::move(st)),
 		global_scope_{ std::make_shared<scope>() }
 {
@@ -146,7 +145,7 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 	{
 		type = resolve(stmt->get_type_expr());
 	}
-//	local_types_[stmt->get_name().lexeme()] = type;
+//	symbols_->put(expr)
 }
 
 void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)
@@ -270,7 +269,9 @@ void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const 
 	{
 		if (s->names().contains(tk.lexeme()))
 		{
-			intp_->resolve(expr, depth);
+
+			symbols_->set_depth(expr, depth);
+
 			return;
 		}
 		depth++;

@@ -36,6 +36,7 @@
 #include <utility>
 #include <unordered_map>
 #include <compare>
+#include <stdexcept>
 
 namespace clox::resolving
 {
@@ -65,6 +66,11 @@ public:
 		return type_;
 	}
 
+	void set_type(const std::shared_ptr<lox_type>& t)
+	{
+		type_ = t;
+	}
+
 	auto operator<=>(const symbol& another) const = default;
 
 private:
@@ -78,6 +84,11 @@ public:
 	template<class... Args>
 	void put(const std::shared_ptr<parsing::expression>& expr, Args&& ... args)
 	{
+		if (table_.contains(expr))
+		{
+			throw std::invalid_argument{ "expr is already in the table" };
+		}
+
 		auto attributes = std::make_shared<symbol>(std::forward<Args>(args)...);
 		table_[expr] = attributes;
 	}
@@ -85,6 +96,10 @@ public:
 	[[nodiscard]] std::shared_ptr<symbol> at(const std::shared_ptr<parsing::expression>& expr);
 
 	[[nodiscard]] bool contains(const std::shared_ptr<parsing::expression>& expr) const;
+
+	void set_depth(const std::shared_ptr<parsing::expression>& expr, int64_t d);
+
+	void set_type(const std::shared_ptr<parsing::expression>& expr, const std::shared_ptr<lox_type>& type);
 
 private:
 	std::unordered_map<std::shared_ptr<parsing::expression>, std::shared_ptr<symbol>> table_{};

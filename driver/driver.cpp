@@ -48,9 +48,9 @@ int clox::driver::run_code(helper::console& output_cons, const string& code)
 
 	auto symbol_tbl = make_shared<symbol_table>();
 
-	interpreter the_interpreter{ output_cons, symbol_tbl };
-	resolver rsv{ &the_interpreter, symbol_tbl };
+	resolver rsv{ symbol_tbl };
 
+	interpreter the_interpreter{ output_cons, symbol_tbl };
 
 	rsv.resolve(stmts);
 
@@ -78,9 +78,9 @@ int clox::driver::run_file(helper::console& cons, const std::string& name)
 int clox::driver::run_repl(helper::console& cons)
 {
 	auto symbol_tbl = make_shared<symbol_table>();
+	resolver rsv{ symbol_tbl };
 
 	interpreter the_interpreter{ cons, symbol_tbl };
-	resolver rsv{ &the_interpreter, symbol_tbl };
 
 	cons.out() << ">>>";
 

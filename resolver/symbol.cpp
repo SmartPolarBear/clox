@@ -35,3 +35,27 @@ bool symbol_table::contains(const std::shared_ptr<parsing::expression>& expr) co
 {
 	return table_.contains(expr);
 }
+
+void symbol_table::set_depth(const std::shared_ptr<parsing::expression>& expr, int64_t d)
+{
+	if (contains(expr))
+	{
+		at(expr)->set_depth(d);
+	}
+	else
+	{
+		put(expr, d, nullptr);
+	}
+}
+
+void symbol_table::set_type(const std::shared_ptr<parsing::expression>& expr, const std::shared_ptr<lox_type>& type)
+{
+	if (contains(expr))
+	{
+		at(expr)->set_type(type);
+	}
+	else
+	{
+		put(expr, symbol::INVALID_DEPTH, type);
+	}
+}

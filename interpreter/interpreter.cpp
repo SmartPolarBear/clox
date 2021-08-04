@@ -594,14 +594,7 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 	throw return_value{ ret };
 }
 
-void interpreter::resolve(const shared_ptr<parsing::expression>& expr, int64_t depth)
-{
-	if (locals_->contains(expr))
-	{
-		locals_->at(expr)->set_depth(depth);
-	}
-	locals_->put(expr, depth);
-}
+
 
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
