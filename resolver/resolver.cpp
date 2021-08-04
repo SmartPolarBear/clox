@@ -41,8 +41,9 @@ using namespace clox::interpreting;
 using namespace std;
 using namespace gsl;
 
-resolver::resolver(interpreter* intp) :
+resolver::resolver(interpreter* intp, shared_ptr<symbol_table> st) :
 		intp_(intp),
+		symbols_(std::move(st)),
 		global_scope_{ std::make_shared<scope>() }
 {
 	global_scope_->types()["integer"] = make_shared<integer_type>();

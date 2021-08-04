@@ -26,7 +26,12 @@
 
 using namespace clox::resolving;
 
-std::shared_ptr<symbol> clox::resolving::symbol_table::get(const std::shared_ptr<parsing::expression>& expr)
+std::shared_ptr<symbol> clox::resolving::symbol_table::at(const std::shared_ptr<parsing::expression>& expr)
 {
-	return table_[expr];
+	return table_.at(expr);
+}
+
+bool symbol_table::contains(const std::shared_ptr<parsing::expression>& expr) const
+{
+	return table_.contains(expr);
 }

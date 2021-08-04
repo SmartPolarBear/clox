@@ -81,7 +81,7 @@ public:
 	};
 
 public:
-	explicit resolver(interpreting::interpreter* intp);
+	explicit resolver(interpreting::interpreter* intp, std::shared_ptr<symbol_table> tbl);
 
 	~resolver() = default;
 
@@ -187,7 +187,6 @@ private:
 	}
 
 
-
 	std::shared_ptr<scope> global_scope_{ nullptr };
 
 	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
@@ -197,5 +196,7 @@ private:
 	class_type cur_cls_{ class_type::CT_NONE };
 
 	interpreting::interpreter* intp_{ nullptr };
+
+	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };
 }

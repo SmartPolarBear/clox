@@ -38,12 +38,13 @@
 
 #include <parser/parser.h>
 
+#include <resolver/symbol.h>
+
 #include <variant>
 #include <string>
 
 namespace clox::interpreting
 {
-
 
 
 class interpreter final :
@@ -52,7 +53,7 @@ class interpreter final :
 {
 
 public:
-	explicit interpreter(helper::console& cons);
+	[[nodiscard]] explicit interpreter(helper::console& cons, std::shared_ptr<resolving::symbol_table> table);
 
 public:
 
@@ -150,6 +151,6 @@ private:
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
 
-	std::unordered_map<std::shared_ptr<parsing::expression>, int64_t> locals_{};
+	std::shared_ptr<resolving::symbol_table> locals_{};
 };
 }

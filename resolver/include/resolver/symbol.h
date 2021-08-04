@@ -75,14 +75,17 @@ private:
 class symbol_table
 {
 public:
-	template<typename ...TArgs>
-	void put(const std::shared_ptr<parsing::expression>& expr, TArgs... args)
+	template<class... Args>
+	void put(const std::shared_ptr<parsing::expression>& expr, Args&& ... args)
 	{
-		auto attributes = std::make_shared<symbol>(std::forward(args)...);
+		auto attributes = std::make_shared<symbol>(std::forward<Args>(args)...);
 		table_[expr] = attributes;
 	}
 
-	[[nodiscard]] std::shared_ptr<symbol> get(const std::shared_ptr<parsing::expression>& expr);
+	[[nodiscard]] std::shared_ptr<symbol> at(const std::shared_ptr<parsing::expression>& expr);
+
+	[[nodiscard]] bool contains(const std::shared_ptr<parsing::expression>& expr) const;
+
 private:
 	std::unordered_map<std::shared_ptr<parsing::expression>, std::shared_ptr<symbol>> table_{};
 };

@@ -46,10 +46,12 @@ using namespace clox::parsing;
 using namespace clox::interpreting;
 
 
-interpreter::interpreter(clox::helper::console& cons) : expression_visitor<evaluating_result>(),
-														parsing::statement_visitor<void>(),
-														globals_(std::make_shared<environment>()),
-														console_(&cons)
+interpreter::interpreter(helper::console& cons, std::shared_ptr<resolving::symbol_table> table)
+		: expression_visitor<evaluating_result>(),
+		  statement_visitor<void>(),
+		  globals_(std::make_shared<environment>()),
+		  console_(&cons),
+		  locals_(std::move(table))
 {
 	environment_ = globals_;
 	install_native_functions();
@@ -594,13 +596,17 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 void interpreter::resolve(const shared_ptr<parsing::expression>& expr, int64_t depth)
 {
-	locals_[expr] = depth;
+	if (locals_->contains(expr))
+	{
+		locals_->at(expr)->set_depth(depth);
+	}
+	locals_->put(expr, depth);
 }
 
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
-	auto dist = locals_.contains(expr) ? locals_.at(expr) : -1;
+	auto dist = locals_->contains(expr) ? locals_->at(expr)->depth() : -1;
 	if (dist != -1)
 	{
 		return environment_->get_at(tk.lexeme(), dist);
@@ -614,7 +620,7 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 void
 interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
 {
-	auto dist = locals_.contains(expr) ? locals_.at(expr) : -1;
+	auto dist = locals_->contains(expr) ? locals_->at(expr)->depth() : -1;
 	if (dist != -1)
 	{
 		environment_->assign_at(tk, val, dist);
@@ -711,7 +717,7 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
-	auto dist = locals_.at(expr);
+	auto dist = locals_->at(expr)->depth();
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
 
 	auto this_inst = get<shared_ptr<lox_instance>>(environment_->get_at("this", dist - 1).value());
