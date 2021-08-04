@@ -32,6 +32,8 @@
 
 #include <vector>
 #include <stack>
+#include <map>
+#include <unordered_map>
 #include <memory>
 
 namespace clox::resolving
@@ -166,6 +168,8 @@ public:
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
 private:
+	void initialize_primitive_type_rules();
+
 	std::shared_ptr<lox_type> type_error(const scanning::token& tk);
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
@@ -234,6 +238,8 @@ private:
 
 	class_type cur_cls_{ class_type::CT_NONE };
 
+	/// @brief primitive_type_assignment_rules_[i][j]=t :assigning j -> i result in type t
+	std::unordered_map<type_id, std::unordered_map<type_id, type_compatibility>> primitive_type_assignment_rules_{};
 
 	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };

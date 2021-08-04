@@ -52,7 +52,7 @@ using type_id = uint64_t;
 
 enum primitive_type_id : type_id
 {
-	PRIMITIVE_TYPE_ID_ERROR,
+	PRIMITIVE_TYPE_ID_ERROR = 0,
 
 	PRIMITIVE_TYPE_ID_INTEGER,
 	PRIMITIVE_TYPE_ID_FLOATING,
@@ -66,25 +66,26 @@ enum primitive_type_id : type_id
 class lox_type
 {
 public:
-	static bool is_error(lox_type& t)
+	static bool is_error(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_ERROR;
 	}
 
-	static bool is_primitive(lox_type& t)
+	static bool is_primitive(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_PRIMITIVE;
 	}
 
 public:
 
-	virtual lox_type_flags flags() = 0;
+	virtual uint64_t flags() = 0;
 
 	virtual type_id id() = 0;
 
 	virtual size_t size() = 0;
 
 };
+
 
 class error_type final
 		: public lox_type
@@ -95,7 +96,7 @@ public:
 		return PRIMITIVE_TYPE_ID_ERROR;
 	}
 
-	lox_type_flags flags() override;
+	uint64_t flags() override;
 
 	size_t size() override;
 };
@@ -109,7 +110,7 @@ public:
 		return PRIMITIVE_TYPE_ID_NIL;
 	}
 
-	lox_type_flags flags() override;
+	uint64_t flags() override;
 
 	size_t size() override;
 };
@@ -123,7 +124,7 @@ public:
 		return PRIMITIVE_TYPE_ID_INTEGER;
 	}
 
-	lox_type_flags flags() override;
+	uint64_t flags() override;
 
 	size_t size() override;
 };
@@ -137,7 +138,7 @@ public:
 		return PRIMITIVE_TYPE_ID_FLOATING;
 	}
 
-	lox_type_flags flags() override;
+	uint64_t flags() override;
 
 	size_t size() override;
 };
@@ -152,7 +153,7 @@ public:
 		return PRIMITIVE_TYPE_ID_BOOLEAN;
 	}
 
-	lox_type_flags flags() override;
+	uint64_t flags() override;
 
 	size_t size() override;
 };

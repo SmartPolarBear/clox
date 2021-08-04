@@ -9,9 +9,9 @@ using namespace clox;
 
 using namespace clox::helper;
 
-clox::resolving::lox_type_flags clox::resolving::error_type::flags()
+uint64_t clox::resolving::error_type::flags()
 {
-	return lox_type_flags::TYPE_ERROR;
+	return lox_type_flags::TYPE_ERROR | lox_type_flags::TYPE_PRIMITIVE;
 }
 
 size_t clox::resolving::error_type::size()
@@ -19,7 +19,7 @@ size_t clox::resolving::error_type::size()
 	return 0;
 }
 
-clox::resolving::lox_type_flags clox::resolving::nil_type::flags()
+uint64_t clox::resolving::nil_type::flags()
 {
 	return lox_type_flags::TYPE_PRIMITIVE;
 }
@@ -29,7 +29,7 @@ size_t clox::resolving::nil_type::size()
 	return enum_cast(lox_primitive_type_size::NIL);
 }
 
-resolving::lox_type_flags resolving::integer_type::flags()
+uint64_t resolving::integer_type::flags()
 {
 	return lox_type_flags::TYPE_PRIMITIVE;
 }
@@ -39,7 +39,7 @@ size_t resolving::integer_type::size()
 	return enum_cast(lox_primitive_type_size::INTEGER);
 }
 
-resolving::lox_type_flags resolving::boolean_type::flags()
+uint64_t resolving::boolean_type::flags()
 {
 	return lox_type_flags::TYPE_PRIMITIVE;
 }
@@ -49,7 +49,7 @@ size_t resolving::boolean_type::size()
 	return enum_cast(lox_primitive_type_size::BOOLEAN);
 }
 
-resolving::lox_type_flags resolving::floating_type::flags()
+uint64_t resolving::floating_type::flags()
 {
 	return resolving::lox_type_flags::TYPE_PRIMITIVE;
 }
