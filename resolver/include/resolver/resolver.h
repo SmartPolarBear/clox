@@ -36,6 +36,10 @@
 
 namespace clox::resolving
 {
+
+// tuple{result type for assignment,compatible,narrowing}
+using type_compatibility = std::tuple<std::shared_ptr<lox_type>, bool, bool>;
+
 class scope final
 {
 public:
@@ -44,25 +48,32 @@ public:
 
 	scope() = default;
 
-	name_table_type& names()
+	[[nodiscard]] name_table_type& names()
 	{
 		return names_;
 	}
 
-	type_table_type& types()
+	[[nodiscard]]type_table_type& type_of_names()
+	{
+		return type_of_names_;
+	}
+
+	[[nodiscard]]type_table_type& types()
 	{
 		return types_;
 	}
 
 private:
 	mutable name_table_type names_{};
+	mutable type_table_type type_of_names_{};
+
 	mutable type_table_type types_{};
 };
 
 class resolver final
-		: public parsing::expression_visitor<void>,
-		  public parsing::statement_visitor<void>,
-		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>
+		: public parsing::expression_visitor<std::shared_ptr<lox_type>>,
+		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>,
+		  public parsing::statement_visitor<void>
 {
 public:
 	enum class [[clang::enum_extensibility(closed)]] function_type
@@ -85,29 +96,44 @@ public:
 
 	~resolver() = default;
 
-	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
+	// expression
 
-	void visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
 
-	void visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ptr) override;
+	std::shared_ptr<lox_type> visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& ptr) override;
 
-	void visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr) override;
+	std::shared_ptr<lox_type> visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ptr) override;
 
-	void visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr) override;
 
-	void visit_this_expression(const std::shared_ptr<parsing::this_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ptr) override;
 
-	void visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
+	std::shared_ptr<lox_type> visit_this_expression(const std::shared_ptr<parsing::this_expression>& ptr) override;
 
-	void visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr) override;
+	std::shared_ptr<lox_type> visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
-	void visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& ptr) override;
 
-	void visit_call_expression(const std::shared_ptr<parsing::call_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& ptr) override;
 
+	std::shared_ptr<lox_type> visit_call_expression(const std::shared_ptr<parsing::call_expression>& ptr) override;
+
+	std::shared_ptr<lox_type> visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
+
+	std::shared_ptr<lox_type> visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
+
+	std::shared_ptr<lox_type> visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
+
+	// statements
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
-
-	void visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
 
@@ -125,11 +151,7 @@ public:
 
 	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
 
-	void visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
-
-	void visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
-
-	void visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
+	// type expressions
 
 	std::shared_ptr<lox_type>
 	visit_variable_type_expression(const std::shared_ptr<parsing::variable_type_expression>& ptr) override;
@@ -141,7 +163,7 @@ public:
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::type_expression>& expr);
 
-	void resolve(const std::shared_ptr<parsing::expression>& expr);
+	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
 private:
 	std::shared_ptr<lox_type> type_error(const scanning::token& tk);
@@ -152,7 +174,24 @@ private:
 
 	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 
-	void check_type_assignment(const scanning::token& tk, const lox_type& left, const lox_type& right);
+	type_compatibility check_type_assignment(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+			const std::shared_ptr<lox_type>& right);
+
+	type_compatibility check_type_binary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+			const std::shared_ptr<lox_type>& right);
+
+	type_compatibility check_type_unary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left);
+
+	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& right);
+
+	bool check_type_implicit_convertible(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+			const std::shared_ptr<lox_type>& right);
+
+	type_compatibility check_type_ternary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+			const std::shared_ptr<lox_type>& right);
+
+	type_compatibility check_type_logical_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+			const std::shared_ptr<lox_type>& right);
 
 	void scope_begin();
 
@@ -160,7 +199,7 @@ private:
 
 	void declare_name(const scanning::token& t);
 
-	void define_name(const scanning::token& t);
+	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type);
 
 	void define_type(const scanning::token& t, const lox_type& type, uint64_t depth = 1);
 

@@ -71,7 +71,7 @@ struct empty_literal_tag
 {
 };
 
-using literal_value_type = std::variant<long double, bool, std::string, scanning::nil_value_tag_type, empty_literal_tag>;
+using literal_value_type = std::variant<long long, long double, bool, std::string, scanning::nil_value_tag_type, empty_literal_tag>;
 
 
 class validator final

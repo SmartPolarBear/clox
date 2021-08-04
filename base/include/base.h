@@ -1,7 +1,10 @@
 #pragma once
 
+#include <concepts>
+
 namespace clox::base
 {
+
 template<typename T>
 class singleton
 {
@@ -24,5 +27,6 @@ T& singleton<T>::instance()
 	static T inst{};
 	return inst;
 }
+
 
 }

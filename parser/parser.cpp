@@ -58,10 +58,11 @@ std::shared_ptr<expression> parser::conditional()
 	auto expr = assigment();
 	if (match({ token_type::QMARK }))
 	{
+		auto qmark = previous();
 		auto true_expr = this->expr();
-		consume(scanning::token_type::COLON, "Invalid ternary expression: missing ':' clause.");
+		auto colon = consume(scanning::token_type::COLON, "Invalid ternary expression: missing ':' clause.");
 		auto false_expr = this->conditional();
-		expr = make_shared<ternary_expression>(expr, true_expr, false_expr);
+		expr = make_shared<ternary_expression>(expr, qmark, true_expr, colon, false_expr);
 	}
 
 	return expr;

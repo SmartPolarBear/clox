@@ -198,8 +198,16 @@
           "name": "cond_"
         },
         {
+          "type": "clox::scanning::token",
+          "name": "qmark_"
+        },
+        {
           "type": "std::shared_ptr<expression>",
           "name": "true_expr_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "colon_"
         },
         {
           "type": "std::shared_ptr<expression>",

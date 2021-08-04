@@ -30,6 +30,7 @@
 #include <memory>
 #include <format>
 #include <ranges>
+#include <tuple>
 
 #include <gsl/gsl>
 
@@ -52,34 +53,85 @@ resolver::resolver(shared_ptr<symbol_table> st) :
 }
 
 
-void resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& e)
+std::shared_ptr<lox_type>
+resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& e)
 {
-	resolve(e->get_value());
+	auto value_type = resolve(e->get_value());
+
+	// set the depth of expression
 	resolve_local(e, e->get_name());
+
+	auto target_type = scope_top()->type_of_names()[e->get_name().lexeme()];
+
+	auto compa = check_type_assignment(e->get_name(), target_type, value_type);
+	// TODO
+
+	return get<0>(compa);
 }
 
-void resolver::visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expr)
+std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& expr)
 {
-	resolve(expr->get_left());
-	resolve(expr->get_right());
+	auto l_type = resolve(expr->get_left());
+	auto r_type = resolve(expr->get_right());
+
+	auto ret = check_type_binary_expression(expr->get_op(), l_type, r_type);
+
+	return get<0>(ret);
 }
 
-void resolver::visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ue)
+std::shared_ptr<lox_type> resolver::visit_unary_expression(const std::shared_ptr<parsing::unary_expression>& ue)
 {
-	resolve(ue->get_right());
+	auto type = resolve(ue->get_right());
+
+	auto ret = check_type_unary_expression(ue->get_op(), type);
+	return get<0>(ret);
 }
 
-void resolver::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr)
+std::shared_ptr<lox_type> resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
 {
-	// Do nothing for this
+	auto type = resolve(pe->get_left());
+	auto ret = check_type_postfix_expression(pe->get_op(), type);
+
+	return get<0>(ret);
 }
 
-void resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)
+
+std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& le)
 {
-	resolve(ge->get_expr());
+	if (holds_alternative<long long>(le->get_value()))
+	{
+		return make_shared<integer_type>();
+	}
+	else if (holds_alternative<long double>(le->get_value()))
+	{
+		return make_shared<floating_type>();
+	}
+	else if (holds_alternative<bool>(le->get_value()))
+	{
+		return make_shared<boolean_type>();
+	}
+	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
+	{
+		return make_shared<nil_type>();
+	}
+	else if (holds_alternative<std::string>(le->get_value()))
+	{
+		// TODO
+		return nullptr;
+	}
+	else
+	{
+		// TODO
+		return nullptr;
+	}
 }
 
-void resolver::visit_var_expression(const std::shared_ptr<parsing::var_expression>& ve)
+std::shared_ptr<lox_type> resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)
+{
+	return resolve(ge->get_expr());
+}
+
+std::shared_ptr<lox_type> resolver::visit_var_expression(const std::shared_ptr<parsing::var_expression>& ve)
 {
 	if (!scopes_.empty())
 	{
@@ -92,22 +144,89 @@ void resolver::visit_var_expression(const std::shared_ptr<parsing::var_expressio
 	}
 
 	resolve_local(ve, ve->get_name());
+
+	return scope_top()->type_of_names()[ve->get_name().lexeme()];
 }
 
-void resolver::visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& te)
+std::shared_ptr<lox_type> resolver::visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& te)
 {
-	resolve(te->get_cond());
-	resolve(te->get_true_expr());
-	resolve(te->get_false_expr());
+	auto cond_type = resolve(te->get_cond());
+	auto t_type = resolve(te->get_true_expr());
+	auto f_type = resolve(te->get_false_expr());
+
+	if (check_type_implicit_convertible(te->get_qmark(), cond_type, make_shared<boolean_type>()))
+	{
+
+	}
+
+	auto value_type_ret = check_type_ternary_expression(te->get_colon(), t_type, f_type);
+
+	return get<0>(value_type_ret);
 }
 
-void resolver::visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& le)
+std::shared_ptr<lox_type> resolver::visit_logical_expression(const std::shared_ptr<parsing::logical_expression>& le)
 {
-	resolve(le->get_left());
-	resolve(le->get_right());
+	auto l_type = resolve(le->get_left());
+	auto r_type = resolve(le->get_right());
+
+	auto ret = check_type_logical_expression(le->get_op(), l_type, r_type);
+
+	return get<0>(ret);
 }
 
-void resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
+
+std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
+{
+	return resolve(ptr->get_object());
+}
+
+std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<set_expression>& se)
+{
+	auto target_type = resolve(se->get_val());
+	auto value_type = resolve(se->get_object());
+
+	auto ret = check_type_assignment(se->get_name(), target_type, value_type);
+
+	return get<0>(ret);
+}
+
+std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<this_expression>& expr)
+{
+	if (cur_cls_ == class_type::CT_NONE)
+	{
+		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
+		// TODO
+		return nullptr;
+	}
+
+	resolve_local(expr, expr->get_keyword());
+
+	// TODO
+	return nullptr;
+}
+
+std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
+{
+	if (cur_cls_ == class_type::CT_NONE)
+	{
+		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
+		// TODO
+		return nullptr;
+	}
+	else if (cur_cls_ != class_type::CT_INHERITED_CLASS)
+	{
+		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
+		// TODO
+		return nullptr;
+	}
+
+	resolve_local(be, be->get_keyword());
+	// TODO
+	return nullptr;
+}
+
+
+std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
 	resolve(ce->get_calle());
 
@@ -115,6 +234,9 @@ void resolver::visit_call_expression(const std::shared_ptr<parsing::call_express
 	{
 		resolve(arg);
 	}
+
+	// TODO
+	return nullptr;
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
@@ -130,22 +252,34 @@ void resolver::visit_print_statement(const std::shared_ptr<parsing::print_statem
 void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_statement>& stmt)
 {
 	declare_name(stmt->get_name());
-	auto _ = finally([this, &stmt]
-	{
-		this->define_name(stmt->get_name());
-	});
 
+	shared_ptr<lox_type> initializer_type{ nullptr };
 	if (stmt->get_initializer())
 	{
 		resolve(stmt->get_initializer());
 	}
 
-	decltype(resolve(stmt->get_type_expr())) type{ nullptr };
+	shared_ptr<lox_type> declared_type{ nullptr };
 	if (stmt->get_type_expr())
 	{
-		type = resolve(stmt->get_type_expr());
+		declared_type = resolve(stmt->get_type_expr());
 	}
-//	symbols_->put(expr)
+
+	if (!initializer_type && !declared_type)
+	{
+		logger::instance().error(stmt->get_name(),
+				"Variable declaration should either has a given type, or have a type-deducible initializer expression, or both.");
+	}
+
+	if (initializer_type && declared_type)
+	{
+		auto compatibility = check_type_assignment(stmt->get_name(), declared_type, initializer_type);
+		if (!get<1>(compatibility)) // narrowing conversion
+		{
+		}
+	}
+
+	this->define_name(stmt->get_name(), declared_type ? declared_type : initializer_type);
 }
 
 void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)
@@ -175,7 +309,7 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
 	declare_name(stmt->get_name());
-	define_name(stmt->get_name());
+	define_name(stmt->get_name(), nullptr/*FIXME*/);
 
 	resolve_function(stmt, function_type::FT_FUNCTION);
 }
@@ -211,9 +345,9 @@ void resolver::resolve(const std::shared_ptr<parsing::statement>& stmt)
 	accept(*stmt, *this);
 }
 
-void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
+std::shared_ptr<lox_type> resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
 {
-	accept(*expr, *this);
+	return accept(*expr, *this);
 }
 
 std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expression>& expr)
@@ -246,12 +380,12 @@ void resolver::declare_name(const clox::scanning::token& t)
 	top->names()[t.lexeme()] = false;
 }
 
-void resolver::define_name(const clox::scanning::token& t)
+void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type)
 {
 	if (scopes_.empty())return;
 
-	scope_top()->names()[t.lexeme()] = true;
-
+	scope_top()->names()[tk.lexeme()] = true;
+	scope_top()->type_of_names()[tk.lexeme()] = type;
 }
 
 void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
@@ -293,7 +427,7 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 	for (const auto& tk:func->get_params())
 	{
 		declare_name(tk);
-		define_name(tk);
+		define_name(tk, nullptr/*FIXME*/);
 	}
 
 	resolve(func->get_body());
@@ -312,10 +446,6 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 	return type_error(tk);
 }
 
-void resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
-{
-	resolve(pe->get_left());
-}
 
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
@@ -323,7 +453,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	cur_cls_ = class_type::CT_CLASS;
 
 	declare_name(cls->get_name());
-	define_name(cls->get_name());
+	define_name(cls->get_name(), nullptr/*FIXME*/);
 
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
 	{
@@ -370,58 +500,63 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 }
 
-void resolver::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
-{
-	resolve(ptr->get_object());
-}
-
-void resolver::visit_set_expression(const std::shared_ptr<set_expression>& se)
-{
-	resolve(se->get_val());
-	resolve(se->get_object());
-}
-
-void resolver::visit_this_expression(const std::shared_ptr<this_expression>& expr)
-{
-	if (cur_cls_ == class_type::CT_NONE)
-	{
-		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
-		return;
-	}
-
-	resolve_local(expr, expr->get_keyword());
-}
-
-void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
-{
-	if (cur_cls_ == class_type::CT_NONE)
-	{
-		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
-		return;
-	}
-	else if (cur_cls_ != class_type::CT_INHERITED_CLASS)
-	{
-		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
-		return;
-	}
-
-	resolve_local(be, be->get_keyword());
-}
 
 std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::shared_ptr<variable_type_expression>& vte)
 {
 	return type_lookup(vte->get_name());
 }
 
-void resolver::check_type_assignment(const clox::scanning::token& tk, const lox_type& left, const lox_type& right)
-{
-
-}
 
 std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk)
 {
 	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
 	return make_shared<error_type>();
+}
+
+type_compatibility
+resolver::check_type_assignment(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	return { nullptr, false, false };
+}
+
+type_compatibility
+resolver::check_type_binary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	return clox::resolving::type_compatibility();
+}
+
+type_compatibility
+resolver::check_type_unary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left)
+{
+	return clox::resolving::type_compatibility();
+}
+
+type_compatibility
+resolver::check_type_postfix_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& right)
+{
+	return clox::resolving::type_compatibility();
+}
+
+bool resolver::check_type_implicit_convertible(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	return false;
+}
+
+type_compatibility
+resolver::check_type_ternary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	return clox::resolving::type_compatibility();
+}
+
+type_compatibility
+resolver::check_type_logical_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	return clox::resolving::type_compatibility();
 }
 
 
