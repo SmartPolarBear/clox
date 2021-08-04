@@ -62,7 +62,7 @@ private:
 class resolver final
 		: public parsing::expression_visitor<void>,
 		  public parsing::statement_visitor<void>,
-		  public parsing::type_expression_visitor<lox_type>
+		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>
 {
 public:
 	enum class [[clang::enum_extensibility(closed)]] function_type
@@ -81,11 +81,7 @@ public:
 	};
 
 public:
-	explicit resolver(interpreting::interpreter* intp) :
-			intp_(intp),
-			global_scope_{ std::make_shared<scope>() }
-	{
-	}
+	explicit resolver(interpreting::interpreter* intp);
 
 	~resolver() = default;
 
@@ -135,25 +131,26 @@ public:
 
 	void visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
 
-	lox_type visit_variable_type_expression(const std::shared_ptr<parsing::variable_type_expression>& ptr) override;
+	std::shared_ptr<lox_type>
+	visit_variable_type_expression(const std::shared_ptr<parsing::variable_type_expression>& ptr) override;
 
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
 	void resolve(const std::shared_ptr<parsing::statement>& stmt);
 
-	void resolve(const std::shared_ptr<parsing::type_expression>& expr);
+	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::type_expression>& expr);
 
 	void resolve(const std::shared_ptr<parsing::expression>& expr);
 
 private:
-	std::shared_ptr<lox_type> type_error(const scanning::token&tk);
+	std::shared_ptr<lox_type> type_error(const scanning::token& tk);
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
-	std::shared_ptr<lox_type> resolve_type_name(const scanning::token& tk);
+	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 
 	void check_type_assignment(const scanning::token& tk, const lox_type& left, const lox_type& right);
 
@@ -188,6 +185,7 @@ private:
 	{
 		scopes_.pop_back();
 	}
+
 
 
 	std::shared_ptr<scope> global_scope_{ nullptr };

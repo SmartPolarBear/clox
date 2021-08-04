@@ -4,13 +4,15 @@ target_include_directories(clox PRIVATE include)
 
 target_sources(clox
         PRIVATE resolver.cpp
-        PRIVATE lox_type.cc)
+        PRIVATE lox_type.cpp
+        PRIVATE symbol.cpp)
 
 
 target_include_directories(clox_test PRIVATE include)
 
 target_sources(clox_test
         PRIVATE resolver.cpp
-        PRIVATE lox_type.cc)
+        PRIVATE lox_type.cpp
+        PRIVATE symbol.cpp)
 
 

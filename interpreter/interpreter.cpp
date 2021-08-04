@@ -597,6 +597,7 @@ void interpreter::resolve(const shared_ptr<parsing::expression>& expr, int64_t d
 	locals_[expr] = depth;
 }
 
+
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
 	auto dist = locals_.contains(expr) ? locals_.at(expr) : -1;

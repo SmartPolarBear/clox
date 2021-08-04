@@ -330,7 +330,7 @@
         },
         {
           "type": "std::shared_ptr<type_expression>",
-          "name": "type_"
+          "name": "type_expr_"
         },
         {
           "type": "std::shared_ptr<expression>",

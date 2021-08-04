@@ -43,6 +43,9 @@
 
 namespace clox::interpreting
 {
+
+
+
 class interpreter final :
 		virtual parsing::expression_visitor<evaluating_result>,
 		virtual parsing::statement_visitor<void>
@@ -146,6 +149,7 @@ private:
 
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
+
 	std::unordered_map<std::shared_ptr<parsing::expression>, int64_t> locals_{};
 };
 }

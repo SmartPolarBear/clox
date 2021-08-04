@@ -1,0 +1,3 @@
+var int_val:integer=10;
+var bool_val:boolean=true;
+var floating_val:floating=3.0;

@@ -41,6 +41,17 @@ using namespace clox::interpreting;
 using namespace std;
 using namespace gsl;
 
+resolver::resolver(interpreter* intp) :
+		intp_(intp),
+		global_scope_{ std::make_shared<scope>() }
+{
+	global_scope_->types()["integer"] = make_shared<integer_type>();
+	global_scope_->types()["floating"] = make_shared<floating_type>();
+	global_scope_->types()["boolean"] = make_shared<boolean_type>();
+	global_scope_->types()["nil"] = make_shared<nil_type>();
+}
+
+
 void resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& e)
 {
 	resolve(e->get_value());
@@ -128,6 +139,13 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 	{
 		resolve(stmt->get_initializer());
 	}
+
+	decltype(resolve(stmt->get_type_expr())) type{ nullptr };
+	if (stmt->get_type_expr())
+	{
+		type = resolve(stmt->get_type_expr());
+	}
+//	local_types_[stmt->get_name().lexeme()] = type;
 }
 
 void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)
@@ -198,9 +216,9 @@ void resolver::resolve(const std::shared_ptr<clox::parsing::expression>& expr)
 	accept(*expr, *this);
 }
 
-void resolver::resolve(const shared_ptr<parsing::type_expression>& expr)
+std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expression>& expr)
 {
-	accept(*expr, *this);
+	return accept(*expr, *this);
 }
 
 
@@ -238,8 +256,8 @@ void resolver::define_name(const clox::scanning::token& t)
 
 void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
 {
-	if (scopes_.empty())return;
-	scopes_[depth]->types()[tk.lexeme()] = type;
+//	if (scopes_.empty())return;
+//	scopes_[depth]->types()[tk.lexeme()] = type;
 }
 
 
@@ -279,7 +297,7 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 	resolve(func->get_body());
 }
 
-std::shared_ptr<lox_type> resolver::resolve_type_name(const scanning::token& tk)
+std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 {
 	for (auto& scoop:scopes_)
 	{
@@ -388,8 +406,9 @@ void resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 	resolve_local(be, be->get_keyword());
 }
 
-lox_type resolver::visit_variable_type_expression(const std::shared_ptr<variable_type_expression>& vte)
+std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::shared_ptr<variable_type_expression>& vte)
 {
+	return type_lookup(vte->get_name());
 }
 
 void resolver::check_type_assignment(const clox::scanning::token& tk, const lox_type& left, const lox_type& right)
@@ -402,4 +421,5 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk)
 	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
 	return make_shared<error_type>();
 }
+
 
