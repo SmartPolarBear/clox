@@ -238,8 +238,8 @@ private:
 
 	class_type cur_cls_{ class_type::CT_NONE };
 
-	/// @brief primitive_type_assignment_rules_[i][j]=t :assigning j -> i result in type t
-	std::unordered_map<type_id, std::unordered_map<type_id, type_compatibility>> primitive_type_assignment_rules_{};
+	/// @brief primitive_type_assignment_rules_[{i,j,op}]=tc : i op j result in type_compatibility tc
+	std::map<std::tuple<type_id, type_id, std::string>, type_compatibility> type_rules_{}; // not unordered_map because tuple<> do not have hash function
 
 	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };

@@ -521,7 +521,7 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 {
 	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
 	{
-		auto ret = primitive_type_assignment_rules_[left->id()][right->id()];
+		auto ret = type_rules_[{ left->id(), right->id(), "=" }];
 		if (get<1>(ret))
 		{
 			return ret;
@@ -584,8 +584,7 @@ void resolver::initialize_primitive_type_rules()
 			PRIMITIVE_TYPE_ID_BOOLEAN
 	})
 	{
-		primitive_type_assignment_rules_[PRIMITIVE_TYPE_ID_FLOATING][i] =
-				make_tuple(make_shared<floating_type>(), true, false);
+		type_rules_[{ i, i, "=" }] = make_tuple(make_shared<floating_type>(), true, false);
 	}
 
 	for (auto i:{
@@ -593,8 +592,7 @@ void resolver::initialize_primitive_type_rules()
 			PRIMITIVE_TYPE_ID_BOOLEAN
 	})
 	{
-		primitive_type_assignment_rules_[PRIMITIVE_TYPE_ID_INTEGER][i] =
-				make_tuple(make_shared<integer_type>(), true, false);
+		type_rules_[{ PRIMITIVE_TYPE_ID_INTEGER, i, "=" }] = make_tuple(make_shared<integer_type>(), true, false);
 	}
 
 	for (auto i:{
@@ -602,16 +600,14 @@ void resolver::initialize_primitive_type_rules()
 			PRIMITIVE_TYPE_ID_NIL,
 	})
 	{
-		primitive_type_assignment_rules_[PRIMITIVE_TYPE_ID_BOOLEAN][i] =
-				make_tuple(make_shared<boolean_type>(), true, false);
+		type_rules_[{ PRIMITIVE_TYPE_ID_BOOLEAN, i, "=" }] = make_tuple(make_shared<boolean_type>(), true, false);
 	}
 
 	for (auto i:{
 			PRIMITIVE_TYPE_ID_NIL,
 	})
 	{
-		primitive_type_assignment_rules_[PRIMITIVE_TYPE_ID_NIL][i] =
-				make_tuple(make_shared<nil_type>(), true, false);
+		type_rules_[{ PRIMITIVE_TYPE_ID_NIL, i, "=" }] = make_tuple(make_shared<nil_type>(), true, false);
 	}
 }
 
