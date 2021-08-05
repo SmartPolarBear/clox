@@ -170,7 +170,7 @@ public:
 private:
 	void initialize_primitive_type_rules();
 
-	std::shared_ptr<lox_type> type_error(const scanning::token& tk);
+	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 

@@ -300,9 +300,13 @@ clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<par
 clox::interpreting::evaluating_result
 clox::interpreting::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
 {
-	if (holds_alternative<long double>(value))
+	if (holds_alternative<floating_literal_type>(value))
 	{
-		return get<long double>(value);
+		return get<floating_literal_type>(value);
+	}
+	else if (holds_alternative<integer_literal_type>(value))
+	{
+		return get<integer_literal_type>(value);
 	}
 	else if (holds_alternative<bool>(value))
 	{
@@ -593,8 +597,6 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 	throw return_value{ ret };
 }
-
-
 
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)

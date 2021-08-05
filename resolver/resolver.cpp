@@ -445,7 +445,7 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 		}
 	}
 
-	return type_error(tk);
+	return type_error(tk, std::format("Type {} is not defined.", tk.lexeme()));
 }
 
 
@@ -509,9 +509,9 @@ std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::sh
 }
 
 
-std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk)
+std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, const std::string& msg)
 {
-	logger::instance().error(tk, std::format("Type {} is not defined in all scoops.", tk.lexeme()));
+	logger::instance().error(tk, msg);
 	return make_shared<error_type>();
 }
 
@@ -521,10 +521,19 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 {
 	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
 	{
-		return primitive_type_assignment_rules_[left->id()][right->id()];
+		auto ret = primitive_type_assignment_rules_[left->id()][right->id()];
+		if (get<1>(ret))
+		{
+			return ret;
+		}
 	}
 
-	return { nullptr, false, false };
+	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
+					tk.lexeme(),
+					scope_top()->type_of_names()[tk.lexeme()]->printable_string(),
+					right->printable_string())),
+			false,
+			false);
 }
 
 type_compatibility

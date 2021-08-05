@@ -108,13 +108,22 @@ void scanner::scan_number_literal()
 {
 	while (validator::valid_number_literal_component(peek()))advance();
 
+	bool floating{ false };
 	if (peek() == '.' && validator::valid_number_literal_component(peek(1)))
 	{
+		floating = true;
 		advance();
 		while (validator::valid_number_literal_component(peek()))advance();
 	}
 
-	add_token(token_type::NUMBER, std::stold(string{ whole_lexeme() }));
+	if (floating)
+	{
+		add_token(token_type::FLOATING, std::stold(string{ whole_lexeme() }));
+	}
+	else
+	{
+		add_token(token_type::INTEGER, std::stoll(string{ whole_lexeme() }));
+	}
 }
 
 std::string scanner::whole_lexeme()

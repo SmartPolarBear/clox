@@ -25,6 +25,7 @@
 #pragma once
 
 #include <base.h>
+#include <helper/printable.h>
 
 #include <tuple>
 #include <memory>
@@ -64,14 +65,15 @@ enum primitive_type_id : type_id
 };
 
 class lox_type
+		: public helper::printable
 {
 public:
-	static bool is_error(const lox_type& t)
+	static bool is_error(lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_ERROR;
 	}
 
-	static bool is_primitive(const lox_type& t)
+	static bool is_primitive(lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_PRIMITIVE;
 	}
@@ -98,6 +100,8 @@ public:
 
 	uint64_t flags() override;
 
+	std::string printable_string() override;
+
 	size_t size() override;
 };
 
@@ -109,6 +113,8 @@ public:
 	{
 		return PRIMITIVE_TYPE_ID_NIL;
 	}
+
+	std::string printable_string() override;
 
 	uint64_t flags() override;
 
@@ -124,6 +130,8 @@ public:
 		return PRIMITIVE_TYPE_ID_INTEGER;
 	}
 
+	std::string printable_string() override;
+
 	uint64_t flags() override;
 
 	size_t size() override;
@@ -137,6 +145,8 @@ public:
 	{
 		return PRIMITIVE_TYPE_ID_FLOATING;
 	}
+
+	std::string printable_string() override;
 
 	uint64_t flags() override;
 
@@ -152,6 +162,8 @@ public:
 	{
 		return PRIMITIVE_TYPE_ID_BOOLEAN;
 	}
+
+	std::string printable_string() override;
 
 	uint64_t flags() override;
 

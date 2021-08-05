@@ -33,9 +33,11 @@
 namespace clox::interpreting
 {
 
-using evaluating_result = std::variant<long double,
-		bool,
-		std::string,
+using evaluating_result = std::variant<
+		scanning::integer_literal_type,
+		scanning::floating_literal_type,
+		scanning::boolean_literal_type,
+		scanning::string_literal_type,
 		scanning::nil_value_tag_type,
 		std::shared_ptr<class lox_instance>,
 		std::shared_ptr<class callable>>;

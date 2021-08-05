@@ -57,7 +57,8 @@ enum class token_type
 	ARROW, /* -> */
 
 	// Literals.
-	IDENTIFIER, STRING, NUMBER,
+	IDENTIFIER, STRING,
+	INTEGER, FLOATING,
 
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
@@ -71,7 +72,17 @@ struct empty_literal_tag
 {
 };
 
-using literal_value_type = std::variant<long long, long double, bool, std::string, scanning::nil_value_tag_type, empty_literal_tag>;
+using integer_literal_type = long long;
+using floating_literal_type = long double;
+using string_literal_type = std::string;
+using boolean_literal_type = bool;
+
+using literal_value_type = std::variant<integer_literal_type,
+		floating_literal_type,
+		string_literal_type,
+		boolean_literal_type,
+		scanning::nil_value_tag_type,
+		empty_literal_tag>;
 
 
 class validator final
