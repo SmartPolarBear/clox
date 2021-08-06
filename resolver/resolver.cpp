@@ -529,6 +529,8 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 				scope_top()->type_of_names()[tk.lexeme()]->printable_string(),
 				right->printable_string()));
 
+
+
 		return make_tuple(
 				type,
 				compatible,

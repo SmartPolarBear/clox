@@ -33,6 +33,10 @@ public:
 
 	void error(const scanning::token& token, const std::string& msg);
 
+	void warning(size_t line, const std::string& message);
+
+	void warning(const scanning::token& token, const std::string& msg);
+
 	void runtime_error(const interpreting::runtime_error& re);
 
 	void clear_error();
@@ -41,10 +45,14 @@ public:
 
 	[[nodiscard]] bool has_runtime_errors() const;
 
+	[[nodiscard]] bool has_warnings() const;
+
 private:
 
 	size_t errors_{ 0 };
 	size_t runtime_errors_{ 0 };
+
+	size_t warnings_{ 0 };
 
 	mutable helper::console* console_{ nullptr };
 };

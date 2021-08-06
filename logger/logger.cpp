@@ -65,3 +65,26 @@ void clox::logging::logger::clear_error()
 	errors_ = runtime_errors_ = 0;
 }
 
+void clox::logging::logger::warning(size_t line, const string& message)
+{
+	warnings_++;
+	console_->out() << format("[Line {}] Warning: {}", line, message) << endl;
+}
+
+void clox::logging::logger::warning(const token& token, const string& msg)
+{
+	if (token.type() == token_type::FEND)
+	{
+		warning(token.line(), std::format("{} at end.\n", msg));
+	}
+	else
+	{
+		warning(token.line(), std::format(" at '{0}': {1}\n", token.lexeme(), msg));
+	}
+}
+
+bool clox::logging::logger::has_warnings() const
+{
+	return warnings_;
+}
+
