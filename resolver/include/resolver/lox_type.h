@@ -30,6 +30,7 @@
 #include <tuple>
 #include <memory>
 #include <compare>
+#include <vector>
 
 namespace clox::resolving
 {
@@ -38,28 +39,20 @@ enum lox_type_flags : uint64_t
 {
 	TYPE_PRIMITIVE = 1,
 	TYPE_CLASS = 2,
-	TYPE_ERROR = 4,
 };
 
-enum class lox_primitive_type_size : size_t
-{
-	INTEGER = 8,
-	FLOATING = 8,
-	BOOLEAN = INTEGER,
-	NIL = INTEGER,
-};
 
 using type_id = uint64_t;
 
 enum primitive_type_id : type_id
 {
-	PRIMITIVE_TYPE_ID_ERROR = 0,
+	PRIMITIVE_TYPE_ID_ANY = 0,
+	PRIMITIVE_TYPE_ID_OBJECT,
 
 	PRIMITIVE_TYPE_ID_INTEGER,
 	PRIMITIVE_TYPE_ID_FLOATING,
 	PRIMITIVE_TYPE_ID_BOOLEAN,
 	PRIMITIVE_TYPE_ID_NIL,
-
 
 	PRIMITIVE_TYPE_ID_MAX,
 };
@@ -68,11 +61,6 @@ class lox_type
 		: public helper::printable
 {
 public:
-	static bool is_error(lox_type& t)
-	{
-		return t.flags() & lox_type_flags::TYPE_ERROR;
-	}
-
 	static bool is_primitive(lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_PRIMITIVE;
@@ -82,92 +70,107 @@ public:
 
 	virtual uint64_t flags() = 0;
 
-	virtual type_id id() = 0;
+	[[nodiscard]] virtual type_id id() const = 0;
 
-	virtual size_t size() = 0;
-
+	/// if this is a subtype of target.
+	/// \param target
+	/// \return true if this is a subtype of target.
+	virtual bool operator<(const lox_type& target) = 0;
 };
 
-
-class error_type final
+class lox_any_type final
 		: public lox_type
 {
 public:
-	type_id id() override
-	{
-		return PRIMITIVE_TYPE_ID_ERROR;
-	}
-
 	uint64_t flags() override;
 
 	std::string printable_string() override;
 
-	size_t size() override;
+	[[nodiscard]] type_id id() const override;
+
+	bool operator<(const lox_type& target) override;
 };
 
-class nil_type final
-		: public lox_type
+class lox_object_type
+		: public lox_type,
+		  public std::enable_shared_from_this<lox_object_type>
 {
 public:
-	type_id id() override
-	{
-		return PRIMITIVE_TYPE_ID_NIL;
-	}
+	static std::shared_ptr<lox_object_type> object();
 
+	static std::shared_ptr<lox_object_type> integer();
+
+	static std::shared_ptr<lox_object_type> floating();
+
+	static std::shared_ptr<lox_object_type> boolean();
+
+	static std::shared_ptr<lox_object_type> nil();
+
+public:
 	std::string printable_string() override;
 
 	uint64_t flags() override;
 
-	size_t size() override;
+	type_id id() const override;
+
+	explicit lox_object_type(std::string name, type_id id, const std::shared_ptr<lox_object_type>& parent);
+
+	std::shared_ptr<lox_object_type> super() const;
+
+	std::vector<std::shared_ptr<lox_object_type>>& derived();
+
+	uint64_t depth() const;
+
+	bool operator<(const lox_type&) override;
+
+	virtual bool operator<(const lox_object_type&);
+
+private:
+	std::string name_;
+
+	type_id id_{ 0 };
+	uint64_t flags_{ 0 };
+
+	std::weak_ptr<lox_object_type> super_{};
+	std::vector<std::shared_ptr<lox_object_type>> derived_{};
+
+	uint64_t depth_{ 0 };
 };
 
-class integer_type final
-		: public lox_type
+class lox_integer_type final
+		: public lox_object_type
 {
 public:
-	type_id id() override
-	{
-		return PRIMITIVE_TYPE_ID_INTEGER;
-	}
+	lox_integer_type();
 
-	std::string printable_string() override;
-
-	uint64_t flags() override;
-
-	size_t size() override;
+	bool operator<(const lox_object_type&) override;
 };
 
-class floating_type final
-		: public lox_type
+class lox_floating_type final
+		: public lox_object_type
 {
 public:
-	type_id id() override
-	{
-		return PRIMITIVE_TYPE_ID_FLOATING;
-	}
+	lox_floating_type();
 
-	std::string printable_string() override;
-
-	uint64_t flags() override;
-
-	size_t size() override;
+	bool operator<(const lox_object_type&) override;
 };
 
-
-class boolean_type final
-		: public lox_type
+class lox_boolean_type final
+		: public lox_object_type
 {
 public:
-	type_id id() override
-	{
-		return PRIMITIVE_TYPE_ID_BOOLEAN;
-	}
+	lox_boolean_type();
 
-	std::string printable_string() override;
+	bool operator<(const lox_object_type&) override;
+};
 
-	uint64_t flags() override;
+class lox_nil_type final
+		: public lox_object_type
+{
+public:
+	lox_nil_type();
 
-	size_t size() override;
+	bool operator<(const lox_object_type&) override;
 };
 
 }

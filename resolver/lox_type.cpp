@@ -4,82 +4,219 @@
 #include <resolver/lox_type.h>
 
 #include <tuple>
+#include <utility>
+#include <format>
 
 using namespace clox;
 
 using namespace clox::helper;
 
-uint64_t clox::resolving::error_type::flags()
+using namespace clox::resolving;
+
+uint64_t lox_any_type::flags()
 {
-	return lox_type_flags::TYPE_ERROR | lox_type_flags::TYPE_PRIMITIVE;
+	return TYPE_PRIMITIVE;
 }
 
-size_t clox::resolving::error_type::size()
+type_id lox_any_type::id() const
 {
-	return 0;
+	return PRIMITIVE_TYPE_ID_ANY;
 }
 
-std::string resolving::error_type::printable_string()
+bool lox_any_type::operator<(const lox_type& target)
 {
-	return "<error type>";
+	return true;
 }
 
-uint64_t clox::resolving::nil_type::flags()
+std::string lox_any_type::printable_string()
 {
-	return lox_type_flags::TYPE_PRIMITIVE;
+	return "<any type>";
 }
 
-size_t clox::resolving::nil_type::size()
+
+std::shared_ptr<lox_object_type> resolving::lox_object_type::super() const
 {
-	return enum_cast(lox_primitive_type_size::NIL);
+	return super_.lock();
 }
 
-std::string resolving::nil_type::printable_string()
+uint64_t lox_object_type::depth() const
 {
-	return "nil";
+	return depth_;
 }
 
-uint64_t resolving::integer_type::flags()
+bool resolving::lox_object_type::operator<(const resolving::lox_type& another)
 {
-	return lox_type_flags::TYPE_PRIMITIVE;
+	if (!dynamic_cast<const lox_object_type*>(&another))return false;
+
+	const auto& obj = dynamic_cast<const lox_object_type&>(another);
+
+	return *this < obj;
 }
 
-size_t resolving::integer_type::size()
+bool lox_object_type::operator<(const lox_object_type& obj)
 {
-	return enum_cast(lox_primitive_type_size::INTEGER);
+	if (this->depth() < obj.depth())
+	{
+		return false;
+	}
+	else if (this->depth() == obj.depth())
+	{
+		return this->id() == obj.id();
+	}
+
+	auto pa = this->super();
+	for (; pa && pa->depth() <= obj.depth(); pa = pa->super())
+	{
+		if (pa->id() == obj.id())
+		{
+			return true;
+		}
+	}
+
+	auto another_pa = obj.super();
+	for (; pa && another_pa; pa = pa->super(), another_pa = another_pa->super())
+	{
+		if (pa->id() == another_pa->id())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
-std::string resolving::integer_type::printable_string()
+lox_object_type::lox_object_type(std::string name, type_id id, const std::shared_ptr<lox_object_type>& parent)
+		: name_(std::move(name)),
+		  id_(id),
+		  flags_(TYPE_CLASS),
+		  super_(parent),
+		  depth_(parent ? parent->depth() + 1 : 0)
 {
-	return "integer";
 }
 
-uint64_t resolving::boolean_type::flags()
+std::string lox_object_type::printable_string()
 {
-	return lox_type_flags::TYPE_PRIMITIVE;
+	return std::format("<class {}>", name_);
 }
 
-size_t resolving::boolean_type::size()
+uint64_t lox_object_type::flags()
 {
-	return enum_cast(lox_primitive_type_size::BOOLEAN);
+	return flags_;
 }
 
-std::string resolving::boolean_type::printable_string()
+type_id lox_object_type::id() const
 {
-	return "boolean";
+	return id_;
 }
 
-uint64_t resolving::floating_type::flags()
+
+std::vector<std::shared_ptr<lox_object_type>>& lox_object_type::derived()
 {
-	return resolving::lox_type_flags::TYPE_PRIMITIVE;
+	return derived_;
 }
 
-size_t resolving::floating_type::size()
+std::shared_ptr<lox_object_type> lox_object_type::object()
 {
-	return enum_cast(lox_primitive_type_size::FLOATING);
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_object_type>("object", PRIMITIVE_TYPE_ID_OBJECT, nullptr);
+	}
+	return inst;
 }
 
-std::string resolving::floating_type::printable_string()
+std::shared_ptr<lox_object_type> lox_object_type::integer()
 {
-	return "floating";
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_integer_type>();
+		object()->derived_.push_back(inst);
+	}
+
+	return inst;
+}
+
+std::shared_ptr<lox_object_type> lox_object_type::floating()
+{
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_floating_type>();
+		object()->derived_.push_back(inst);
+	}
+	return inst;
+}
+
+std::shared_ptr<lox_object_type> lox_object_type::boolean()
+{
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_boolean_type>();
+		object()->derived_.push_back(inst);
+	}
+	return inst;
+}
+
+std::shared_ptr<lox_object_type> lox_object_type::nil()
+{
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_nil_type>();
+		object()->derived_.push_back(inst);
+	}
+	return inst;
+}
+
+
+lox_integer_type::lox_integer_type()
+		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, lox_object_type::object())
+{
+}
+
+bool lox_integer_type::operator<(const lox_object_type& obj)
+{
+	if (dynamic_cast<const lox_floating_type*>(&obj))
+	{
+		return true;
+	}
+
+	return lox_object_type::operator<(obj);
+}
+
+lox_floating_type::lox_floating_type()
+		: lox_object_type("floating", PRIMITIVE_TYPE_ID_FLOATING, lox_object_type::object())
+{
+}
+
+bool lox_floating_type::operator<(const lox_object_type& obj)
+{
+	return lox_object_type::operator<(obj);
+}
+
+lox_boolean_type::lox_boolean_type()
+		: lox_object_type("boolean", PRIMITIVE_TYPE_ID_BOOLEAN, lox_object_type::object())
+{
+}
+
+bool lox_boolean_type::operator<(const lox_object_type& obj)
+{
+	if (dynamic_cast<const lox_floating_type*>(&obj) ||
+		dynamic_cast<const lox_integer_type*>(&obj))
+	{
+		return true;
+	}
+	return lox_object_type::operator<(obj);
+}
+
+lox_nil_type::lox_nil_type()
+		: lox_object_type("nil", PRIMITIVE_TYPE_ID_NIL, lox_object_type::object())
+{
+}
+
+bool lox_nil_type::operator<(const lox_object_type& obj)
+{
+	return lox_object_type::operator<(obj);
 }

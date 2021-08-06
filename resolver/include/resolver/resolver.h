@@ -168,7 +168,6 @@ public:
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
 private:
-	void initialize_primitive_type_rules();
 
 	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
 
@@ -237,9 +236,6 @@ private:
 	function_type cur_func_{ function_type::FT_NONE };
 
 	class_type cur_cls_{ class_type::CT_NONE };
-
-	/// @brief primitive_type_assignment_rules_[{i,j,op}]=tc : i op j result in type_compatibility tc
-	std::map<std::tuple<type_id, type_id, std::string>, type_compatibility> type_rules_{}; // not unordered_map because tuple<> do not have hash function
 
 	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };

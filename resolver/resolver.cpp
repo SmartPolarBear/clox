@@ -46,12 +46,12 @@ resolver::resolver(shared_ptr<symbol_table> st) :
 		symbols_(std::move(st)),
 		global_scope_{ std::make_shared<scope>() }
 {
-	global_scope_->types()["integer"] = make_shared<integer_type>();
-	global_scope_->types()["floating"] = make_shared<floating_type>();
-	global_scope_->types()["boolean"] = make_shared<boolean_type>();
-	global_scope_->types()["nil"] = make_shared<nil_type>();
+	global_scope_->types()["object"] = lox_object_type::object();
 
-	initialize_primitive_type_rules();
+	global_scope_->types()["integer"] = lox_object_type::integer();
+	global_scope_->types()["floating"] = lox_object_type::floating();
+	global_scope_->types()["boolean"] = lox_object_type::boolean();
+	global_scope_->types()["nil"] = lox_object_type::nil();
 }
 
 
@@ -102,29 +102,29 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 {
 	if (holds_alternative<long long>(le->get_value()))
 	{
-		return make_shared<integer_type>();
+		return lox_object_type::integer();
 	}
 	else if (holds_alternative<long double>(le->get_value()))
 	{
-		return make_shared<floating_type>();
+		return lox_object_type::floating();
 	}
 	else if (holds_alternative<bool>(le->get_value()))
 	{
-		return make_shared<boolean_type>();
+		return lox_object_type::boolean();
 	}
 	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
 	{
-		return make_shared<nil_type>();
+		return lox_object_type::nil();
 	}
 	else if (holds_alternative<std::string>(le->get_value()))
 	{
 		// TODO
-		return nullptr;
+		return lox_object_type::object();
 	}
 	else
 	{
 		// TODO
-		return nullptr;
+		return lox_object_type::object();
 	}
 }
 
@@ -156,10 +156,10 @@ std::shared_ptr<lox_type> resolver::visit_ternary_expression(const std::shared_p
 	auto t_type = resolve(te->get_true_expr());
 	auto f_type = resolve(te->get_false_expr());
 
-	if (check_type_implicit_convertible(te->get_qmark(), cond_type, make_shared<boolean_type>()))
-	{
-
-	}
+//	if (check_type_implicit_convertible(te->get_qmark(), cond_type, make_shared<boolean_type>()))
+//	{
+//
+//	}
 
 	auto value_type_ret = check_type_ternary_expression(te->get_colon(), t_type, f_type);
 
@@ -512,21 +512,21 @@ std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::sh
 std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, const std::string& msg)
 {
 	logger::instance().error(tk, msg);
-	return make_shared<error_type>();
+	return make_shared<lox_any_type>();
 }
 
 type_compatibility
 resolver::check_type_assignment(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
-	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
-	{
-		auto ret = type_rules_[{ left->id(), right->id(), "=" }];
-		if (get<1>(ret))
-		{
-			return ret;
-		}
-	}
+//	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+//	{
+//		auto ret = type_rules_[{ left->id(), right->id(), "=" }];
+//		if (get<1>(ret))
+//		{
+//			return ret;
+//		}
+//	}
 
 	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
 					tk.lexeme(),
@@ -574,41 +574,3 @@ resolver::check_type_logical_expression(const clox::scanning::token& tk, const s
 {
 	return clox::resolving::type_compatibility();
 }
-
-void resolver::initialize_primitive_type_rules()
-{
-	for (auto i:{
-			PRIMITIVE_TYPE_ID_FLOATING,
-			PRIMITIVE_TYPE_ID_INTEGER,
-			PRIMITIVE_TYPE_ID_FLOATING,
-			PRIMITIVE_TYPE_ID_BOOLEAN
-	})
-	{
-		type_rules_[{ i, i, "=" }] = make_tuple(make_shared<floating_type>(), true, false);
-	}
-
-	for (auto i:{
-			PRIMITIVE_TYPE_ID_INTEGER,
-			PRIMITIVE_TYPE_ID_BOOLEAN
-	})
-	{
-		type_rules_[{ PRIMITIVE_TYPE_ID_INTEGER, i, "=" }] = make_tuple(make_shared<integer_type>(), true, false);
-	}
-
-	for (auto i:{
-			PRIMITIVE_TYPE_ID_BOOLEAN,
-			PRIMITIVE_TYPE_ID_NIL,
-	})
-	{
-		type_rules_[{ PRIMITIVE_TYPE_ID_BOOLEAN, i, "=" }] = make_tuple(make_shared<boolean_type>(), true, false);
-	}
-
-	for (auto i:{
-			PRIMITIVE_TYPE_ID_NIL,
-	})
-	{
-		type_rules_[{ PRIMITIVE_TYPE_ID_NIL, i, "=" }] = make_tuple(make_shared<nil_type>(), true, false);
-	}
-}
-
-

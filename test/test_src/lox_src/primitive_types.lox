@@ -8,3 +8,5 @@ floating_val=false;
 int_val=false;
 int_val=10.0;
 
+var newval=floating_val*int_val;
+
