@@ -13,7 +13,7 @@ using namespace clox::helper;
 
 using namespace clox::resolving;
 
-uint64_t lox_any_type::flags()
+uint64_t lox_any_type::flags() const
 {
 	return TYPE_PRIMITIVE;
 }
@@ -23,7 +23,7 @@ type_id lox_any_type::id() const
 	return PRIMITIVE_TYPE_ID_ANY;
 }
 
-bool lox_any_type::operator<(const lox_type& target)
+bool lox_any_type::operator<(const lox_type& target) const
 {
 	return true;
 }
@@ -44,17 +44,23 @@ uint64_t lox_object_type::depth() const
 	return depth_;
 }
 
-bool resolving::lox_object_type::operator<(const resolving::lox_type& another)
+bool resolving::lox_object_type::operator<(const resolving::lox_type& another) const
 {
-	if (!dynamic_cast<const lox_object_type*>(&another))return false;
+	if (!dynamic_cast<const lox_object_type*>(&another))
+		return false;
 
 	const auto& obj = dynamic_cast<const lox_object_type&>(another);
 
 	return *this < obj;
 }
 
-bool lox_object_type::operator<(const lox_object_type& obj)
+bool lox_object_type::operator<(const lox_object_type& obj) const
 {
+	if (is_primitive(*this) && is_primitive(obj))
+	{
+		return this->id() < obj.id(); // this is a hack
+	}
+
 	if (this->depth() < obj.depth())
 	{
 		return false;
@@ -85,10 +91,11 @@ bool lox_object_type::operator<(const lox_object_type& obj)
 	return false;
 }
 
-lox_object_type::lox_object_type(std::string name, type_id id, const std::shared_ptr<lox_object_type>& parent)
+lox_object_type::lox_object_type(std::string name, type_id id, uint64_t flags,
+		const std::shared_ptr<lox_object_type>& parent)
 		: name_(std::move(name)),
 		  id_(id),
-		  flags_(TYPE_CLASS),
+		  flags_(TYPE_CLASS | flags),
 		  super_(parent),
 		  depth_(parent ? parent->depth() + 1 : 0)
 {
@@ -99,7 +106,7 @@ std::string lox_object_type::printable_string()
 	return std::format("<class {}>", name_);
 }
 
-uint64_t lox_object_type::flags()
+uint64_t lox_object_type::flags() const
 {
 	return flags_;
 }
@@ -120,7 +127,7 @@ std::shared_ptr<lox_object_type> lox_object_type::object()
 	static std::shared_ptr<lox_object_type> inst{ nullptr };
 	if (!inst)
 	{
-		inst = std::make_shared<lox_object_type>("object", PRIMITIVE_TYPE_ID_OBJECT, nullptr);
+		inst = std::make_shared<lox_object_type>("object", PRIMITIVE_TYPE_ID_OBJECT, TYPE_PRIMITIVE, nullptr);
 	}
 	return inst;
 }
@@ -172,51 +179,31 @@ std::shared_ptr<lox_object_type> lox_object_type::nil()
 
 
 lox_integer_type::lox_integer_type()
-		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, lox_object_type::object())
+		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, TYPE_PRIMITIVE, lox_object_type::object())
 {
 }
 
-bool lox_integer_type::operator<(const lox_object_type& obj)
-{
-	if (dynamic_cast<const lox_floating_type*>(&obj))
-	{
-		return true;
-	}
-
-	return lox_object_type::operator<(obj);
-}
 
 lox_floating_type::lox_floating_type()
-		: lox_object_type("floating", PRIMITIVE_TYPE_ID_FLOATING, lox_object_type::object())
+		: lox_object_type("floating", PRIMITIVE_TYPE_ID_FLOATING, TYPE_PRIMITIVE, lox_object_type::object())
 {
 }
 
-bool lox_floating_type::operator<(const lox_object_type& obj)
-{
-	return lox_object_type::operator<(obj);
-}
 
 lox_boolean_type::lox_boolean_type()
-		: lox_object_type("boolean", PRIMITIVE_TYPE_ID_BOOLEAN, lox_object_type::object())
+		: lox_object_type("boolean", PRIMITIVE_TYPE_ID_BOOLEAN, TYPE_PRIMITIVE, lox_object_type::object())
 {
 }
 
-bool lox_boolean_type::operator<(const lox_object_type& obj)
-{
-	if (dynamic_cast<const lox_floating_type*>(&obj) ||
-		dynamic_cast<const lox_integer_type*>(&obj))
-	{
-		return true;
-	}
-	return lox_object_type::operator<(obj);
-}
 
 lox_nil_type::lox_nil_type()
-		: lox_object_type("nil", PRIMITIVE_TYPE_ID_NIL, lox_object_type::object())
+		: lox_object_type("nil", PRIMITIVE_TYPE_ID_NIL, TYPE_PRIMITIVE, lox_object_type::object())
 {
 }
 
-bool lox_nil_type::operator<(const lox_object_type& obj)
+
+bool lox_type::unify(const lox_type& base, const lox_type& derived)
 {
-	return lox_object_type::operator<(obj);
+	return derived.id() == PRIMITIVE_TYPE_ID_ANY ||
+		   dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 }

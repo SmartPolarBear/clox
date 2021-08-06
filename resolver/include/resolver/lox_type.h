@@ -49,10 +49,10 @@ enum primitive_type_id : type_id
 	PRIMITIVE_TYPE_ID_ANY = 0,
 	PRIMITIVE_TYPE_ID_OBJECT,
 
+	PRIMITIVE_TYPE_ID_NIL,
+	PRIMITIVE_TYPE_ID_BOOLEAN,
 	PRIMITIVE_TYPE_ID_INTEGER,
 	PRIMITIVE_TYPE_ID_FLOATING,
-	PRIMITIVE_TYPE_ID_BOOLEAN,
-	PRIMITIVE_TYPE_ID_NIL,
 
 	PRIMITIVE_TYPE_ID_MAX,
 };
@@ -61,34 +61,36 @@ class lox_type
 		: public helper::printable
 {
 public:
-	static bool is_primitive(lox_type& t)
+	static bool is_primitive(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_PRIMITIVE;
 	}
 
+	static bool unify(const lox_type& base, const lox_type& derived);
+
 public:
 
-	virtual uint64_t flags() = 0;
+	virtual uint64_t flags() const = 0;
 
 	[[nodiscard]] virtual type_id id() const = 0;
 
 	/// if this is a subtype of target.
 	/// \param target
 	/// \return true if this is a subtype of target.
-	virtual bool operator<(const lox_type& target) = 0;
+	virtual bool operator<(const lox_type& target) const = 0;
 };
 
 class lox_any_type final
 		: public lox_type
 {
 public:
-	uint64_t flags() override;
+	uint64_t flags() const override;
 
 	std::string printable_string() override;
 
 	[[nodiscard]] type_id id() const override;
 
-	bool operator<(const lox_type& target) override;
+	bool operator<(const lox_type& target) const override;
 };
 
 class lox_object_type
@@ -109,11 +111,12 @@ public:
 public:
 	std::string printable_string() override;
 
-	uint64_t flags() override;
+	uint64_t flags() const override;
 
 	type_id id() const override;
 
-	explicit lox_object_type(std::string name, type_id id, const std::shared_ptr<lox_object_type>& parent);
+	explicit lox_object_type(std::string name, type_id id, uint64_t flags,
+			const std::shared_ptr<lox_object_type>& parent);
 
 	std::shared_ptr<lox_object_type> super() const;
 
@@ -121,9 +124,9 @@ public:
 
 	uint64_t depth() const;
 
-	bool operator<(const lox_type&) override;
+	bool operator<(const lox_type&) const override;
 
-	virtual bool operator<(const lox_object_type&);
+	bool operator<(const lox_object_type&) const;
 
 private:
 	std::string name_;
@@ -142,8 +145,6 @@ class lox_integer_type final
 {
 public:
 	lox_integer_type();
-
-	bool operator<(const lox_object_type&) override;
 };
 
 class lox_floating_type final
@@ -151,8 +152,6 @@ class lox_floating_type final
 {
 public:
 	lox_floating_type();
-
-	bool operator<(const lox_object_type&) override;
 };
 
 class lox_boolean_type final
@@ -160,8 +159,6 @@ class lox_boolean_type final
 {
 public:
 	lox_boolean_type();
-
-	bool operator<(const lox_object_type&) override;
 };
 
 class lox_nil_type final
@@ -169,8 +166,6 @@ class lox_nil_type final
 {
 public:
 	lox_nil_type();
-
-	bool operator<(const lox_object_type&) override;
 };
 
 }

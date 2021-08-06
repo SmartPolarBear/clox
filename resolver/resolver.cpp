@@ -519,14 +519,18 @@ type_compatibility
 resolver::check_type_assignment(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
-//	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
-//	{
-//		auto ret = type_rules_[{ left->id(), right->id(), "=" }];
-//		if (get<1>(ret))
-//		{
-//			return ret;
-//		}
-//	}
+	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+	{
+		auto compatible = lox_type::unify(*left, *right);
+
+		auto type = compatible ? left : nullptr;
+
+		return make_tuple(
+				type,
+				compatible,
+				false
+		);
+	}
 
 	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
 					tk.lexeme(),
