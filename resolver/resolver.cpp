@@ -258,7 +258,7 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 	shared_ptr<lox_type> initializer_type{ nullptr };
 	if (stmt->get_initializer())
 	{
-		resolve(stmt->get_initializer());
+		initializer_type = resolve(stmt->get_initializer());
 	}
 
 	shared_ptr<lox_type> declared_type{ nullptr };
@@ -522,13 +522,17 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
 	{
 		auto compatible = lox_type::unify(*left, *right);
+		auto narrowing = !lox_type::unify(*left, *right) && lox_type::unify(*right, *left);
 
-		auto type = compatible ? left : nullptr;
+		auto type = compatible ? left : type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
+				tk.lexeme(),
+				scope_top()->type_of_names()[tk.lexeme()]->printable_string(),
+				right->printable_string()));
 
 		return make_tuple(
 				type,
 				compatible,
-				false
+				narrowing
 		);
 	}
 
@@ -544,7 +548,34 @@ type_compatibility
 resolver::check_type_binary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
-	return clox::resolving::type_compatibility();
+	switch (tk.type())
+	{
+	case scanning::token_type::PLUS:
+	case scanning::token_type::MINUS:
+	case scanning::token_type::STAR:
+	case scanning::token_type::SLASH:
+		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+		{
+			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
+									lox_object_type::floating() };
+
+			for (const auto& t:possible_types)
+			{
+				if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
+				{
+					return make_tuple(t, true, false);
+				}
+			}
+		}
+		break;
+	}
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} and {} )",
+					tk.lexeme(),
+					left->printable_string(),
+					right->printable_string())),
+			false,
+			false);
 }
 
 type_compatibility

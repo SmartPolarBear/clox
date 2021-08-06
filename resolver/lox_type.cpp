@@ -58,7 +58,7 @@ bool lox_object_type::operator<(const lox_object_type& obj) const
 {
 	if (is_primitive(*this) && is_primitive(obj))
 	{
-		return this->id() < obj.id(); // this is a hack
+		return this->id() <= obj.id(); // this is a hack
 	}
 
 	if (this->depth() < obj.depth())

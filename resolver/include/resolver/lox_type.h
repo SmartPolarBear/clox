@@ -47,9 +47,10 @@ using type_id = uint64_t;
 enum primitive_type_id : type_id
 {
 	PRIMITIVE_TYPE_ID_ANY = 0,
-	PRIMITIVE_TYPE_ID_OBJECT,
 
+	// the order represent if it can be assigned !
 	PRIMITIVE_TYPE_ID_NIL,
+	PRIMITIVE_TYPE_ID_OBJECT,
 	PRIMITIVE_TYPE_ID_BOOLEAN,
 	PRIMITIVE_TYPE_ID_INTEGER,
 	PRIMITIVE_TYPE_ID_FLOATING,

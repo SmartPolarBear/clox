@@ -2,11 +2,12 @@ var int_val:integer=10;
 var bool_val:boolean=true;
 var floating_val:floating=3.0;
 
+int_val=10.0;
+
 floating_val=10;
 floating_val=false;
 
 int_val=false;
-int_val=10.0;
 
 var newval=floating_val*int_val;
 
