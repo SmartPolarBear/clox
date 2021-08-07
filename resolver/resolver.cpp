@@ -156,10 +156,10 @@ std::shared_ptr<lox_type> resolver::visit_ternary_expression(const std::shared_p
 	auto t_type = resolve(te->get_true_expr());
 	auto f_type = resolve(te->get_false_expr());
 
-//	if (check_type_implicit_convertible(te->get_qmark(), cond_type, make_shared<boolean_type>()))
-//	{
-//
-//	}
+	if (!lox_type::unify(*lox_object_type::boolean(), *cond_type))
+	{
+		return type_error(te->get_qmark(), "The condition for ternary operator should be compatible with boolean.");
+	}
 
 	auto value_type_ret = check_type_ternary_expression(te->get_colon(), t_type, f_type);
 
@@ -530,7 +530,6 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 				right->printable_string()));
 
 
-
 		return make_tuple(
 				type,
 				compatible,
@@ -570,6 +569,10 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 			}
 		}
 		break;
+
+
+	default:
+		break;
 	}
 
 	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} and {} )",
@@ -583,20 +586,62 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 type_compatibility
 resolver::check_type_unary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left)
 {
-	return clox::resolving::type_compatibility();
+	switch (tk.type())
+	{
+	case scanning::token_type::BANG:
+		return make_tuple(lox_object_type::boolean(), true, false); // everything can be used with operator!
+	case scanning::token_type::PLUS_PLUS:
+	case scanning::token_type::MINUS_MINUS:
+		if (lox_type::is_primitive(*left))
+		{
+			auto possible_types = { lox_object_type::integer(), lox_object_type::floating() };
+
+			for (const auto& t:possible_types)
+			{
+				if (lox_type::unify(*t, *left))
+				{
+					return make_tuple(t, true, false);
+				}
+			}
+		}
+	}
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} )",
+					tk.lexeme(),
+					left->printable_string())),
+			false,
+			false);
 }
 
 type_compatibility
 resolver::check_type_postfix_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& right)
 {
-	return clox::resolving::type_compatibility();
+	switch (tk.type())
+	{
+
+	case scanning::token_type::PLUS_PLUS:
+	case scanning::token_type::MINUS_MINUS:
+		if (lox_type::is_primitive(*right))
+		{
+			auto possible_types = { lox_object_type::integer(), lox_object_type::floating() };
+
+			for (const auto& t:possible_types)
+			{
+				if (lox_type::unify(*t, *right))
+				{
+					return make_tuple(t, true, false);
+				}
+			}
+		}
+	}
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} )",
+					tk.lexeme(),
+					right->printable_string())),
+			false,
+			false);
 }
 
-bool resolver::check_type_implicit_convertible(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
-		const shared_ptr<lox_type>& right)
-{
-	return false;
-}
 
 type_compatibility
 resolver::check_type_ternary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,

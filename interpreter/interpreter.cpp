@@ -83,9 +83,23 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 		check_numeric_operands(be->get_op(), left, right);
 		return get<long double>(left) - get<long double>(right);
 	case scanning::token_type::PLUS:
+		check_numeric_operands(be->get_op(), left, right);
+
 		if (holds_alternative<long double>(left) && holds_alternative<long double>(right))
 		{
 			return get<long double>(left) + get<long double>(right);
+		}
+		else if (holds_alternative<long long>(left) && holds_alternative<long double>(right))
+		{
+			return get<long long>(left) + get<long double>(right);
+		}
+		else if (holds_alternative<long double>(left) && holds_alternative<long long>(right))
+		{
+			return get<long double>(left) + get<long long>(right);
+		}
+		else if (holds_alternative<long long>(left) && holds_alternative<long long>(right))
+		{
+			return get<long long>(left) + get<long long>(right);
 		}
 		else if (holds_alternative<string>(left) && holds_alternative<string>(right))
 		{
@@ -246,6 +260,10 @@ std::string clox::interpreting::interpreter::result_to_string(
 	{
 		return std::to_string(get<long double>(res));
 	}
+	else if (holds_alternative<scanning::integer_literal_type>(res))
+	{
+		return std::to_string(get<scanning::integer_literal_type>(res));
+	}
 	else if (holds_alternative<bool>(res))
 	{
 		return string{ bool_to_string(get<bool>(res)) };
@@ -384,14 +402,17 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::evaluating_result& l,
 		const clox::interpreting::evaluating_result& r)
 {
-	if (holds_alternative<long double>(l) && holds_alternative<long double>(r))return;
+	if ((holds_alternative<long double>(l) || holds_alternative<scanning::integer_literal_type>(l)) &&
+		(holds_alternative<long double>(r) || holds_alternative<scanning::integer_literal_type>(r)))
+		return;
+
 
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }
 
 void interpreter::check_numeric_operand(token op, const evaluating_result& es)
 {
-	if (holds_alternative<long double>(es))return;
+	if (holds_alternative<long double>(es) || holds_alternative<scanning::integer_literal_type>(es))return;
 
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }

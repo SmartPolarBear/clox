@@ -79,15 +79,6 @@ bool lox_object_type::operator<(const lox_object_type& obj) const
 		}
 	}
 
-	auto another_pa = obj.super();
-	for (; pa && another_pa; pa = pa->super(), another_pa = another_pa->super())
-	{
-		if (pa->id() == another_pa->id())
-		{
-			return true;
-		}
-	}
-
 	return false;
 }
 

@@ -187,8 +187,6 @@ private:
 
 	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& right);
 
-	bool check_type_implicit_convertible(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
-			const std::shared_ptr<lox_type>& right);
 
 	type_compatibility check_type_ternary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
