@@ -230,7 +230,7 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
-	resolve(ce->get_calle());
+	resolve(ce->get_callee());
 
 	for (const auto& arg:ce->get_args())
 	{
@@ -330,7 +330,7 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 			logger::instance().error(rs->get_return_keyword(), "Constructor can't return a value.");
 		}
 
-		resolve(rs->get_val());
+		auto type = resolve(rs->get_val());
 	}
 }
 
@@ -426,10 +426,10 @@ void resolver::resolve_function(const shared_ptr<parsing::function_statement>& f
 		cur_func_ = parent_type;
 	});
 
-	for (const auto& tk:func->get_params())
+	for (const auto& param:func->get_params())
 	{
-		declare_name(tk);
-		define_name(tk, nullptr/*FIXME*/);
+		declare_name(param.first);
+		define_name(param.first, resolve(param.second));
 	}
 
 	resolve(func->get_body());

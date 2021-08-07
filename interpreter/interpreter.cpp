@@ -573,7 +573,7 @@ void interpreter::visit_while_statement(const std::shared_ptr<while_statement>& 
 
 evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	auto callee = evaluate(ce->get_calle());
+	auto callee = evaluate(ce->get_callee());
 
 	vector<evaluating_result> args{};
 	for (const auto& arg:ce->get_args())

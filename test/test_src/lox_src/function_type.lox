@@ -1,0 +1,7 @@
+fun add(a:integer,b:floating):floating
+{
+    return a+b;
+}
+
+var c=add(1,2.0);
+print(c);

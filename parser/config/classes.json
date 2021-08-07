@@ -245,7 +245,7 @@
       "member": [
         {
           "type": "std::shared_ptr<expression>",
-          "name": "callee"
+          "name": "callee_"
         },
         {
           "type": "clox::scanning::token",
@@ -409,8 +409,12 @@
           "name": "name_"
         },
         {
-          "type": "std::vector<clox::scanning::token>",
+          "type": "std::vector<std::pair<clox::scanning::token,std::shared_ptr<type_expression>>>",
           "name": "params_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "return_type_expr_"
         },
         {
           "type": "std::vector<std::shared_ptr<statement>>",
@@ -456,7 +460,6 @@
         }
       ]
     },
-
     {
       "name": "variable_type_expression",
       "base": [

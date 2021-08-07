@@ -166,9 +166,10 @@ private:
 	/// \return
 	std::shared_ptr<statement> class_declaration();
 
-	/// funDecl        → "fun" function ;
-	/// function       → IDENTIFIER "(" parameters? ")" block ;
-	/// parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+	/// funDecl -> "fun" function ;
+	/// function -> IDENTIFIER "(" parameters? ")" ":" typeExpr  block ;
+	/// parameter ->  IDENTIFIER ":" typeExpr
+	/// parameters -> parameter ( "," parameter )* ;
 	/// \return
 	std::shared_ptr<statement> func_declaration(const std::string& kind);
 

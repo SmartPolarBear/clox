@@ -455,7 +455,7 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 	auto name = consume(token_type::IDENTIFIER, std::format("{} name is expected.", kind));
 	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", kind));
 
-	vector<token> params{};
+	std::vector<std::pair<clox::scanning::token, std::shared_ptr<type_expression>>> params{};
 
 	if (!check(scanning::token_type::RIGHT_PAREN))
 	{
@@ -466,15 +466,24 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
 			}
 
-			params.push_back(consume(scanning::token_type::IDENTIFIER, "Parameter names are expected."));
+			auto param = consume(scanning::token_type::IDENTIFIER, "Parameter names are expected.");
+			consume(token_type::COLON, std::format("Type is required for parameter {}", param.lexeme()));
+			auto param_type = type_expr();
+
+			params.emplace_back(param, param_type);
 		} while (match({ token_type::COMMA }));
 	}
 
 	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", kind));
+
+	consume(token_type::COLON, std::format("Return type is required for callable {}", name.lexeme()));
+	auto ret_type = type_expr();
+
 	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", kind));
 
 	auto body = block();
-	return make_shared<function_statement>(name, params, body);
+
+	return make_shared<function_statement>(name, params, ret_type, body);
 }
 
 std::shared_ptr<statement> parser::var_declaration()

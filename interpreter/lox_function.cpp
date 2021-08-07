@@ -43,7 +43,7 @@ clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::
 	auto params = decl_->get_params();
 	for (size_t i = 0; i < params.size(); i++)
 	{
-		env->put(params[i].lexeme(), args[i]);
+		env->put(params[i].first.lexeme(), args[i]);
 	}
 
 	try
