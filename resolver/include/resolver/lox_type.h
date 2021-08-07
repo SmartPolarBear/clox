@@ -69,6 +69,9 @@ public:
 
 	static bool unify(const lox_type& base, const lox_type& derived);
 
+	static std::shared_ptr<lox_type>
+	intersect(const std::shared_ptr<lox_type>& t1, const std::shared_ptr<lox_type>& t2);
+
 public:
 
 	virtual uint64_t flags() const = 0;
@@ -79,13 +82,22 @@ public:
 	/// \param target
 	/// \return true if this is a subtype of target.
 	virtual bool operator<(const lox_type& target) const = 0;
+
+	virtual bool operator==(const lox_type&) const = 0;
+
+	virtual bool operator!=(const lox_type&) const = 0;
 };
 
 class lox_any_type final
 		: public lox_type
 {
 public:
+	bool operator!=(const lox_type& lox_type) const override;
+
+public:
 	uint64_t flags() const override;
+
+	bool operator==(const lox_type& lox_type) const override;
 
 	std::string printable_string() override;
 
@@ -100,6 +112,10 @@ class lox_object_type
 {
 public:
 	static std::shared_ptr<lox_object_type> object();
+
+	bool operator!=(const lox_type& lox_type) const override;
+
+	bool operator==(const lox_type&) const override;
 
 	static std::shared_ptr<lox_object_type> integer();
 

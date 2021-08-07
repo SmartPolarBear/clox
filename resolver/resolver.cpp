@@ -560,7 +560,7 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
 									lox_object_type::floating() };
 
-			for (const auto& t:possible_types)
+			for (const auto& t:possible_types) // not  call intersect for extensibility
 			{
 				if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
 				{
@@ -647,12 +647,38 @@ type_compatibility
 resolver::check_type_ternary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
-	return clox::resolving::type_compatibility();
+	auto intersect = lox_type::intersect(left, right);
+	if (intersect)
+	{
+		return make_tuple(intersect,
+				false,
+				false);
+	}
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} and {} )",
+					tk.lexeme(),
+					left->printable_string(),
+					right->printable_string())),
+			false,
+			false);
 }
 
 type_compatibility
 resolver::check_type_logical_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
-	return clox::resolving::type_compatibility();
+	auto compatible =
+			lox_type::unify(*lox_object_type::boolean(), *left) && lox_type::unify(*lox_object_type::boolean(), *right);
+
+	if (compatible)
+	{
+		return make_tuple(lox_object_type::boolean(), compatible, false);
+	}
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} and {} )",
+					tk.lexeme(),
+					left->printable_string(),
+					right->printable_string())),
+			false,
+			false);
 }

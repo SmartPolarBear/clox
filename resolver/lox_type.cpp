@@ -33,6 +33,16 @@ std::string lox_any_type::printable_string()
 	return "<any type>";
 }
 
+bool lox_any_type::operator==(const lox_type& t) const
+{
+	return true;
+}
+
+bool lox_any_type::operator!=(const lox_type& lox_type) const
+{
+	return false;
+}
+
 
 std::shared_ptr<lox_object_type> resolving::lox_object_type::super() const
 {
@@ -168,6 +178,16 @@ std::shared_ptr<lox_object_type> lox_object_type::nil()
 	return inst;
 }
 
+bool lox_object_type::operator==(const lox_type& another) const
+{
+	return id() == another.id();
+}
+
+bool lox_object_type::operator!=(const lox_type& another) const
+{
+	return !(*this == another);
+}
+
 
 lox_integer_type::lox_integer_type()
 		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, TYPE_PRIMITIVE, lox_object_type::object())
@@ -197,4 +217,39 @@ bool lox_type::unify(const lox_type& base, const lox_type& derived)
 {
 	return derived.id() == PRIMITIVE_TYPE_ID_ANY ||
 		   dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
+}
+
+std::shared_ptr<lox_type> lox_type::intersect(const std::shared_ptr<lox_type>& t1, const std::shared_ptr<lox_type>& t2)
+{
+	if (t1->id() == PRIMITIVE_TYPE_ID_ANY || t2->id() == PRIMITIVE_TYPE_ID_ANY)return std::make_shared<lox_any_type>();
+
+	if (is_primitive(*t1) && is_primitive(*t2))
+	{
+		return t1->id() >= t2->id() ? t1 : t2;
+	}
+
+	if (*t1 < *t2)return t2;
+
+	if (*t2 < *t1)return t1;
+
+	auto o1 = std::static_pointer_cast<lox_object_type>(t1), o2 = std::static_pointer_cast<lox_object_type>(t2);
+	if (o1->depth() < o2->depth())std::swap(o1, o2);
+
+	while (o1->depth() <= o1->depth())
+	{
+		o1 = o1->super();
+	}
+
+	while (o1 && o2 && *o1 != *o2)
+	{
+		o1 = o1->super();
+		o2 = o2->super();
+	}
+
+	if (o1 == nullptr || o2 == nullptr)
+	{
+		return nullptr;
+	}
+
+	return o1;
 }
