@@ -24,9 +24,60 @@
 
 #pragma once
 
-#include <resolver/callable_type.h>
+#include <resolver/lox_type.h>
+#include <resolver/object_type.h>
+
+#include <parser/parser.h>
+
+#include <vector>
 
 namespace clox::resolving
 {
+class lox_callable_type
+		: public lox_type,
+		  public std::enable_shared_from_this<lox_callable_type>
+{
+public:
+	[[nodiscard]] lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
+			std::vector<std::shared_ptr<lox_type>> params);
+
+	std::string printable_string() override;
+
+	uint64_t flags() const override;
+
+	type_id id() const override;
+
+	bool operator<(const lox_type& target) const override;
+
+	bool operator==(const lox_type& lox_type) const override;
+
+	bool operator!=(const lox_type& lox_type) const override;
+
+	auto param_size() const
+	{
+		return params_.size();
+	}
+
+	std::shared_ptr<lox_type> param(size_t i) const
+	{
+		return params_.at(i);
+	}
+
+	std::vector<std::shared_ptr<lox_type>> params() const
+	{
+		return params_;
+	}
+
+	std::shared_ptr<lox_type> return_type() const
+	{
+		return return_type_;
+	}
+
+private:
+	std::string name_{};
+
+	std::shared_ptr<lox_type> return_type_{};
+	std::vector<std::shared_ptr<lox_type>> params_{};
+};
 
 }

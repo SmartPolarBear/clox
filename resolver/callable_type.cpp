@@ -34,3 +34,68 @@ using namespace clox;
 using namespace clox::helper;
 
 using namespace clox::resolving;
+
+lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
+		std::vector<std::shared_ptr<lox_type>> params)
+		: name_(std::move(name)),
+		  return_type_(std::move(return_type)),
+		  params_(std::move(params))
+{
+}
+
+
+std::string lox_callable_type::printable_string()
+{
+	auto ret = std::format("<callable object {} -> {} ( >", name_, return_type_->printable_string());
+
+	for (const auto& param:params_)
+	{
+		ret += std::format("{},", param->printable_string());
+	}
+
+	*ret.rbegin() = ')';
+	return ret;
+}
+
+uint64_t lox_callable_type::flags() const
+{
+	return TYPE_CLASS | FLAG_CALLABLE | TYPE_PRIMITIVE;
+}
+
+type_id lox_callable_type::id() const
+{
+	return PRIMITIVE_TYPE_ID_CALLABLE;
+}
+
+bool lox_callable_type::operator<(const lox_type& target) const
+{
+	return false;
+}
+
+bool lox_callable_type::operator==(const lox_type& another) const
+{
+	if (!is_callable(another))return false;
+
+	const auto& callable = dynamic_cast<const lox_callable_type&>(another);
+
+	if (name_ != callable.name_)return false;
+
+	if (params_.size() != callable.params_.size())return false;
+
+	auto param_size = params_.size();
+	for (decltype(param_size) i = 0; i < param_size; i++)
+	{
+		if (params_[i] != callable.params_[i])
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool lox_callable_type::operator!=(const lox_type& another) const
+{
+	return !(*this == another);
+}
+

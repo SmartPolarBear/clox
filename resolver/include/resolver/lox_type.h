@@ -39,6 +39,7 @@ enum lox_type_flags : uint64_t
 {
 	TYPE_PRIMITIVE = 1,
 	TYPE_CLASS = 2,
+	FLAG_CALLABLE = 4,
 };
 
 
@@ -49,6 +50,7 @@ enum primitive_type_id : type_id
 	PRIMITIVE_TYPE_ID_ANY = 0,
 
 	// the order represent if it can be assigned !
+	PRIMITIVE_TYPE_ID_CALLABLE,
 	PRIMITIVE_TYPE_ID_NIL,
 	PRIMITIVE_TYPE_ID_OBJECT,
 	PRIMITIVE_TYPE_ID_BOOLEAN,
@@ -65,6 +67,11 @@ public:
 	static bool is_primitive(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_PRIMITIVE;
+	}
+
+	static bool is_callable(const lox_type& t)
+	{
+		return t.flags() & lox_type_flags::FLAG_CALLABLE;
 	}
 
 	static bool unify(const lox_type& base, const lox_type& derived);

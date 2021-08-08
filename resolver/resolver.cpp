@@ -233,14 +233,35 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
-	auto call_type = resolve(ce->get_callee());
+	auto callee = resolve(ce->get_callee());
 
-	for (const auto& arg:ce->get_args())
+	if (!lox_type::is_callable(*callee))
 	{
-		auto arg_type = resolve(arg);
+		return type_error(ce->get_paren(), std::format("Type {} is not callable", callee->printable_string()));
 	}
 
-	return call_type;
+	auto callable = static_pointer_cast<lox_callable_type>(callee);
+
+	if (ce->get_args().size() != callable->param_size())
+	{
+		return type_error(ce->get_paren(),
+				std::format("{} args are needed, but {} are given", callable->param_size(), ce->get_args().size()));
+	}
+
+	auto size = callable->param_size();
+	for (decltype(size) i = 0; i < size; i++)
+	{
+		auto arg_type = resolve(ce->get_args()[i]);
+		auto param_type = callable->param(i);
+		if (!lox_type::unify(*param_type, *arg_type))
+		{
+			return type_error(ce->get_paren(),
+					std::format("{}th argument of type {} is not compatible with parameter with type {}.",
+							i, arg_type->printable_string(), param_type->printable_string()));
+		}
+	}
+
+	return callable->return_type();
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
@@ -313,9 +334,8 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
 	declare_name(stmt->get_name());
-	define_name(stmt->get_name(), resolve(stmt->get_return_type_expr()));
 
-	resolve_function(stmt, function_type::FT_FUNCTION);
+	resolve_function_decl(stmt, function_type::FT_FUNCTION);
 }
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
@@ -370,11 +390,11 @@ void resolver::scope_end()
 	scope_pop();
 }
 
-void resolver::declare_name(const clox::scanning::token& t)
+void resolver::declare_name(const clox::scanning::token& t, size_t dist)
 {
 	if (scopes_.empty())return;
 
-	auto top = scope_top();
+	auto top = scope_top(dist);
 
 	if (top->names().contains(t.lexeme()))
 	{
@@ -384,12 +404,12 @@ void resolver::declare_name(const clox::scanning::token& t)
 	top->names()[t.lexeme()] = false;
 }
 
-void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type)
+void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
 {
 	if (scopes_.empty())return;
 
-	scope_top()->names()[tk.lexeme()] = true;
-	scope_top()->type_of_names()[tk.lexeme()] = type;
+	scope_top(dist)->names()[tk.lexeme()] = true;
+	scope_top(dist)->type_of_names()[tk.lexeme()] = type;
 }
 
 void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
@@ -416,25 +436,40 @@ void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const 
 	}
 }
 
-void resolver::resolve_function(const shared_ptr<parsing::function_statement>& func, function_type type)
+void resolver::resolve_function_decl(const shared_ptr<function_statement>& func, function_type type)
 {
-	auto parent_type = cur_func_;
-	cur_func_ = type;
-	scope_begin();
 
-	auto _ = finally([this, parent_type]
-	{
-		this->scope_end();
-		cur_func_ = parent_type;
-	});
+	vector<shared_ptr<lox_type>> params_{};
+	shared_ptr<lox_type> ret_{ resolve(func->get_return_type_expr()) };
 
-	for (const auto& param:func->get_params())
 	{
-		declare_name(param.first);
-		define_name(param.first, resolve(param.second));
+		auto parent_type = cur_func_;
+		cur_func_ = type;
+		scope_begin();
+
+		auto _ = finally([this, parent_type]
+		{
+			this->scope_end();
+			cur_func_ = parent_type;
+		});
+
+		for (const auto& param:func->get_params())
+		{
+			shared_ptr<lox_type> param_type{ resolve(param.second) };
+
+			declare_name(param.first);
+			define_name(param.first, param_type);
+
+			params_.push_back(param_type);
+		}
+
+		define_name(func->get_name(), make_shared<lox_callable_type>(func->get_name().lexeme(),
+				ret_,
+				params_), 1);
+
+		resolve(func->get_body()); // resolve the body
 	}
 
-	resolve(func->get_body());
 }
 
 std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
@@ -498,7 +533,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		{
 			decl = function_type::FT_CTOR;
 		}
-		resolve_function(method, decl);
+		resolve_function_decl(method, decl);
 	}
 
 

@@ -173,7 +173,7 @@ private:
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	void resolve_function(const std::shared_ptr<parsing::function_statement>& func, function_type type);
+	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, function_type type);
 
 	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 
@@ -198,20 +198,20 @@ private:
 
 	void scope_end();
 
-	void declare_name(const scanning::token& t);
+	void declare_name(const scanning::token& t, size_t dist = 0);
 
-	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type);
+	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0);
 
 	void define_type(const scanning::token& t, const lox_type& type, uint64_t depth = 1);
 
-	std::shared_ptr<scope> scope_top()
+	std::shared_ptr<scope> scope_top(size_t dist = 0)
 	{
-		return scopes_.back();
+		return *(scopes_.rbegin() + dist);
 	}
 
-	std::optional<bool> scope_top_find(const std::string& key)
+	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
-		auto top = scope_top();
+		auto top = scope_top(dist);
 		if (!top->names().contains(key))return std::nullopt;
 		else return top->names().at(key);
 	}
