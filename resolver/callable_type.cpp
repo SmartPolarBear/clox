@@ -59,12 +59,12 @@ std::string lox_callable_type::printable_string()
 
 uint64_t lox_callable_type::flags() const
 {
-	return TYPE_CLASS | FLAG_CALLABLE | TYPE_PRIMITIVE;
+	return TYPE_CLASS | FLAG_CALLABLE ;
 }
 
 type_id lox_callable_type::id() const
 {
-	return PRIMITIVE_TYPE_ID_CALLABLE;
+	return TYPE_ID_CALLABLE;
 }
 
 bool lox_callable_type::operator<(const lox_type& target) const

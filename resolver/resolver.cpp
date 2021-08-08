@@ -55,6 +55,8 @@ resolver::resolver(shared_ptr<symbol_table> st) :
 	global_scope_->types()["floating"] = lox_object_type::floating();
 	global_scope_->types()["boolean"] = lox_object_type::boolean();
 	global_scope_->types()["nil"] = lox_object_type::nil();
+
+	global_scope_->types()["string"] = lox_object_type::string();
 }
 
 
@@ -121,8 +123,7 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 	}
 	else if (holds_alternative<std::string>(le->get_value()))
 	{
-		// TODO
-		return lox_object_type::object();
+		return lox_object_type::string();
 	}
 	else
 	{

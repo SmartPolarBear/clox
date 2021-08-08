@@ -170,6 +170,17 @@ std::shared_ptr<lox_object_type> lox_object_type::nil()
 	return inst;
 }
 
+std::shared_ptr<lox_object_type> lox_object_type::string()
+{
+	static std::shared_ptr<lox_object_type> inst{ nullptr };
+	if (!inst)
+	{
+		inst = std::make_shared<lox_string_type>();
+		object()->derived_.push_back(inst);
+	}
+	return inst;
+}
+
 bool lox_object_type::operator==(const lox_type& another) const
 {
 	return id() == another.id();
@@ -179,6 +190,8 @@ bool lox_object_type::operator!=(const lox_type& another) const
 {
 	return !(*this == another);
 }
+
+
 
 
 lox_integer_type::lox_integer_type()
@@ -204,6 +217,11 @@ lox_nil_type::lox_nil_type()
 {
 }
 
+
+lox_string_type::lox_string_type()
+		: lox_object_type("string", TYPE_ID_STRING, 0, lox_object_type::object())
+{
+}
 
 bool lox_type::unify(const lox_type& base, const lox_type& derived)
 {

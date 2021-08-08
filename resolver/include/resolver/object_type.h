@@ -47,6 +47,8 @@ public:
 
 	static std::shared_ptr<lox_object_type> nil();
 
+	static std::shared_ptr<lox_object_type> string();
+
 public:
 	std::string printable_string() override;
 
@@ -105,6 +107,13 @@ class lox_nil_type final
 {
 public:
 	lox_nil_type();
+};
+
+class lox_string_type final
+		: public lox_object_type
+{
+public:
+	lox_string_type();
 };
 
 }
