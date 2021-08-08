@@ -230,15 +230,14 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
-	resolve(ce->get_callee());
+	auto call_type = resolve(ce->get_callee());
 
 	for (const auto& arg:ce->get_args())
 	{
-		resolve(arg);
+		auto arg_type = resolve(arg);
 	}
 
-	// TODO
-	return nullptr;
+	return call_type;
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
@@ -311,7 +310,7 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
 	declare_name(stmt->get_name());
-	define_name(stmt->get_name(), nullptr/*FIXME*/);
+	define_name(stmt->get_name(), resolve(stmt->get_return_type_expr()));
 
 	resolve_function(stmt, function_type::FT_FUNCTION);
 }

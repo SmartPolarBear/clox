@@ -1,0 +1,1 @@
+settings set target.process.thread.step-avoid-regexp ^(std::|boost::shared_ptr)

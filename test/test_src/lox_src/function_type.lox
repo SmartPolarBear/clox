@@ -5,3 +5,6 @@ fun add(a:integer,b:floating):floating
 
 var c=add(1,2.0);
 print(c);
+
+var d=add(2.0,2.0);
+print(d);
