@@ -23,7 +23,10 @@
 //
 
 #include <resolver/resolver.h>
+
 #include <resolver/lox_type.h>
+#include <resolver/object_type.h>
+#include <resolver/callable_type.h>
 
 #include <logger/logger.h>
 
