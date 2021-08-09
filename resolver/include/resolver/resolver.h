@@ -37,6 +37,7 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
+#include <tuple>
 
 namespace clox::resolving
 {
@@ -179,6 +180,11 @@ private:
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
+
+	std::tuple<std::shared_ptr<lox_class_type>, std::shared_ptr<lox_class_type>>
+	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);
+
+	void resolve_class_members(const std::shared_ptr<parsing::class_statement>& cls);
 
 	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 

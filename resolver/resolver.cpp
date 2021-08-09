@@ -527,23 +527,48 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 	return type_error(tk, std::format("Type {} is not defined.", tk.lexeme()));
 }
 
-/*
- * scope {
- * 	base:base_type
- * 	scope {
- * 	 this:this_type
- * 	 (other fields)
- * 	 (other methods)
- * 	}
- * }
- * */
+
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
 	cur_class_.push(env_class_type::CT_CLASS);
 
-	declare_name(cls->get_name());
-	define_name(cls->get_name(), nullptr/*FIXME*/);
+	auto[base_type, this_type]=resolve_class_type_decl(cls);
 
+	/* The scope structure for class:
+	 * scope {
+	 * 	base:base_type
+	 * 	scope {
+	 * 	 this:this_type
+	 * 	 (other fields)
+	 * 	 (other methods)
+	 * 	}
+	 * }
+	 * */
+
+	declare_name(cls->get_name());
+	define_name(cls->get_name(), this_type);
+
+	scope_begin();
+	define_name("base", base_type);
+
+	scope_begin();
+	define_name("this", this_type);
+
+	auto _ = finally([this]
+	{
+		this->scope_end();
+		this->scope_end();
+
+		this->cur_class_.pop();
+	});
+
+	resolve_class_members(cls);
+}
+
+
+std::tuple<shared_ptr<lox_class_type>, shared_ptr<lox_class_type>>
+resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
+{
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
 	{
 		logger::instance().error(cls->get_base_class()->get_name(), "A class cannot inherit from itself.");
@@ -564,29 +589,13 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		base_type = base;
 	}
 
-	if (cls->get_base_class())
-	{
-		scope_begin();
+	return { static_pointer_cast<lox_class_type>(base_type),
+			 static_pointer_cast<lox_class_type>(lox_object_type::object()) /*FIXME*/};
+}
 
-		define_name("base", base_type);
-	}
 
-	scope_begin();
-
-	auto _ = finally([this, &cls]
-	{
-		this->scope_end();
-
-		if (cls->get_base_class())
-		{
-			this->scope_end();
-		}
-
-		this->cur_class_.pop();
-	});
-
-	scope_top()->names()["this"] = true;
-
+void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls)
+{
 	for (const auto& method:cls->get_methods())
 	{
 		auto decl = env_function_type::FT_METHOD;
@@ -597,8 +606,6 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 		resolve_function_decl(method, decl);
 	}
-
-
 }
 
 

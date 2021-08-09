@@ -27,12 +27,17 @@
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
 
+#include <unordered_map>
+
 namespace clox::resolving
 {
 class lox_class_type
 		: public lox_object_type
 {
 public:
-	
+
+private:
+	std::unordered_map<std::string, std::shared_ptr<lox_type>> fields_{};
+	std::unordered_map<std::string, std::shared_ptr<lox_type>> methods_{};
 };
 }
