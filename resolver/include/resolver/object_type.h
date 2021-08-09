@@ -73,12 +73,13 @@ private:
 	std::string name_;
 
 	type_id id_{ 0 };
-	uint64_t flags_{ 0 };
 
 	std::weak_ptr<lox_object_type> super_{};
 	std::vector<std::shared_ptr<lox_object_type>> derived_{};
 
 	uint64_t depth_{ 0 };
+protected:
+	uint64_t flags_{ 0 };
 };
 
 class lox_integer_type final

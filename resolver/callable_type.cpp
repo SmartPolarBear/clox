@@ -36,12 +36,16 @@ using namespace clox::helper;
 using namespace clox::resolving;
 
 lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
-		std::vector<std::shared_ptr<lox_type>> params)
+		std::vector<std::shared_ptr<lox_type>> params, bool ctor)
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
 		  params_(std::move(params)),
 		  lox_object_type(std::move(name), TYPE_ID_CLASS, TYPE_CLASS | FLAG_CALLABLE, object())
 {
+	if (ctor)
+	{
+		lox_object_type::flags_ |= FLAG_CTOR;
+	}
 }
 
 

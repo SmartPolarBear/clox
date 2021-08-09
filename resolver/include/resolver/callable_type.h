@@ -39,9 +39,14 @@ class lox_callable_type
 {
 public:
 	[[nodiscard]] lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
-			std::vector<std::shared_ptr<lox_type>> params);
+			std::vector<std::shared_ptr<lox_type>> params, bool ctor = false);
 
 	std::string printable_string() override;
+
+	[[nodiscard]] bool is_ctor() const
+	{
+		return lox_object_type::flags() & FLAG_CTOR;
+	}
 
 	bool operator<(const lox_type& target) const override;
 

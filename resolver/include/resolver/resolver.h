@@ -29,6 +29,8 @@
 #include <interpreter/interpreter.h>
 
 #include <resolver/lox_type.h>
+#include <resolver/callable_type.h>
+#include <resolver/class_type.h>
 
 #include <vector>
 #include <stack>
@@ -64,8 +66,9 @@ public:
 	using name_table_type = std::unordered_map<std::string, bool>;
 	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
 
-	scope() = default;
+	friend class resolver;
 
+	scope() = default;
 
 	[[nodiscard]] name_table_type& names()
 	{
@@ -87,9 +90,6 @@ private:
 	mutable type_table_type type_of_names_{};
 
 	mutable type_table_type types_{};
-
-	mutable env_function_type env_func_{ env_function_type::FT_NONE };
-	mutable env_class_type env_class_{ env_class_type::CT_NONE };
 };
 
 class resolver final
@@ -214,6 +214,7 @@ private:
 		return *(scopes_.rbegin() + dist);
 	}
 
+
 	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
 		auto top = scope_top(dist);
@@ -236,9 +237,11 @@ private:
 
 	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
 
-	env_function_type cur_func_{ env_function_type::FT_NONE };
+	std::stack<env_function_type> cur_func_{};
+	std::stack<env_class_type> cur_class_{};
 
-	env_class_type cur_cls_{ env_class_type::CT_NONE };
+	std::stack<std::shared_ptr<lox_callable_type>> cur_func_type_{};
+	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
 	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };

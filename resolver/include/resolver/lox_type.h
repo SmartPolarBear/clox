@@ -40,6 +40,7 @@ enum lox_type_flags : uint64_t
 	TYPE_PRIMITIVE = 1,
 	TYPE_CLASS = 2,
 	FLAG_CALLABLE = 4,
+	FLAG_CTOR=8,
 };
 
 

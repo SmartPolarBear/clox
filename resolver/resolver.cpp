@@ -57,6 +57,9 @@ resolver::resolver(shared_ptr<symbol_table> st) :
 	global_scope_->types()["nil"] = lox_object_type::nil();
 
 	global_scope_->types()["string"] = lox_object_type::string();
+
+	cur_func_.push(env_function_type::FT_NONE);
+	cur_class_.push(env_class_type::CT_NONE);
 }
 
 
@@ -198,7 +201,8 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 
 std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<this_expression>& expr)
 {
-	if (cur_cls_ == env_class_type::CT_NONE)
+
+	if (cur_class_.top() == env_class_type::CT_NONE)
 	{
 		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
 		// TODO
@@ -213,13 +217,13 @@ std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
-	if (cur_cls_ == env_class_type::CT_NONE)
+	if (cur_class_.top() == env_class_type::CT_NONE)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
 		// TODO
 		return nullptr;
 	}
-	else if (cur_cls_ != env_class_type::CT_INHERITED_CLASS)
+	else if (cur_class_.top() != env_class_type::CT_INHERITED_CLASS)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
 		// TODO
@@ -360,19 +364,28 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
 {
-	if (cur_func_ == env_function_type::FT_NONE)
+
+	if (cur_func_.top() == env_function_type::FT_NONE)
 	{
 		logger::instance().error(rs->get_return_keyword(), "Return statement in none-function scoop.");
 	}
 
 	if (rs->get_val())
 	{
-		if (cur_func_ == env_function_type::FT_CTOR)
+		if (cur_func_.top() == env_function_type::FT_CTOR)
 		{
 			logger::instance().error(rs->get_return_keyword(), "Constructor can't return a value.");
 		}
 
 		auto type = resolve(rs->get_val());
+		auto func = cur_func_type_.top();
+		if (!lox_type::unify(*func->return_type(), *type))
+		{
+			type_error(rs->get_return_keyword(),
+					std::format("Incompatible type for return expression of type {} and the function return type of {}",
+							type->printable_string(),
+							func->return_type()->printable_string()));
+		}
 	}
 }
 
@@ -404,6 +417,7 @@ void resolver::scope_begin()
 {
 	scope_push(make_shared<scope>());
 }
+
 
 void resolver::scope_end()
 {
@@ -463,14 +477,13 @@ void resolver::resolve_function_decl(const shared_ptr<function_statement>& func,
 	shared_ptr<lox_type> ret_{ resolve(func->get_return_type_expr()) };
 
 	{
-		auto parent_type = cur_func_;
-		cur_func_ = type;
+		cur_func_.push(type);
 		scope_begin();
 
-		auto _ = finally([this, parent_type]
+		auto _ = finally([this]
 		{
 			this->scope_end();
-			cur_func_ = parent_type;
+			cur_func_.pop();
 		});
 
 		for (const auto& param:func->get_params())
@@ -483,10 +496,13 @@ void resolver::resolve_function_decl(const shared_ptr<function_statement>& func,
 			params_.push_back(param_type);
 		}
 
-		define_name(func->get_name(), make_shared<lox_callable_type>(func->get_name().lexeme(),
+		auto callable_type = make_shared<lox_callable_type>(func->get_name().lexeme(),
 				ret_,
-				params_), 1);
+				params_);
 
+		define_name(func->get_name(), callable_type, 1 /*define the function in the parent scope!*/);
+
+		cur_func_type_.push(callable_type);
 		resolve(func->get_body()); // resolve the body
 	}
 
@@ -508,8 +524,7 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
-	env_class_type enclosing = cur_cls_;
-	cur_cls_ = env_class_type::CT_CLASS;
+	cur_class_.push(env_class_type::CT_CLASS);
 
 	declare_name(cls->get_name());
 	define_name(cls->get_name(), nullptr/*FIXME*/);
@@ -521,7 +536,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	if (cls->get_base_class())
 	{
-		cur_cls_ = env_class_type::CT_INHERITED_CLASS;
+		cur_class_.top() = env_class_type::CT_INHERITED_CLASS; // it's an inherited class
 		resolve(cls->get_base_class());
 	}
 
@@ -532,7 +547,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	}
 
 	scope_begin();
-	auto _ = finally([this, &cls, enclosing]
+	auto _ = finally([this, &cls]
 	{
 		this->scope_end();
 
@@ -541,7 +556,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 			this->scope_end();
 		}
 
-		this->cur_cls_ = enclosing;
+		this->cur_class_.pop();
 	});
 
 	scope_top()->names()["this"] = true;
@@ -553,6 +568,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		{
 			decl = env_function_type::FT_CTOR;
 		}
+
 		resolve_function_decl(method, decl);
 	}
 
