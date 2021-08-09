@@ -440,11 +440,17 @@ void resolver::declare_name(const clox::scanning::token& t, size_t dist)
 
 void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
 {
+	define_name(tk.lexeme(), type, dist);
+}
+
+void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist)
+{
 	if (scopes_.empty())return;
 
-	scope_top(dist)->names()[tk.lexeme()] = true;
-	scope_top(dist)->type_of_names()[tk.lexeme()] = type;
+	scope_top(dist)->names()[tk] = true;
+	scope_top(dist)->type_of_names()[tk] = type;
 }
+
 
 void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
 {
@@ -521,7 +527,16 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 	return type_error(tk, std::format("Type {} is not defined.", tk.lexeme()));
 }
 
-
+/*
+ * scope {
+ * 	base:base_type
+ * 	scope {
+ * 	 this:this_type
+ * 	 (other fields)
+ * 	 (other methods)
+ * 	}
+ * }
+ * */
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
 	cur_class_.push(env_class_type::CT_CLASS);
@@ -534,19 +549,30 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		logger::instance().error(cls->get_base_class()->get_name(), "A class cannot inherit from itself.");
 	}
 
+	auto base_type = static_pointer_cast<lox_type>(lox_object_type::object());
 	if (cls->get_base_class())
 	{
 		cur_class_.top() = env_class_type::CT_INHERITED_CLASS; // it's an inherited class
-		resolve(cls->get_base_class());
+		auto base = resolve(cls->get_base_class());
+		if (!lox_type::is_class(*base))
+		{
+			base = type_error(cls->get_base_class()->get_name(),
+					std::format("{} cannot be resolved to be a class type",
+							cls->get_base_class()->get_name().lexeme()));
+		}
+
+		base_type = base;
 	}
 
 	if (cls->get_base_class())
 	{
 		scope_begin();
-		scope_top()->names()["base"] = true;
+
+		define_name("base", base_type);
 	}
 
 	scope_begin();
+
 	auto _ = finally([this, &cls]
 	{
 		this->scope_end();

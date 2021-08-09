@@ -104,7 +104,7 @@ class token final
 public:
 	static inline constexpr empty_literal_tag empty_literal;
 
-	[[nodiscard]] token(token_type t, std::string lexeme, literal_value_type lit, size_t line)
+	[[nodiscard]] explicit token(token_type t, std::string lexeme, literal_value_type lit, size_t line)
 			: type_(t), lexeme_(std::move(lexeme)), literal_(std::move(lit)), line_(line)
 	{
 	}

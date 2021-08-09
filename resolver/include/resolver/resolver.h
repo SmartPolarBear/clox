@@ -207,6 +207,8 @@ private:
 
 	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0);
 
+	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0);
+
 	void define_type(const scanning::token& t, const lox_type& type, uint64_t depth = 1);
 
 	std::shared_ptr<scope> scope_top(size_t dist = 0)
