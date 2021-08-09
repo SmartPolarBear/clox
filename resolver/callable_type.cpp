@@ -39,7 +39,8 @@ lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type>
 		std::vector<std::shared_ptr<lox_type>> params)
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
-		  params_(std::move(params))
+		  params_(std::move(params)),
+		  lox_object_type(std::move(name), TYPE_ID_CLASS, TYPE_CLASS | FLAG_CALLABLE, object())
 {
 }
 
@@ -55,16 +56,6 @@ std::string lox_callable_type::printable_string()
 
 	*ret.rbegin() = ')';
 	return ret;
-}
-
-uint64_t lox_callable_type::flags() const
-{
-	return TYPE_CLASS | FLAG_CALLABLE ;
-}
-
-type_id lox_callable_type::id() const
-{
-	return TYPE_ID_CALLABLE;
 }
 
 bool lox_callable_type::operator<(const lox_type& target) const

@@ -371,6 +371,10 @@
           "name": "cond_"
         },
         {
+          "type": "clox::scanning::token",
+          "name": "cond_l_paren_"
+        },
+        {
           "type": "std::shared_ptr<statement>",
           "name": "body_"
         }
@@ -386,6 +390,10 @@
         {
           "type": "std::shared_ptr<expression>",
           "name": "cond_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "cond_l_paren_"
         },
         {
           "type": "std::shared_ptr<statement>",

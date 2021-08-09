@@ -42,6 +42,22 @@ namespace clox::resolving
 // tuple{result type for assignment,compatible,narrowing}
 using type_compatibility = std::tuple<std::shared_ptr<lox_type>, bool, bool>;
 
+enum class [[clang::enum_extensibility(closed)]] env_function_type
+{
+	FT_NONE,
+	FT_METHOD,
+	FT_CTOR,
+	FT_FUNCTION,
+};
+
+enum class [[clang::enum_extensibility(closed)]] env_class_type
+{
+	CT_NONE,
+	CT_CLASS,
+	CT_INHERITED_CLASS
+};
+
+
 class scope final
 {
 public:
@@ -49,6 +65,7 @@ public:
 	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
 
 	scope() = default;
+
 
 	[[nodiscard]] name_table_type& names()
 	{
@@ -70,6 +87,9 @@ private:
 	mutable type_table_type type_of_names_{};
 
 	mutable type_table_type types_{};
+
+	mutable env_function_type env_func_{ env_function_type::FT_NONE };
+	mutable env_class_type env_class_{ env_class_type::CT_NONE };
 };
 
 class resolver final
@@ -77,21 +97,6 @@ class resolver final
 		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>,
 		  public parsing::statement_visitor<void>
 {
-public:
-	enum class [[clang::enum_extensibility(closed)]] function_type
-	{
-		FT_NONE,
-		FT_METHOD,
-		FT_CTOR,
-		FT_FUNCTION,
-	};
-
-	enum class [[clang::enum_extensibility(closed)]] class_type
-	{
-		CT_NONE,
-		CT_CLASS,
-		CT_INHERITED_CLASS
-	};
 
 public:
 	explicit resolver(std::shared_ptr<symbol_table> tbl);
@@ -173,7 +178,7 @@ private:
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, function_type type);
+	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
 
 	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 
@@ -231,9 +236,9 @@ private:
 
 	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
 
-	function_type cur_func_{ function_type::FT_NONE };
+	env_function_type cur_func_{ env_function_type::FT_NONE };
 
-	class_type cur_cls_{ class_type::CT_NONE };
+	env_class_type cur_cls_{ env_class_type::CT_NONE };
 
 	std::shared_ptr<symbol_table> symbols_{ nullptr };
 };

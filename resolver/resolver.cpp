@@ -198,7 +198,7 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 
 std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<this_expression>& expr)
 {
-	if (cur_cls_ == class_type::CT_NONE)
+	if (cur_cls_ == env_class_type::CT_NONE)
 	{
 		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
 		// TODO
@@ -213,13 +213,13 @@ std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
-	if (cur_cls_ == class_type::CT_NONE)
+	if (cur_cls_ == env_class_type::CT_NONE)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
 		// TODO
 		return nullptr;
 	}
-	else if (cur_cls_ != class_type::CT_INHERITED_CLASS)
+	else if (cur_cls_ != env_class_type::CT_INHERITED_CLASS)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
 		// TODO
@@ -321,34 +321,53 @@ void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statem
 
 void resolver::visit_while_statement(const std::shared_ptr<parsing::while_statement>& ws)
 {
-	resolve(ws->get_cond());
+	auto cond_type = resolve(ws->get_cond());
+	if (!lox_type::unify(*lox_object_type::boolean(), *cond_type))
+	{
+		type_error(ws->get_cond_l_paren(), std::format("Condition expression of while of type {} is not subtype of {}",
+				cond_type->printable_string(),
+				lox_object_type::boolean()->printable_string()));
+	}
+
 	resolve(ws->get_body());
 }
 
 void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& stmt)
 {
-	resolve(stmt->get_cond());
+	auto cond_type = resolve(stmt->get_cond());
+	if (!lox_type::unify(*lox_object_type::boolean(), *cond_type))
+	{
+		type_error(stmt->get_cond_l_paren(),
+				std::format("Condition expression of if statement of type {} is not subtype of {}",
+						cond_type->printable_string(),
+						lox_object_type::boolean()->printable_string()));
+	}
+
 	resolve(stmt->get_true_stmt());
-	if (stmt->get_false_stmt())resolve(stmt->get_false_stmt());
+
+	if (stmt->get_false_stmt())
+	{
+		resolve(stmt->get_false_stmt());
+	}
 }
 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
 	declare_name(stmt->get_name());
 
-	resolve_function_decl(stmt, function_type::FT_FUNCTION);
+	resolve_function_decl(stmt, env_function_type::FT_FUNCTION);
 }
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
 {
-	if (cur_func_ == function_type::FT_NONE)
+	if (cur_func_ == env_function_type::FT_NONE)
 	{
 		logger::instance().error(rs->get_return_keyword(), "Return statement in none-function scoop.");
 	}
 
 	if (rs->get_val())
 	{
-		if (cur_func_ == function_type::FT_CTOR)
+		if (cur_func_ == env_function_type::FT_CTOR)
 		{
 			logger::instance().error(rs->get_return_keyword(), "Constructor can't return a value.");
 		}
@@ -437,7 +456,7 @@ void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const 
 	}
 }
 
-void resolver::resolve_function_decl(const shared_ptr<function_statement>& func, function_type type)
+void resolver::resolve_function_decl(const shared_ptr<function_statement>& func, env_function_type type)
 {
 
 	vector<shared_ptr<lox_type>> params_{};
@@ -489,8 +508,8 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
 {
-	class_type enclosing = cur_cls_;
-	cur_cls_ = class_type::CT_CLASS;
+	env_class_type enclosing = cur_cls_;
+	cur_cls_ = env_class_type::CT_CLASS;
 
 	declare_name(cls->get_name());
 	define_name(cls->get_name(), nullptr/*FIXME*/);
@@ -502,7 +521,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	if (cls->get_base_class())
 	{
-		cur_cls_ = class_type::CT_INHERITED_CLASS;
+		cur_cls_ = env_class_type::CT_INHERITED_CLASS;
 		resolve(cls->get_base_class());
 	}
 
@@ -529,10 +548,10 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	for (const auto& method:cls->get_methods())
 	{
-		auto decl = function_type::FT_METHOD;
+		auto decl = env_function_type::FT_METHOD;
 		if (method->get_name().lexeme() == "init")
 		{
-			decl = function_type::FT_CTOR;
+			decl = env_function_type::FT_CTOR;
 		}
 		resolve_function_decl(method, decl);
 	}

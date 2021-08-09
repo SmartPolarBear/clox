@@ -192,8 +192,6 @@ bool lox_object_type::operator!=(const lox_type& another) const
 }
 
 
-
-
 lox_integer_type::lox_integer_type()
 		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, TYPE_PRIMITIVE, lox_object_type::object())
 {
@@ -219,7 +217,7 @@ lox_nil_type::lox_nil_type()
 
 
 lox_string_type::lox_string_type()
-		: lox_object_type("string", TYPE_ID_STRING, 0, lox_object_type::object())
+		: lox_object_type("string", TYPE_ID_CLASS, 0, lox_object_type::object())
 {
 }
 

@@ -522,7 +522,7 @@ std::vector<std::shared_ptr<statement>> parser::block()
 
 std::shared_ptr<statement> parser::if_stmt()
 {
-	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'if'.");
+	auto lparen = consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'if'.");
 	auto cond = expr();
 	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after 'if''s condition.");
 
@@ -534,7 +534,7 @@ std::shared_ptr<statement> parser::if_stmt()
 		false_stmt = stmt();
 	}
 
-	return make_shared<if_statement>(cond, true_stmt, false_stmt);
+	return make_shared<if_statement>(cond, lparen, true_stmt, false_stmt);
 }
 
 std::shared_ptr<statement> parser::return_stmt()
@@ -553,18 +553,18 @@ std::shared_ptr<statement> parser::return_stmt()
 
 std::shared_ptr<statement> parser::while_stmt()
 {
-	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'while'.");
+	auto lparen = consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'while'.");
 	auto cond = this->expr();
 	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after 'while''s condition.");
 
 	auto body = stmt();
 
-	return make_shared<while_statement>(cond, body);
+	return make_shared<while_statement>(cond, lparen, body);
 }
 
 std::shared_ptr<statement> parser::for_stmt()
 {
-	consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'for'.");
+	auto lparen = consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'for'.");
 
 	shared_ptr<statement> initializer{ nullptr };
 	if (match({ token_type::SEMICOLON }))
@@ -606,7 +606,7 @@ std::shared_ptr<statement> parser::for_stmt()
 	}
 
 	if (!cond)cond = make_shared<literal_expression>(true);
-	body = make_shared<while_statement>(cond, body);
+	body = make_shared<while_statement>(cond, lparen, body);
 
 	if (initializer)
 	{
