@@ -452,12 +452,11 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 }
 
 
-void resolver::define_type(const clox::scanning::token& tk, const lox_type& type, uint64_t depth)
+void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox_type>& type, uint64_t dist)
 {
-//	if (scopes_.empty())return;
-//	scopes_[depth]->types()[tk.lexeme()] = type;
+	if (scopes_.empty())return;
+	scope_top(dist)->types()[tk.lexeme()] = type;
 }
-
 
 void resolver::resolve_local(const shared_ptr<parsing::expression>& expr, const clox::scanning::token& tk)
 {
@@ -547,6 +546,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	declare_name(cls->get_name());
 	define_name(cls->get_name(), this_type);
+	define_type(cls->get_name(), this_type);
 
 	scope_begin();
 	define_name("base", base_type);
