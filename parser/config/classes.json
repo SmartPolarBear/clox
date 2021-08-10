@@ -155,6 +155,10 @@
       ],
       "member": [
         {
+          "type": "clox::scanning::token",
+          "name": "token_"
+        },
+        {
           "type": "scanning::literal_value_type",
           "name": "value_"
         }

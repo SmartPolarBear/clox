@@ -35,9 +35,25 @@ class lox_class_type
 		: public lox_object_type
 {
 public:
+	using type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
+
+public:
+	[[nodiscard]] explicit lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
+			type_map_type fields = type_map_type{},
+			type_map_type methods = type_map_type{});
+
+	[[nodiscard]] type_map_type& fields()
+	{
+		return fields_;
+	}
+
+	[[nodiscard]] type_map_type& methods()
+	{
+		return methods_;
+	}
 
 private:
-	std::unordered_map<std::string, std::shared_ptr<lox_type>> fields_{};
-	std::unordered_map<std::string, std::shared_ptr<lox_type>> methods_{};
+	type_map_type fields_{};
+	type_map_type methods_{};
 };
 }

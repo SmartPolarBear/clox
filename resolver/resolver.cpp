@@ -74,7 +74,6 @@ resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_
 	auto target_type = scope_top()->type_of_names()[e->get_name().lexeme()];
 
 	auto compa = check_type_assignment(e->get_name(), target_type, value_type);
-	// TODO
 
 	return get<0>(compa);
 }
@@ -130,8 +129,7 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 	}
 	else
 	{
-		// TODO
-		return lox_object_type::object();
+		return type_error(le->get_token(), "Invalid literal value of unknown type.");
 	}
 }
 
@@ -205,14 +203,12 @@ std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<
 	if (cur_class_.top() == env_class_type::CT_NONE)
 	{
 		logger::instance().error(expr->get_keyword(), "Can't use this in standalone function or in global scoop.");
-		// TODO
-		return nullptr;
+		return make_shared<lox_any_type>();
 	}
 
 	resolve_local(expr, expr->get_keyword());
 
-	// TODO
-	return nullptr;
+	return scope_top()->type_of_names().at("this");
 }
 
 std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
@@ -220,19 +216,16 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 	if (cur_class_.top() == env_class_type::CT_NONE)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in standalone function or in global scoop.");
-		// TODO
-		return nullptr;
+		return make_shared<lox_any_type>();
 	}
 	else if (cur_class_.top() != env_class_type::CT_INHERITED_CLASS)
 	{
 		logger::instance().error(be->get_keyword(), "Can't use super in class who doesn't have a base class.");
-		// TODO
-		return nullptr;
+		return make_shared<lox_any_type>();
 	}
 
 	resolve_local(be, be->get_keyword());
-	// TODO
-	return nullptr;
+	return scope_top()->type_of_names().at("base");
 }
 
 
@@ -589,8 +582,16 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 		base_type = base;
 	}
 
+	auto this_type = make_shared<lox_class_type>(cls->get_name().lexeme(),
+			static_pointer_cast<lox_object_type>(base_type));
+
+	for (const auto& method:cls->get_methods())
+	{
+		this_type->methods()[method->get_name().lexeme()] = resolve(method->get_return_type_expr());
+	}
+
 	return { static_pointer_cast<lox_class_type>(base_type),
-			 static_pointer_cast<lox_class_type>(lox_object_type::object()) /*FIXME*/};
+			 static_pointer_cast<lox_class_type>(this_type) };
 }
 
 
