@@ -651,7 +651,7 @@ std::shared_ptr<statement> parser::class_declaration()
 	}
 
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
-	return make_shared<class_statement>(name, base_class, methods);
+	return make_shared<class_statement>(name, base_class, fields, methods);
 }
 
 std::shared_ptr<type_expression> parser::type_expr()

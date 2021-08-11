@@ -467,6 +467,10 @@
           "name": "base_class_"
         },
         {
+          "type": "std::vector<std::shared_ptr<variable_statement>>",
+          "name": "fields_"
+        },
+        {
           "type": "std::vector<std::shared_ptr<function_statement>>",
           "name": "methods_"
         }

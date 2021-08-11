@@ -26,6 +26,7 @@
 
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
+#include <resolver/callable_type.h>
 
 #include <unordered_map>
 
@@ -36,24 +37,25 @@ class lox_class_type
 {
 public:
 	using type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
+	using callable_type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_callable_type>>;
 
 public:
 	[[nodiscard]] explicit lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
 			type_map_type fields = type_map_type{},
-			type_map_type methods = type_map_type{});
+			callable_type_map_type methods = callable_type_map_type{});
 
 	[[nodiscard]] type_map_type& fields()
 	{
 		return fields_;
 	}
 
-	[[nodiscard]] type_map_type& methods()
+	[[nodiscard]] callable_type_map_type& methods()
 	{
 		return methods_;
 	}
 
 private:
 	type_map_type fields_{};
-	type_map_type methods_{};
+	callable_type_map_type methods_{};
 };
 }

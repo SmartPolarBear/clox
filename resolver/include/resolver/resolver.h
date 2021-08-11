@@ -38,6 +38,7 @@
 #include <unordered_map>
 #include <memory>
 #include <tuple>
+#include <thread>
 
 namespace clox::resolving
 {
@@ -177,12 +178,13 @@ private:
 
 	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
 
-	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
+	int64_t resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	/// Resolve what can be confirmed just by the signature of the function. Resulting in a lox_callable_type to be defined
+	/// Resolve what can be confirmed just by the signature of the function.
 	/// \param func
 	/// \param type
-	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
+	/// \return std::shared_ptr<lox_callable_type> resulting in the function
+	std::shared_ptr<lox_callable_type> resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func);
 
 	/// Resolve the function body
 	/// \param func
