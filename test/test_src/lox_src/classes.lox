@@ -1,9 +1,15 @@
 class Person {
-  sayName() {
+  var name:string;
+
+  fun init() {
+    this.name="Jane";
+  }
+
+  fun sayName() {
     print this.name;
   }
+
 }
 
 var jane = Person();
-jane.name = "Jane";
 jane.sayName();

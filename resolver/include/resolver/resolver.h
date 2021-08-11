@@ -179,7 +179,16 @@ private:
 
 	void resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
+	/// Resolve what can be confirmed just by the signature of the function. Resulting in a lox_callable_type to be defined
+	/// \param func
+	/// \param type
 	void resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
+
+	/// Resolve the function body
+	/// \param func
+	/// \param type
+	void resolve_function_body(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
+
 
 	std::tuple<std::shared_ptr<lox_class_type>, std::shared_ptr<lox_class_type>>
 	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);

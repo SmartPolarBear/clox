@@ -36,7 +36,7 @@ using namespace clox::helper;
 using namespace clox::resolving;
 
 lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
-		std::vector<std::shared_ptr<lox_type>> params, bool ctor)
+		param_list_type params, bool ctor)
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
 		  params_(std::move(params)),
@@ -51,11 +51,11 @@ lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type>
 
 std::string lox_callable_type::printable_string()
 {
-	auto ret = std::format("<callable object {} -> {} ( >", name_, return_type_->printable_string());
+	auto ret = std::format("<callable object {} -> {} ( ", name_, return_type_->printable_string());
 
 	for (const auto& param:params_)
 	{
-		ret += std::format("{},", param->printable_string());
+		ret += std::format("{}:{},", param.first.lexeme(), param.second->printable_string());
 	}
 
 	*ret.rbegin() = ')';
@@ -80,7 +80,7 @@ bool lox_callable_type::operator==(const lox_type& another) const
 	auto param_size = params_.size();
 	for (decltype(param_size) i = 0; i < param_size; i++)
 	{
-		if (params_[i] != callable.params_[i])
+		if (params_[i].second != callable.params_[i].second)
 		{
 			return false;
 		}

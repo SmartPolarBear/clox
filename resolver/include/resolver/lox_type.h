@@ -39,15 +39,18 @@ enum lox_type_flags : uint64_t
 {
 	TYPE_PRIMITIVE = 1,
 	TYPE_CLASS = 2,
-	FLAG_CALLABLE = 4,
-	FLAG_CTOR = 8,
+	TYPE_VOID = 4,
+	FLAG_CALLABLE = 8,
+	FLAG_CTOR = 16,
 };
 
 
-using type_id = uint64_t;
+using type_id = int64_t;
 
 enum primitive_type_id : type_id
 {
+	PRIMITIVE_TYPE_ID_VOID = -1,
+
 	PRIMITIVE_TYPE_ID_ANY = 0,
 
 	// the order represent if it can be assigned !
@@ -118,6 +121,23 @@ public:
 	[[nodiscard]] type_id id() const override;
 
 	bool operator<(const lox_type& target) const override;
+};
+
+class lox_void_type final
+		: public lox_type
+{
+public:
+	std::string printable_string() override;
+
+	uint64_t flags() const override;
+
+	type_id id() const override;
+
+	bool operator<(const lox_type& target) const override;
+
+	bool operator==(const lox_type& lox_type) const override;
+
+	bool operator!=(const lox_type& lox_type) const override;
 };
 
 }

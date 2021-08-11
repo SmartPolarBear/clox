@@ -38,8 +38,10 @@ class lox_callable_type
 		  public std::enable_shared_from_this<lox_callable_type>
 {
 public:
+	using param_list_type = std::vector<std::pair<scanning::token, std::shared_ptr<lox_type>>>;
+public:
 	[[nodiscard]] lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
-			std::vector<std::shared_ptr<lox_type>> params, bool ctor = false);
+			param_list_type params, bool ctor = false);
 
 	std::string printable_string() override;
 
@@ -59,12 +61,12 @@ public:
 		return params_.size();
 	}
 
-	std::shared_ptr<lox_type> param(size_t i) const
+	std::shared_ptr<lox_type> param_type(size_t i) const
 	{
-		return params_.at(i);
+		return params_.at(i).second;
 	}
 
-	std::vector<std::shared_ptr<lox_type>> params() const
+	param_list_type params() const
 	{
 		return params_;
 	}
@@ -78,7 +80,7 @@ private:
 	std::string name_{};
 
 	std::shared_ptr<lox_type> return_type_{};
-	std::vector<std::shared_ptr<lox_type>> params_{};
+	param_list_type params_{};
 };
 
 }

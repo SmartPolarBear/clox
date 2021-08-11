@@ -476,8 +476,12 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 
 	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", kind));
 
-	consume(token_type::COLON, std::format("Return type is required for callable {}", name.lexeme()));
-	auto ret_type = type_expr();
+	decltype(type_expr()) ret_type{ nullptr };
+	if (peek().type() == token_type::COLON)
+	{
+		consume(token_type::COLON, std::format("Return type is required for callable {}", name.lexeme()));
+		ret_type = type_expr();
+	}
 
 	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", kind));
 
@@ -632,9 +636,18 @@ std::shared_ptr<statement> parser::class_declaration()
 	consume(scanning::token_type::LEFT_BRACE, "'{' is expected after class name.");
 
 	vector<shared_ptr<function_statement>> methods{};
+	vector<shared_ptr<variable_statement>> fields{};
+
 	while (!check(scanning::token_type::RIGHT_BRACE) && !is_end())
 	{
-		methods.push_back(static_pointer_cast<function_statement>(func_declaration("method")));
+		if (match({ scanning::token_type::VAR }))
+		{
+			fields.push_back(static_pointer_cast<variable_statement>(var_declaration()));
+		}
+		else if (match({ scanning::token_type::FUN }))
+		{
+			methods.push_back(static_pointer_cast<function_statement>(func_declaration("method")));
+		}
 	}
 
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");

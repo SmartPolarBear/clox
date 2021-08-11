@@ -42,3 +42,33 @@ bool lox_any_type::operator!=(const lox_type& lox_type) const
 {
 	return false;
 }
+
+std::string lox_void_type::printable_string()
+{
+	return "<void>";
+}
+
+uint64_t lox_void_type::flags() const
+{
+	return TYPE_VOID;
+}
+
+type_id lox_void_type::id() const
+{
+	return PRIMITIVE_TYPE_ID_VOID;
+}
+
+bool lox_void_type::operator<(const lox_type& target) const
+{
+	return false;
+}
+
+bool lox_void_type::operator==(const lox_type& another) const
+{
+	return another.id() == PRIMITIVE_TYPE_ID_VOID;
+}
+
+bool lox_void_type::operator!=(const lox_type& another) const
+{
+	return another.id() != PRIMITIVE_TYPE_ID_VOID;
+}
