@@ -24,6 +24,7 @@
 #include <helper/enum.h>
 
 #include <resolver/object_type.h>
+#include <resolver/instance_type.h>
 
 #include <tuple>
 #include <utility>
@@ -223,8 +224,22 @@ lox_string_type::lox_string_type()
 
 bool lox_type::unify(const lox_type& base, const lox_type& derived)
 {
-	return derived.id() == PRIMITIVE_TYPE_ID_ANY ||
-		   dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
+	if (derived.id() == PRIMITIVE_TYPE_ID_ANY)
+	{
+		return true;
+	}
+
+	if (lox_type::is_instance(base))
+	{
+		return unify(*dynamic_cast<const lox_instance_type&>(base).underlying_type(), derived);
+	}
+
+	if (lox_type::is_instance(derived))
+	{
+		return unify(base, *dynamic_cast<const lox_instance_type&>(derived).underlying_type());
+	}
+
+	return dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 }
 
 std::shared_ptr<lox_type> lox_type::intersect(const std::shared_ptr<lox_type>& t1, const std::shared_ptr<lox_type>& t2)

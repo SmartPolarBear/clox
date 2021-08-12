@@ -832,8 +832,30 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 		}
 		break;
 
+	case scanning::token_type::LESS:
+	case scanning::token_type::GREATER:
+	case scanning::token_type::LESS_EQUAL:
+	case scanning::token_type::GREATER_EQUAL:
+		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+		{
+			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
+									lox_object_type::floating() };
+
+			for (const auto& t:possible_types) // not  call intersect for extensibility
+			{
+				if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
+				{
+					return make_tuple(lox_object_type::boolean(), true, false);
+				}
+			}
+		}
+
+	case scanning::token_type::EQUAL_EQUAL:
+		// TODO: any checking?
+		return make_tuple(lox_object_type::boolean(), true, false);
+
 	case scanning::token_type::COMMA:
-		return make_tuple(right,true,false);
+		return make_tuple(right, true, false);
 	default:
 		break;
 	}
@@ -920,6 +942,7 @@ resolver::check_type_ternary_expression(const clox::scanning::token& tk, const s
 {
 	shared_ptr<lox_type> left{ l }, right{ r };
 
+	// FIXME: do not do this. handle this in lox_type
 	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
 	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
 
