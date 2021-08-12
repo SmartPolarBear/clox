@@ -323,7 +323,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		return static_pointer_cast<lox_class_type>(callee);
 	}
 
-
+	throw logic_error{ "should not reach here" };
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
@@ -356,6 +356,7 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 	{
 		logger::instance().error(stmt->get_name(),
 				"Variable declaration should either has a given type, or have a type-deducible initializer expression, or both.");
+		return;
 	}
 
 	if (initializer_type && declared_type)
