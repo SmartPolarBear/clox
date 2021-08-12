@@ -648,6 +648,10 @@ std::shared_ptr<statement> parser::class_declaration()
 		{
 			methods.push_back(static_pointer_cast<function_statement>(func_declaration("method")));
 		}
+		else
+		{
+			error(peek(), "Field or method is expected.");
+		}
 	}
 
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");

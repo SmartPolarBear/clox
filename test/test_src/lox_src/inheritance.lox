@@ -1,5 +1,5 @@
 class Doughnut {
-  cook() {
+  fun cook() {
     print "Fry until golden brown.";
   }
 }
@@ -12,17 +12,17 @@ class BostonCream : Doughnut {}
 BostonCream().cook();
 
 class A {
-  method() {
+  fun method() {
     print "A method";
   }
 }
 
 class B : A {
-  method() {
+  fun method() {
     print "B method";
   }
 
-  test() {
+  fun test() {
     base.method();
   }
 }
