@@ -286,7 +286,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	else if (lox_type::is_class(*callee))
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
-		callable = static_pointer_cast<lox_callable_type>(class_t->methods()["init"]);
+		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
 	}
 
 	if (!callable)
@@ -565,7 +565,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 		{
 
 			symbols_->set_depth(expr, depth);
-			symbols_->set_type(expr, s->type_of_names()[tk.lexeme()]);
+			symbols_->set_type(expr, s->type_of_names().at(tk.lexeme()));
 
 			return symbols_->at(expr);
 		}
@@ -786,7 +786,7 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 
 		auto type = compatible ? left : type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
 				tk.lexeme(),
-				scope_top()->type_of_names()[tk.lexeme()]->printable_string(),
+				scope_top()->type_of_names().at(tk.lexeme())->printable_string(),
 				right->printable_string()));
 
 
@@ -799,7 +799,7 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 
 	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
 					tk.lexeme(),
-					scope_top()->type_of_names()[tk.lexeme()]->printable_string(),
+					scope_top()->type_of_names().at(tk.lexeme())->printable_string(),
 					right->printable_string())),
 			false,
 			false);

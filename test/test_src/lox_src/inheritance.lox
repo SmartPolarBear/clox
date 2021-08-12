@@ -4,6 +4,9 @@ class Doughnut {
   }
 }
 
+var doughnut=Doughnut();
+doughnut.cook();
+
 class BostonCream : Doughnut {}
 
 BostonCream().cook();
