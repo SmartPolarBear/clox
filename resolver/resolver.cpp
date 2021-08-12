@@ -286,7 +286,14 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	else if (lox_type::is_class(*callee))
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
-		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
+		if (class_t->methods().contains("init"))
+		{
+			callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
+		}
+		else
+		{
+			callable = make_shared<lox_callable_type>("init", class_t, lox_callable_type::param_list_type{}, true);
+		}
 	}
 
 	if (!callable)
@@ -679,7 +686,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 		this->cur_class_.pop();
 	});
 
-	resolve_class_members(cls);
+	resolve_class_members(cls, class_type);
 }
 
 
@@ -729,7 +736,8 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 }
 
 
-void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls)
+void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls,
+		const std::shared_ptr<lox_class_type>& class_type)
 {
 	for (const auto& field:cls->get_fields())
 	{
@@ -744,7 +752,7 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 			decl = env_function_type::FT_CTOR;
 		}
 
-		auto func_type = resolve_function_decl(method);
+		auto func_type = class_type->methods()[method->get_name().lexeme()];
 
 		cur_func_type_.push(func_type);
 
@@ -754,6 +762,11 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 		});
 
 		resolve_function_body(method, decl);
+
+		if (!func_type->return_type_deduced())
+		{
+			func_type->set_return_type(make_shared<lox_void_type>());
+		}
 	}
 }
 

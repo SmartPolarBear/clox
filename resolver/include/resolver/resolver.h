@@ -199,7 +199,8 @@ private:
 			std::shared_ptr<lox_instance_type>>
 	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);
 
-	void resolve_class_members(const std::shared_ptr<parsing::class_statement>& cls);
+	void resolve_class_members(const std::shared_ptr<parsing::class_statement>& cls,
+			const std::shared_ptr<lox_class_type>& class_type);
 
 	std::shared_ptr<lox_type> type_lookup(const scanning::token& tk);
 

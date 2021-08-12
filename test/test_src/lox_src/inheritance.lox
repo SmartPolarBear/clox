@@ -4,9 +4,10 @@ class Doughnut {
   }
 }
 
-var doughnut=Doughnut();
-doughnut.cook();
+var dn=Doughnut();
+dn.cook();
 
+/*
 class BostonCream : Doughnut {}
 
 BostonCream().cook();
@@ -30,3 +31,4 @@ class B : A {
 class C : B {}
 
 C().test();
+*/
