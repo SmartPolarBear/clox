@@ -516,6 +516,11 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 
 void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox_type>& type, uint64_t dist)
 {
+	if (lox_type::is_instance(*type))
+	{
+		throw invalid_argument{ "type" };
+	}
+
 	if (scopes_.empty())return;
 	scope_top(dist)->types()[tk.lexeme()] = type;
 }
@@ -535,6 +540,8 @@ int64_t resolver::resolve_local(const shared_ptr<expression>& expr, const clox::
 		}
 		depth++;
 	}
+
+	return -1;
 }
 
 shared_ptr<lox_callable_type> resolver::resolve_function_decl(const shared_ptr<function_statement>& func)
@@ -610,7 +617,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 {
 	cur_class_.push(env_class_type::CT_CLASS);
 
-	auto[base_type, this_type]=resolve_class_type_decl(cls);
+	auto[class_type, base_class_type, this_type, base_type] = resolve_class_type_decl(cls);
 
 	/* The scope structure for class:
 	 * scope {
@@ -624,8 +631,8 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	 * */
 
 	declare_name(cls->get_name());
-	define_name(cls->get_name(), this_type);
-	define_type(cls->get_name(), this_type);
+	define_name(cls->get_name(), class_type); //FIXME
+	define_type(cls->get_name(), class_type);
 
 	scope_begin();
 	define_name("base", base_type);
@@ -645,7 +652,10 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 }
 
 
-std::tuple<shared_ptr<lox_instance_type>, shared_ptr<lox_instance_type>>
+std::tuple<shared_ptr<lox_class_type>,
+		std::shared_ptr<lox_class_type>,
+		shared_ptr<lox_instance_type>,
+		shared_ptr<lox_instance_type>>
 resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 {
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
@@ -681,8 +691,10 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 		this_type->methods()[method->get_name().lexeme()] = resolve_function_decl(method);
 	}
 
-	return { make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(base_type)),
-			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)) };
+	return { static_pointer_cast<lox_class_type>(this_type),
+			 static_pointer_cast<lox_class_type>(base_type),
+			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)),
+			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(base_type)) };
 }
 
 
@@ -728,12 +740,17 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, 
 }
 
 type_compatibility
-resolver::check_type_assignment(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
-		const shared_ptr<lox_type>& right)
+resolver::check_type_assignment(const clox::scanning::token& tk, const shared_ptr<lox_type>& l,
+		const shared_ptr<lox_type>& r)
 {
-	if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+	shared_ptr<lox_type> left{ l }, right{ r };
+
+	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+
+	auto compatible = lox_type::unify(*left, *right);
+	if (compatible)
 	{
-		auto compatible = lox_type::unify(*left, *right);
 		auto narrowing = !lox_type::unify(*left, *right) && lox_type::unify(*right, *left);
 
 		auto type = compatible ? left : type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
@@ -748,17 +765,6 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 				narrowing
 		);
 	}
-	else
-	{
-		if (lox_type::unify(*left, *right))
-		{
-			return make_tuple(
-					left,
-					true,
-					false
-			);
-		}
-	}
 
 	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
 					tk.lexeme(),
@@ -769,9 +775,14 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 }
 
 type_compatibility
-resolver::check_type_binary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
-		const shared_ptr<lox_type>& right)
+resolver::check_type_binary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l,
+		const shared_ptr<lox_type>& r)
 {
+	shared_ptr<lox_type> left{ l }, right{ r };
+
+	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+
 	switch (tk.type())
 	{
 	case scanning::token_type::PLUS:
@@ -807,8 +818,12 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 }
 
 type_compatibility
-resolver::check_type_unary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left)
+resolver::check_type_unary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l)
 {
+	shared_ptr<lox_type> left{ l };
+
+	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+
 	switch (tk.type())
 	{
 	case scanning::token_type::BANG:
@@ -837,8 +852,12 @@ resolver::check_type_unary_expression(const clox::scanning::token& tk, const sha
 }
 
 type_compatibility
-resolver::check_type_postfix_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& right)
+resolver::check_type_postfix_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& r)
 {
+	shared_ptr<lox_type> right{ r };
+
+	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+
 	switch (tk.type())
 	{
 
@@ -867,9 +886,14 @@ resolver::check_type_postfix_expression(const clox::scanning::token& tk, const s
 
 
 type_compatibility
-resolver::check_type_ternary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
-		const shared_ptr<lox_type>& right)
+resolver::check_type_ternary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l,
+		const shared_ptr<lox_type>& r)
 {
+	shared_ptr<lox_type> left{ l }, right{ r };
+
+	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+
 	auto intersect = lox_type::intersect(left, right);
 	if (intersect)
 	{
@@ -887,9 +911,14 @@ resolver::check_type_ternary_expression(const clox::scanning::token& tk, const s
 }
 
 type_compatibility
-resolver::check_type_logical_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
-		const shared_ptr<lox_type>& right)
+resolver::check_type_logical_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l,
+		const shared_ptr<lox_type>& r)
 {
+	shared_ptr<lox_type> left{ l }, right{ r };
+
+	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+
 	auto compatible =
 			lox_type::unify(*lox_object_type::boolean(), *left) && lox_type::unify(*lox_object_type::boolean(), *right);
 

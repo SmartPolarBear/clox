@@ -193,7 +193,10 @@ private:
 	void resolve_function_body(const std::shared_ptr<parsing::function_statement>& func, env_function_type type);
 
 
-	std::tuple<std::shared_ptr<lox_instance_type>, std::shared_ptr<lox_instance_type>>
+	std::tuple<std::shared_ptr<lox_class_type>,
+			std::shared_ptr<lox_class_type>,
+			std::shared_ptr<lox_instance_type>,
+			std::shared_ptr<lox_instance_type>>
 	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);
 
 	void resolve_class_members(const std::shared_ptr<parsing::class_statement>& cls);
