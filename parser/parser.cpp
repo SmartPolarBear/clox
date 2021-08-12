@@ -650,7 +650,7 @@ std::shared_ptr<statement> parser::class_declaration()
 		}
 		else
 		{
-			error(peek(), "Field or method is expected.");
+			throw error(peek(), "Field or method is expected.");
 		}
 	}
 
