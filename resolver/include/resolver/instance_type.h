@@ -35,17 +35,22 @@
 
 namespace clox::resolving
 {
-class instance_type
+class lox_instance_type
 		: public lox_type
 {
 public:
-	explicit instance_type(std::shared_ptr<lox_object_type> obj);
+	explicit lox_instance_type(std::shared_ptr<lox_object_type> obj);
 
 	std::string printable_string() override;
 
 	uint64_t flags() const override;
 
 	type_id id() const override;
+
+	[[nodiscard]] std::shared_ptr<lox_object_type>& underlying_type() const
+	{
+		return type_;
+	}
 
 	bool operator<(const lox_type& target) const override;
 
@@ -54,6 +59,6 @@ public:
 	bool operator!=(const lox_type& lox_type) const override;
 
 private:
-	std::shared_ptr<lox_object_type> type_{};
+	mutable std::shared_ptr<lox_object_type> type_{};
 };
 }

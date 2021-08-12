@@ -27,38 +27,38 @@
 #include <utility>
 #include <format>
 
-std::string clox::resolving::instance_type::printable_string()
+std::string clox::resolving::lox_instance_type::printable_string()
 {
 	return std::format("instance of type {}", type_->printable_string());
 }
 
-uint64_t clox::resolving::instance_type::flags() const
+uint64_t clox::resolving::lox_instance_type::flags() const
 {
 	return FLAG_INSTANCE | TYPE_CLASS;
 }
 
-clox::resolving::type_id clox::resolving::instance_type::id() const
+clox::resolving::type_id clox::resolving::lox_instance_type::id() const
 {
 	return TYPE_ID_INSTANCE;
 }
 
-bool clox::resolving::instance_type::operator<(const clox::resolving::lox_type& target) const
+bool clox::resolving::lox_instance_type::operator<(const clox::resolving::lox_type& target) const
 {
 	return type_ && type_->operator<(target);
 }
 
-bool clox::resolving::instance_type::operator==(const clox::resolving::lox_type& target) const
+bool clox::resolving::lox_instance_type::operator==(const clox::resolving::lox_type& target) const
 {
 	return type_ && type_->operator==(target);
 
 }
 
-bool clox::resolving::instance_type::operator!=(const clox::resolving::lox_type& target) const
+bool clox::resolving::lox_instance_type::operator!=(const clox::resolving::lox_type& target) const
 {
 	return type_ && type_->operator!=(target);
 }
 
-clox::resolving::instance_type::instance_type(std::shared_ptr<lox_object_type> obj)
+clox::resolving::lox_instance_type::lox_instance_type(std::shared_ptr<lox_object_type> obj)
 		: type_(std::move(obj))
 {
 }

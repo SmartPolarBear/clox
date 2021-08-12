@@ -27,6 +27,7 @@
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
+#include <resolver/instance_type.h>
 
 #include <logger/logger.h>
 
@@ -187,12 +188,20 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 {
 	auto obj_type = resolve(ptr->get_object());
 
-	if (!lox_type::is_class(*obj_type))
+	if (!lox_type::is_instance(*obj_type))
 	{
-		return type_error(ptr->get_name(), std::format("Type {} is not a class", obj_type->printable_string()));
+		return type_error(ptr->get_name(), std::format("{} is not a instance", ptr->get_name().lexeme()));
 	}
 
-	auto class_type = static_pointer_cast<lox_class_type>(obj_type);
+	auto inst = static_pointer_cast<lox_instance_type>(obj_type);
+
+	if (!lox_type::is_class(*inst->underlying_type()))
+	{
+		return type_error(ptr->get_name(), std::format("{} of type {} is not a class type", ptr->get_name().lexeme(),
+				inst->underlying_type()->printable_string()));
+	}
+
+	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
 	auto member_name = ptr->get_name().lexeme();
 
 	if (class_type->fields().contains(member_name))
@@ -340,7 +349,14 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 		}
 	}
 
-	this->define_name(stmt->get_name(), declared_type ? declared_type : initializer_type);
+	auto var_type = declared_type ? declared_type : initializer_type;
+
+	if (lox_type::is_class(*var_type))
+	{
+		var_type = make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(var_type));
+	}
+
+	this->define_name(stmt->get_name(), var_type);
 }
 
 void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)
@@ -629,7 +645,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 }
 
 
-std::tuple<shared_ptr<lox_class_type>, shared_ptr<lox_class_type>>
+std::tuple<shared_ptr<lox_instance_type>, shared_ptr<lox_instance_type>>
 resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 {
 	if (cls->get_base_class() && cls->get_base_class()->get_name().lexeme() == cls->get_name().lexeme())
@@ -665,8 +681,8 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 		this_type->methods()[method->get_name().lexeme()] = resolve_function_decl(method);
 	}
 
-	return { static_pointer_cast<lox_class_type>(base_type),
-			 static_pointer_cast<lox_class_type>(this_type) };
+	return { make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(base_type)),
+			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)) };
 }
 
 

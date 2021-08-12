@@ -42,7 +42,7 @@ enum lox_type_flags : uint64_t
 	TYPE_VOID = 4,
 	FLAG_CALLABLE = 8,
 	FLAG_CTOR = 16,
-	FLAG_INSTANCE=32,
+	FLAG_INSTANCE = 32,
 };
 
 
@@ -84,6 +84,11 @@ public:
 	static bool is_class(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::TYPE_CLASS;
+	}
+
+	static bool is_instance(const lox_type& t)
+	{
+		return t.flags() & lox_type_flags::FLAG_INSTANCE;
 	}
 
 	static bool unify(const lox_type& base, const lox_type& derived);
