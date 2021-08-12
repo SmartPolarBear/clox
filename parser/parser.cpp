@@ -308,7 +308,7 @@ std::shared_ptr<expression> parser::primary()
 		auto keyword = previous();
 		consume(scanning::token_type::DOT, "'.' is expected after base.");
 		auto method = consume(scanning::token_type::IDENTIFIER, "Identifier is expected after base.");
-		return make_shared<base_expression>(keyword, method);
+		return make_shared<base_expression>(keyword, method); // FIXME: we should use get expression !
 	}
 	else if (match({ token_type::THIS }))return make_shared<this_expression>(previous());
 	else if (match({ token_type::IDENTIFIER }))

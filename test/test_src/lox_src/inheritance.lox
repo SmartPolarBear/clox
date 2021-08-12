@@ -1,4 +1,4 @@
-class Doughnut {
+/*class Doughnut {
   fun cook() {
     print "Fry until golden brown.";
   }
@@ -10,7 +10,7 @@ dn.cook();
 
 class BostonCream : Doughnut {}
 
-BostonCream().cook();
+BostonCream().cook();*/
 
 class A {
   fun method() {
@@ -24,6 +24,7 @@ class B : A {
   }
 
   fun test() {
+    this.method();
     base.method();
   }
 }

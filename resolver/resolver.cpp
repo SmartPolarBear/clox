@@ -202,13 +202,16 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
 	auto member_name = ptr->get_name().lexeme();
 
-	if (class_type->fields().contains(member_name))
+	for (class_type; class_type; class_type = dynamic_pointer_cast<lox_class_type>(class_type->super()))
 	{
-		return class_type->fields().at(member_name);
-	}
-	else if (class_type->methods().contains(member_name))
-	{
-		return class_type->methods().at(member_name);
+		if (class_type->fields().contains(member_name))
+		{
+			return class_type->fields().at(member_name);
+		}
+		else if (class_type->methods().contains(member_name))
+		{
+			return class_type->methods().at(member_name);
+		}
 	}
 
 	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named {}",
