@@ -184,8 +184,8 @@ private:
 	/// Resolve what can be confirmed just by the signature of the function.
 	/// \param func
 	/// \param type
-	/// \return std::shared_ptr<lox_callable_type> resulting in the function
-	std::shared_ptr<lox_callable_type> resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func);
+	/// \return std::shared_ptr<lox_callable_type> resulting in the function, or std::shared_ptr<lox_type> if failed
+	std::shared_ptr<lox_type> resolve_function_decl(const std::shared_ptr<parsing::function_statement>& func);
 
 	/// Resolve the function body
 	/// \param func
@@ -198,6 +198,9 @@ private:
 			std::shared_ptr<lox_instance_type>,
 			std::shared_ptr<lox_instance_type>>
 	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);
+
+	void complement_default_members(const std::shared_ptr<parsing::class_statement>& cls,
+			const std::shared_ptr<lox_class_type>& class_type);
 
 	void resolve_class_members(const std::shared_ptr<parsing::class_statement>& cls,
 			const std::shared_ptr<lox_class_type>& class_type);

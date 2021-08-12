@@ -286,14 +286,8 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	else if (lox_type::is_class(*callee))
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
-		if (class_t->methods().contains("init"))
-		{
-			callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
-		}
-		else
-		{
-			callable = make_shared<lox_callable_type>("init", class_t, lox_callable_type::param_list_type{}, true);
-		}
+
+		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
 	}
 
 	if (!callable)
@@ -321,16 +315,13 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		}
 	}
 
-	if (lox_type::is_callable(*callee) || lox_type::is_instance(*callee))
+	auto return_type = callable->return_type();
+	if (lox_type::is_class(*return_type))
 	{
-		return callable->return_type();
-	}
-	else if (lox_type::is_class(*callee))
-	{
-		return static_pointer_cast<lox_class_type>(callee);
+		return make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(return_type));
 	}
 
-	throw logic_error{ "should not reach here" };
+	return return_type;
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)
@@ -377,10 +368,6 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 
 	auto var_type = declared_type ? declared_type : initializer_type;
 
-	if (lox_type::is_class(*var_type))
-	{
-		var_type = make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(var_type));
-	}
 
 	this->define_name(stmt->get_name(), var_type);
 }
@@ -432,7 +419,13 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 {
 	declare_name(stmt->get_name());
 
-	auto func_type = resolve_function_decl(stmt);
+	auto type = resolve_function_decl(stmt);
+	if (type->id() == PRIMITIVE_TYPE_ID_ANY)
+	{
+		return;
+	}
+
+	auto func_type = static_pointer_cast<lox_callable_type>(type);
 
 	define_name(stmt->get_name(), func_type);
 
@@ -582,12 +575,25 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	return nullptr;
 }
 
-shared_ptr<lox_callable_type> resolver::resolve_function_decl(const shared_ptr<function_statement>& func)
+shared_ptr<lox_type> resolver::resolve_function_decl(const shared_ptr<function_statement>& func)
 {
+	bool ctor = false;
+	if (cur_class_.top() != env_class_type::CT_NONE)
+	{
+		if (func->get_name().lexeme() == "init")
+		{
+			ctor = true;
+		}
+	}
+
 	lox_callable_type::return_type_variant ret_{ type_deduce_defer };
-	if (func->get_return_type_expr())
+	if (!ctor && func->get_return_type_expr())
 	{
 		ret_ = resolve(func->get_return_type_expr());
+	}
+	else if (ctor && func->get_return_type_expr())
+	{
+		return type_error(func->get_name(), "An initializer of class cannot have a explicit return type");
 	}
 
 	vector<pair<scanning::token, shared_ptr<lox_type>>> params_{};
@@ -597,14 +603,6 @@ shared_ptr<lox_callable_type> resolver::resolve_function_decl(const shared_ptr<f
 		params_.emplace_back(param.first, param_type);
 	}
 
-	bool ctor = false;
-	if (cur_class_.top() != env_class_type::CT_NONE)
-	{
-		if (func->get_name().lexeme() == "init")
-		{
-			ctor = true;
-		}
-	}
 
 	auto callable_type = make_shared<lox_callable_type>(func->get_name().lexeme(),
 			ret_,
@@ -726,7 +724,12 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 
 	for (const auto& method:cls->get_methods())
 	{
-		this_type->methods()[method->get_name().lexeme()] = resolve_function_decl(method);
+		auto type = resolve_function_decl(method);
+		if (type->id() == PRIMITIVE_TYPE_ID_ANY)
+		{
+			continue;
+		}
+		this_type->methods()[method->get_name().lexeme()] = static_pointer_cast<lox_callable_type>(type);
 	}
 
 	return { static_pointer_cast<lox_class_type>(this_type),
@@ -736,9 +739,22 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 }
 
 
+void resolver::complement_default_members(const shared_ptr<parsing::class_statement>& cls,
+		const shared_ptr<lox_class_type>& class_type)
+{
+	if (!class_type->methods().contains("init"))
+	{
+		class_type->methods()["init"] = make_shared<lox_callable_type>("init", class_type,
+				lox_callable_type::param_list_type{}, true);
+	}
+}
+
+
 void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls,
 		const std::shared_ptr<lox_class_type>& class_type)
 {
+	complement_default_members(cls, class_type);
+
 	for (const auto& field:cls->get_fields())
 	{
 		resolve(field);
@@ -765,7 +781,14 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 
 		if (!func_type->return_type_deduced())
 		{
-			func_type->set_return_type(make_shared<lox_void_type>());
+			if (decl == env_function_type::FT_CTOR)
+			{
+				func_type->set_return_type(make_shared<lox_void_type>());
+			}
+			else
+			{
+				func_type->set_return_type(class_type);
+			}
 		}
 	}
 }
@@ -1002,5 +1025,4 @@ resolver::check_type_logical_expression(const clox::scanning::token& tk, const s
 			false,
 			false);
 }
-
 
