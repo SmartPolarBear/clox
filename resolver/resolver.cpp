@@ -832,7 +832,8 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 		}
 		break;
 
-
+	case scanning::token_type::COMMA:
+		return make_tuple(right,true,false);
 	default:
 		break;
 	}

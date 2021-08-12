@@ -5,7 +5,7 @@ var b=20;
 
 print a,b,a+b;
 
-fun add(a,b){
+fun add(a:integer,b:integer){
     return a+b;
 }
 
