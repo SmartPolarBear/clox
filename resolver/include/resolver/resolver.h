@@ -179,7 +179,7 @@ private:
 
 	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
 
-	int64_t resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
+	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	/// Resolve what can be confirmed just by the signature of the function.
 	/// \param func

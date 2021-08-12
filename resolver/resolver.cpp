@@ -71,11 +71,9 @@ resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_
 	auto value_type = resolve(e->get_value());
 
 	// set the depth of expression
-	resolve_local(e, e->get_name());
+	auto symbol = resolve_local(e, e->get_name());
 
-	auto target_type = scope_top()->type_of_names()[e->get_name().lexeme()];
-
-	auto compa = check_type_assignment(e->get_name(), target_type, value_type);
+	auto compa = check_type_assignment(e->get_name(), symbol->type(), value_type);
 
 	return get<0>(compa);
 }
@@ -152,9 +150,9 @@ std::shared_ptr<lox_type> resolver::visit_var_expression(const std::shared_ptr<p
 		}
 	}
 
-	auto depth = resolve_local(ve, ve->get_name());
+	auto symbol = resolve_local(ve, ve->get_name());
 
-	return scope_top(depth)->type_of_names()[ve->get_name().lexeme()];
+	return symbol->type();
 }
 
 std::shared_ptr<lox_type> resolver::visit_ternary_expression(const std::shared_ptr<parsing::ternary_expression>& te)
@@ -236,9 +234,9 @@ std::shared_ptr<lox_type> resolver::visit_this_expression(const std::shared_ptr<
 		return make_shared<lox_any_type>();
 	}
 
-	resolve_local(expr, expr->get_keyword());
+	auto symbol = resolve_local(expr, expr->get_keyword());
 
-	return scope_top(1/*FIXME*/)->type_of_names().at("this");
+	return symbol->type();
 }
 
 std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<base_expression>& be)
@@ -254,8 +252,9 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 		return make_shared<lox_any_type>();
 	}
 
-	resolve_local(be, be->get_keyword());
-	return scope_top(2/*FIXME*/)->type_of_names().at("base");
+	auto symbol = resolve_local(be, be->get_keyword());
+
+	return symbol->type();
 }
 
 
@@ -263,14 +262,24 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 {
 	auto callee = resolve(ce->get_callee());
 
-	if (!lox_type::is_callable(*callee) && !lox_type::is_class(*callee))
+	if (!callee)
 	{
-		return type_error(ce->get_paren(),
-				std::format("Type {} is neither a callable nor a class", callee->printable_string()));
+		throw logic_error{ "callee isn't nullable" };
 	}
 
 	shared_ptr<lox_callable_type> callable{ nullptr };
-	if (lox_type::is_callable(*callee))
+
+	if (lox_type::is_instance(*callee))
+	{
+		auto underlying = static_pointer_cast<lox_instance_type>(callee)
+				->underlying_type();
+
+		if (lox_type::is_callable(*underlying))
+		{
+			callable = static_pointer_cast<lox_callable_type>(underlying);
+		}
+	}
+	else if (lox_type::is_callable(*callee))
 	{
 		callable = static_pointer_cast<lox_callable_type>(callee);
 	}
@@ -280,6 +289,11 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		callable = static_pointer_cast<lox_callable_type>(class_t->methods()["init"]);
 	}
 
+	if (!callable)
+	{
+		return type_error(ce->get_paren(),
+				std::format("Type {} is neither a callable nor a class", callee->printable_string()));
+	}
 
 	if (ce->get_args().size() != callable->param_size())
 	{
@@ -347,6 +361,7 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 		auto compatibility = check_type_assignment(stmt->get_name(), declared_type, initializer_type);
 		if (!get<1>(compatibility)) // narrowing conversion
 		{
+			// FIXME
 		}
 	}
 
@@ -427,7 +442,10 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 	if (cur_func_.top() == env_function_type::FT_NONE)
 	{
 		logger::instance().error(rs->get_return_keyword(), "Return statement in none-function scoop.");
+		return;
 	}
+
+	auto func = cur_func_type_.top();
 
 	if (rs->get_val())
 	{
@@ -437,14 +455,22 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 		}
 
 		auto type = resolve(rs->get_val());
-		auto func = cur_func_type_.top();
-		if (!lox_type::unify(*func->return_type(), *type))
+
+		if (!func->return_type_deduced())
+		{
+			func->set_return_type(type);
+		}
+		else if (!lox_type::unify(*func->return_type(), *type))
 		{
 			type_error(rs->get_return_keyword(),
 					std::format("Incompatible type for return expression of type {} and the function return type of {}",
 							type->printable_string(),
 							func->return_type()->printable_string()));
 		}
+	}
+	else if (!func->return_type_deduced())
+	{
+		func->set_return_type(make_shared<lox_void_type>());
 	}
 }
 
@@ -470,7 +496,7 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 {
 	if (!expr)
 	{
-		return make_shared<lox_void_type>();
+		throw invalid_argument{ "expr" };
 	}
 	return accept(*expr, *this);
 }
@@ -526,7 +552,7 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	scope_top(dist)->types()[tk.lexeme()] = type;
 }
 
-int64_t resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
+std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
 {
 	int64_t depth = 0;
 
@@ -536,18 +562,19 @@ int64_t resolver::resolve_local(const shared_ptr<expression>& expr, const clox::
 		{
 
 			symbols_->set_depth(expr, depth);
+			symbols_->set_type(expr, s->type_of_names()[tk.lexeme()]);
 
-			return depth;
+			return symbols_->at(expr);
 		}
 		depth++;
 	}
 
-	return -1;
+	return nullptr;
 }
 
 shared_ptr<lox_callable_type> resolver::resolve_function_decl(const shared_ptr<function_statement>& func)
 {
-	shared_ptr<lox_type> ret_{ make_shared<lox_void_type>() };
+	lox_callable_type::return_type_variant ret_{ type_deduce_defer };
 	if (func->get_return_type_expr())
 	{
 		ret_ = resolve(func->get_return_type_expr());

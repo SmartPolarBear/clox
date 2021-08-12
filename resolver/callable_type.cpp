@@ -35,7 +35,7 @@ using namespace clox::helper;
 
 using namespace clox::resolving;
 
-lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
+lox_callable_type::lox_callable_type(std::string name, return_type_variant return_type,
 		param_list_type params, bool ctor)
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
@@ -51,7 +51,10 @@ lox_callable_type::lox_callable_type(std::string name, std::shared_ptr<lox_type>
 
 std::string lox_callable_type::printable_string()
 {
-	auto ret = std::format("<callable object {} -> {} ( ", name_, return_type_->printable_string());
+	auto type_string = return_type_deduced() ? get<std::shared_ptr<lox_type>>(return_type_)->printable_string()
+											 : "<deducing deferred>";
+
+	auto ret = std::format("<callable object {} -> {} ( ", name_, type_string);
 
 	for (const auto& param:params_)
 	{
@@ -93,4 +96,30 @@ bool lox_callable_type::operator!=(const lox_type& another) const
 {
 	return !(*this == another);
 }
+
+std::shared_ptr<lox_type> lox_callable_type::return_type() const
+{
+	if (!return_type_deduced())
+	{
+		throw std::logic_error{ "deferred type deducing isn't run in time." };
+	}
+
+	return get<std::shared_ptr<lox_type>>(return_type_);
+}
+
+void lox_callable_type::set_return_type(const std::shared_ptr<lox_type>& return_type)
+{
+	if (return_type_deduced())
+	{
+		throw std::logic_error{ "deferred type deducing is run twice." };
+	}
+
+	return_type_ = return_type;
+}
+
+bool lox_callable_type::return_type_deduced() const
+{
+	return !std::holds_alternative<type_deduce_defer_tag>(return_type_);
+}
+
 

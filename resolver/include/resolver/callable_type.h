@@ -30,17 +30,22 @@
 #include <parser/parser.h>
 
 #include <vector>
+#include <variant>
 
 namespace clox::resolving
 {
+
+
 class lox_callable_type
 		: public lox_object_type,
 		  public std::enable_shared_from_this<lox_callable_type>
 {
 public:
 	using param_list_type = std::vector<std::pair<scanning::token, std::shared_ptr<lox_type>>>;
+	using return_type_variant = std::variant<type_deduce_defer_tag, std::shared_ptr<lox_type>>;
 public:
-	[[nodiscard]] lox_callable_type(std::string name, std::shared_ptr<lox_type> return_type,
+
+	[[nodiscard]] lox_callable_type(std::string name, return_type_variant return_type,
 			param_list_type params, bool ctor = false);
 
 	std::string printable_string() override;
@@ -71,15 +76,16 @@ public:
 		return params_;
 	}
 
-	std::shared_ptr<lox_type> return_type() const
-	{
-		return return_type_;
-	}
+	[[nodiscard]] bool return_type_deduced() const;
+
+	void set_return_type(const std::shared_ptr<lox_type>&);
+
+	std::shared_ptr<lox_type> return_type() const;
 
 private:
 	std::string name_{};
 
-	std::shared_ptr<lox_type> return_type_{};
+	return_type_variant return_type_{};
 	param_list_type params_{};
 };
 

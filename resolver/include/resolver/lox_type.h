@@ -67,6 +67,13 @@ enum primitive_type_id : type_id
 	PRESET_TYPE_ID_MAX,
 };
 
+
+struct type_deduce_defer_tag
+{
+};
+
+static inline constexpr type_deduce_defer_tag type_deduce_defer{};
+
 class lox_type
 		: public helper::printable
 {
