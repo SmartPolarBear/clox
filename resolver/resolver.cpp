@@ -314,14 +314,16 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		}
 	}
 
-	if (lox_type::is_class(*callee))
-	{
-		return static_pointer_cast<lox_class_type>(callee);
-	}
-	else
+	if (lox_type::is_callable(*callee) || lox_type::is_instance(*callee))
 	{
 		return callable->return_type();
 	}
+	else if (lox_type::is_class(*callee))
+	{
+		return static_pointer_cast<lox_class_type>(callee);
+	}
+
+
 }
 
 void resolver::visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& es)

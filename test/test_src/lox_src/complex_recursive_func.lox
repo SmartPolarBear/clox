@@ -1,3 +1,9 @@
+fun one(){
+    return 1;
+}
+
+var number_one=one();
+
 fun fib(n:integer){
     if(n==1 or n==2){
         return 1;

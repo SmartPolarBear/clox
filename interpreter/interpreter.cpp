@@ -68,38 +68,24 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	{
 	case scanning::token_type::GREATER:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) > get<long double>(right);
+		return get_number(left) > get_number(right);
 	case scanning::token_type::GREATER_EQUAL:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) >= get<long double>(right);
+		return get_number(left) >= get_number(right);
 	case scanning::token_type::LESS:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) < get<long double>(right);
+		return get_number(left) < get_number(right);
 	case scanning::token_type::LESS_EQUAL:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) <= get<long double>(right);
+		return get_number(left) <= get_number(right);
 
 	case scanning::token_type::MINUS:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) - get<long double>(right);
+		return get_number(left) - get_number(right);
 	case scanning::token_type::PLUS:
-		check_numeric_operands(be->get_op(), left, right);
-
-		if (holds_alternative<long double>(left) && holds_alternative<long double>(right))
+		if (is_number(left) && is_number(right))
 		{
-			return get<long double>(left) + get<long double>(right);
-		}
-		else if (holds_alternative<long long>(left) && holds_alternative<long double>(right))
-		{
-			return get<long long>(left) + get<long double>(right);
-		}
-		else if (holds_alternative<long double>(left) && holds_alternative<long long>(right))
-		{
-			return get<long double>(left) + get<long long>(right);
-		}
-		else if (holds_alternative<long long>(left) && holds_alternative<long long>(right))
-		{
-			return get<long long>(left) + get<long long>(right);
+			return get_number(left) + get_number(right);
 		}
 		else if (holds_alternative<string>(left) && holds_alternative<string>(right))
 		{
@@ -109,10 +95,10 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 		throw clox::interpreting::runtime_error(be->get_op(), "Operands should be strings or numbers.");
 	case scanning::token_type::SLASH:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) / get<long double>(right);
+		return get_number(left) / get_number(right);
 	case scanning::token_type::STAR:
 		check_numeric_operands(be->get_op(), left, right);
-		return get<long double>(left) * get<long double>(right);
+		return get_number(left) * get_number(right);
 
 
 	case scanning::token_type::BANG_EQUAL:
@@ -144,7 +130,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	{
 	case scanning::token_type::MINUS:
 		check_numeric_operand(op, right);
-		return -get<long double>(right);
+		return -get_number(right);
 	case scanning::token_type::BANG:
 		return !is_truthy(right);
 	case scanning::token_type::PLUS_PLUS:
@@ -155,7 +141,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 
 		{
 			check_numeric_operand(op, right);
-			auto value = get<long double>(right);
+			auto value = get_number(right);
 			auto expr = static_pointer_cast<var_expression>(ue->get_right());
 			environment_->assign(expr->get_name(), value + 1);
 			return value + 1;
@@ -171,7 +157,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 
 		{
 			check_numeric_operand(op, right);
-			auto value = get<long double>(right);
+			auto value = get_number(right);
 			auto expr = static_pointer_cast<var_expression>(ue->get_right());
 			environment_->assign(expr->get_name(), value - 1);
 			return value - 1;
@@ -204,7 +190,7 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 
 		{
 			check_numeric_operand(op, left);
-			auto value = get<long double>(left);
+			auto value = get_number(left);
 			auto expr = static_pointer_cast<var_expression>(pe->get_left());
 			environment_->assign(expr->get_name(), value + 1);
 			return value;
@@ -220,7 +206,7 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 
 		{
 			check_numeric_operand(op, left);
-			auto value = get<long double>(left);
+			auto value = get_number(left);
 			auto expr = static_pointer_cast<var_expression>(pe->get_left());
 			environment_->assign(expr->get_name(), value - 1);
 			return value;
@@ -256,13 +242,9 @@ std::string clox::interpreting::interpreter::result_to_string(
 		const clox::interpreting::evaluating_result& res)
 {
 	if (holds_alternative<nil_value_tag_type>(res))return "nil";
-	else if (holds_alternative<long double>(res))
+	else if (is_number(res))
 	{
-		return std::to_string(get<long double>(res));
-	}
-	else if (holds_alternative<scanning::integer_literal_type>(res))
-	{
-		return std::to_string(get<scanning::integer_literal_type>(res));
+		return std::to_string(get_number(res));
 	}
 	else if (holds_alternative<bool>(res))
 	{
@@ -370,13 +352,13 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 		return false;
 	}
 
-	if (holds_alternative<long double>(lhs))
+	if (is_number(lhs))
 	{
-		if (!holds_alternative<long double>(rhs))
+		if (!is_number(rhs))
 		{
 			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
 		}
-		return get<long double>(lhs) == get<long double>(rhs);
+		return get_number(lhs) == get_number(rhs);
 	}
 	else if (holds_alternative<string>(lhs))
 	{
@@ -402,8 +384,8 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::evaluating_result& l,
 		const clox::interpreting::evaluating_result& r)
 {
-	if ((holds_alternative<long double>(l) || holds_alternative<scanning::integer_literal_type>(l)) &&
-		(holds_alternative<long double>(r) || holds_alternative<scanning::integer_literal_type>(r)))
+	if (is_number(l) &&
+		is_number(r))
 		return;
 
 
@@ -412,7 +394,7 @@ void clox::interpreting::interpreter::check_numeric_operands(token op, const clo
 
 void interpreter::check_numeric_operand(token op, const evaluating_result& es)
 {
-	if (holds_alternative<long double>(es) || holds_alternative<scanning::integer_literal_type>(es))return;
+	if (is_number(es))return;
 
 	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
 }
@@ -432,9 +414,9 @@ void interpreter::visit_expression_statement(const shared_ptr<parsing::expressio
 		{
 			console_->out() << "nil" << endl;
 		}
-		else if (holds_alternative<long double>(res))
+		else if (is_number(res))
 		{
-			console_->out() << std::to_string(get<long double>(res)) << endl;
+			console_->out() << std::to_string(get_number(res)) << endl;
 		}
 		else if (holds_alternative<bool>(res))
 		{
@@ -747,4 +729,23 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 	}
 
 	return method->bind(this_inst);
+}
+
+long double interpreter::get_number(const evaluating_result& l)
+{
+	if (holds_alternative<long double>(l))
+	{
+		return get<long double>(l);
+	}
+	else if (holds_alternative<long long>(l))
+	{
+		return get<long long>(l);
+	}
+
+	return NAN;
+}
+
+bool interpreter::is_number(const evaluating_result& e)
+{
+	return holds_alternative<long double>(e) || holds_alternative<long long>(e);
 }

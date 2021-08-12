@@ -134,6 +134,10 @@ private:
 
 	static void check_numeric_operands(scanning::token, const evaluating_result& l, const evaluating_result& r);
 
+	// FIXME: temporarily all using long double for all numbers
+	static long double get_number(const evaluating_result& l);
+
+	static bool is_number(const evaluating_result &e);
 
 	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 
