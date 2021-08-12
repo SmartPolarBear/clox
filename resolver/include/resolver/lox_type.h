@@ -42,6 +42,7 @@ enum lox_type_flags : uint64_t
 	TYPE_VOID = 4,
 	FLAG_CALLABLE = 8,
 	FLAG_CTOR = 16,
+	FLAG_INSTANCE=32,
 };
 
 
@@ -61,6 +62,7 @@ enum primitive_type_id : type_id
 	PRIMITIVE_TYPE_ID_FLOATING,
 
 	TYPE_ID_CLASS,
+	TYPE_ID_INSTANCE,
 
 	PRESET_TYPE_ID_MAX,
 };
