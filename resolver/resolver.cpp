@@ -261,24 +261,25 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
-	// FIXME: we need distinguish class and class instance
 	auto callee = resolve(ce->get_callee());
 
-	if (!lox_type::is_callable(*callee))
+	if (!lox_type::is_callable(*callee) && !lox_type::is_class(*callee))
 	{
-		return type_error(ce->get_paren(), std::format("Type {} is not callable", callee->printable_string()));
+		return type_error(ce->get_paren(),
+				std::format("Type {} is neither a callable nor a class", callee->printable_string()));
 	}
 
 	shared_ptr<lox_callable_type> callable{ nullptr };
-	if (lox_type::is_class(*callee))
+	if (lox_type::is_callable(*callee))
+	{
+		callable = static_pointer_cast<lox_callable_type>(callee);
+	}
+	else if (lox_type::is_class(*callee))
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
 		callable = static_pointer_cast<lox_callable_type>(class_t->methods()["init"]);
 	}
-	else
-	{
-		callable = static_pointer_cast<lox_callable_type>(callee);
-	}
+
 
 	if (ce->get_args().size() != callable->param_size())
 	{

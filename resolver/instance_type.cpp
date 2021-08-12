@@ -34,7 +34,7 @@ std::string clox::resolving::lox_instance_type::printable_string()
 
 uint64_t clox::resolving::lox_instance_type::flags() const
 {
-	return FLAG_INSTANCE;
+	return FLAG_INSTANCE | TYPE_CLASS;
 }
 
 clox::resolving::type_id clox::resolving::lox_instance_type::id() const
