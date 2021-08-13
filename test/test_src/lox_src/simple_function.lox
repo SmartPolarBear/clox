@@ -1,4 +1,4 @@
-fun fuck(first, second) {
+fun fuck(first:string, second:string) {
     print "I fucked "+first+" firstly, and then fucked "+second+".";
 }
 

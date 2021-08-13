@@ -454,6 +454,11 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 	});
 
 	resolve_function_body(stmt, env_function_type::FT_FUNCTION);
+
+	if(!func_type->return_type_deduced())
+	{
+		func_type->set_return_type(make_shared<lox_void_type>());
+	}
 }
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)
@@ -800,11 +805,11 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 		{
 			if (decl == env_function_type::FT_CTOR)
 			{
-				func_type->set_return_type(make_shared<lox_void_type>());
+				func_type->set_return_type(class_type);
 			}
 			else
 			{
-				func_type->set_return_type(class_type);
+				func_type->set_return_type(make_shared<lox_void_type>());
 			}
 		}
 	}

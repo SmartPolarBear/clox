@@ -101,7 +101,7 @@ std::shared_ptr<lox_type> lox_callable_type::return_type() const
 {
 	if (!return_type_deduced())
 	{
-		throw std::logic_error{ "deferred type deducing isn't run in time." };
+		throw std::logic_error{ "deferred return type deducing isn't run in time." };
 	}
 
 	return get<std::shared_ptr<lox_type>>(return_type_);
@@ -111,7 +111,7 @@ void lox_callable_type::set_return_type(const std::shared_ptr<lox_type>& return_
 {
 	if (return_type_deduced())
 	{
-		throw std::logic_error{ "deferred type deducing is run twice." };
+		throw std::logic_error{ "deferred return type deducing is run twice." };
 	}
 
 	return_type_ = return_type;
