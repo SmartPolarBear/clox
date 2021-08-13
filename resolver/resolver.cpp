@@ -455,7 +455,7 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 
 	resolve_function_body(stmt, env_function_type::FT_FUNCTION);
 
-	if(!func_type->return_type_deduced())
+	if (!func_type->return_type_deduced())
 	{
 		func_type->set_return_type(make_shared<lox_void_type>());
 	}
@@ -689,7 +689,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	 * */
 
 	declare_name(cls->get_name());
-	define_name(cls->get_name(), class_type); //FIXME
+	define_name(cls->get_name(), class_type);
 	define_type(cls->get_name(), class_type);
 
 	scope_begin();
@@ -754,6 +754,8 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 		this_type->methods()[method->get_name().lexeme()] = static_pointer_cast<lox_callable_type>(type);
 	}
 
+	complement_default_members(cls, this_type);
+
 	return { static_pointer_cast<lox_class_type>(this_type),
 			 static_pointer_cast<lox_class_type>(base_type),
 			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)),
@@ -775,8 +777,6 @@ void resolver::complement_default_members(const shared_ptr<parsing::class_statem
 void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls,
 		const std::shared_ptr<lox_class_type>& class_type)
 {
-	complement_default_members(cls, class_type);
-
 	for (const auto& field:cls->get_fields())
 	{
 		resolve(field);
