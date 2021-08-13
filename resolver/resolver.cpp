@@ -257,7 +257,21 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 	auto symbol = resolve_local(be, be->get_keyword());
 
-	return symbol->type();
+	auto inst = static_pointer_cast<lox_instance_type>(symbol->type());
+
+	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
+
+	if (class_type->methods().contains(be->get_member().lexeme()))
+	{
+		return class_type->methods().at(be->get_member().lexeme());
+	}
+	else if (class_type->fields().contains(be->get_member().lexeme()))
+	{
+		return class_type->fields().at(be->get_member().lexeme());
+	}
+
+	return type_error(be->get_member(),
+			std::format("Base class do not have a member named {}", be->get_member().lexeme()));
 }
 
 

@@ -126,7 +126,7 @@
         },
         {
           "type": "clox::scanning::token",
-          "name": "method_"
+          "name": "member_"
         }
       ]
     },

@@ -715,17 +715,18 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
+	// FIXME: should support fields
 	auto dist = locals_->at(expr)->depth();
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
 
 	auto this_inst = get<shared_ptr<lox_instance>>(environment_->get_at("this", dist - 1).value());
 
-	auto method = base->lookup_method(expr->get_method().lexeme());
+	auto method = base->lookup_method(expr->get_member().lexeme());
 
 	if (!method)
 	{
-		throw clox::interpreting::runtime_error{ expr->get_method(),
-												 std::format("'{}' is undefined.", expr->get_method().lexeme()) };
+		throw clox::interpreting::runtime_error{ expr->get_member(),
+												 std::format("'{}' is undefined.", expr->get_member().lexeme()) };
 	}
 
 	return method->bind(this_inst);
