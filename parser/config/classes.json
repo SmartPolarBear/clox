@@ -421,6 +421,10 @@
           "name": "name_"
         },
         {
+          "type": "function_statement_type",
+          "name": "func_type_"
+        },
+        {
           "type": "std::vector<std::pair<clox::scanning::token,std::shared_ptr<type_expression>>>",
           "name": "params_"
         },

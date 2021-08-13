@@ -171,7 +171,10 @@ private:
 	/// parameter ->  IDENTIFIER ":" typeExpr
 	/// parameters -> parameter ( "," parameter )* ;
 	/// \return
-	std::shared_ptr<statement> func_declaration(const std::string& kind);
+	std::shared_ptr<statement> func_declaration(function_statement_type type);
+
+	scanning::token func_declaration_name(function_statement_type type);
+
 
 	/// var_decl -> "var" IDENTIFIER (":" typeExpr)? ("=" expression)? ";"
 	/// \return
@@ -202,6 +205,8 @@ private:
 	void synchronize();
 
 	token consume(scanning::token_type t, const std::string& msg);
+
+	token consume(std::initializer_list<scanning::token_type> tks, const std::string& msg);
 
 	parse_error error(token t, const std::string& msg);
 

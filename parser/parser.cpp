@@ -328,9 +328,20 @@ std::shared_ptr<expression> parser::primary()
 
 token parser::consume(token_type t, const std::string& msg)
 {
+	// FIXME: use token parser::consume(initializer_list<scanning::token_type> tks, const string& msg)
 	if (check(t))return advance();
 	throw error(peek(), msg);
 }
+
+token parser::consume(initializer_list<scanning::token_type> tks, const string& msg)
+{
+	for (const auto& t:tks)
+	{
+		if (check(t))return advance();
+	}
+	throw error(peek(), msg);
+}
+
 
 parse_error parser::error(token t, const std::string& msg)
 {
@@ -433,7 +444,7 @@ std::shared_ptr<statement> parser::declaration()
 		}
 		else if (match({ token_type::FUN }))
 		{
-			return func_declaration("function");
+			return func_declaration(function_statement_type::FST_FUNCTION);
 		}
 		else if (match({ token_type::VAR }))
 		{
@@ -449,11 +460,35 @@ std::shared_ptr<statement> parser::declaration()
 	}
 }
 
-std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
+token parser::func_declaration_name(function_statement_type type)
+{
+	if (type == function_statement_type::FST_OPERATOR)
+	{
+		return consume({
+				token_type::BANG, token_type::BANG_EQUAL,
+				token_type::EQUAL, token_type::EQUAL_EQUAL,
+				token_type::GREATER, token_type::GREATER_EQUAL,
+				token_type::LESS, token_type::LESS_EQUAL,
+				token_type::MINUS, token_type::MINUS_MINUS,
+				token_type::PLUS, token_type::PLUS_PLUS,
+				token_type::STAR, token_type::STAR_STAR,
+				token_type::ARROW,
+				token_type::COMMA, token_type::DOT,
+				token_type::AND, token_type::OR
+		}, std::format("{} name is expected.", type));
+	}
+	else
+	{
+		return consume(token_type::IDENTIFIER, std::format("{} name is expected.", type));
+	}
+}
+
+
+std::shared_ptr<statement> parser::func_declaration(function_statement_type type)
 {
 
-	auto name = consume(token_type::IDENTIFIER, std::format("{} name is expected.", kind));
-	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", kind));
+	auto name = func_declaration_name(type);
+	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", type));
 
 	std::vector<std::pair<clox::scanning::token, std::shared_ptr<type_expression>>> params{};
 
@@ -474,7 +509,7 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 		} while (match({ token_type::COMMA }));
 	}
 
-	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", kind));
+	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", type));
 
 	decltype(type_expr()) ret_type{ nullptr };
 	if (peek().type() == token_type::COLON)
@@ -483,11 +518,11 @@ std::shared_ptr<statement> parser::func_declaration(const std::string& kind)
 		ret_type = type_expr();
 	}
 
-	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", kind));
+	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", type));
 
 	auto body = block();
 
-	return make_shared<function_statement>(name, params, ret_type, body);
+	return make_shared<function_statement>(name, type, params, ret_type, body);
 }
 
 std::shared_ptr<statement> parser::var_declaration()
@@ -646,11 +681,17 @@ std::shared_ptr<statement> parser::class_declaration()
 		}
 		else if (match({ scanning::token_type::FUN }))
 		{
-			methods.push_back(static_pointer_cast<function_statement>(func_declaration("method")));
+			methods.push_back(
+					static_pointer_cast<function_statement>(func_declaration(function_statement_type::FST_METHOD)));
+		}
+		else if (match({ scanning::token_type::OPERATOR }))
+		{
+			methods.push_back(
+					static_pointer_cast<function_statement>(func_declaration(function_statement_type::FST_OPERATOR)));
 		}
 		else
 		{
-			throw error(peek(), "Field or method is expected.");
+			throw error(peek(), "Field or method or operator is expected.");
 		}
 	}
 
@@ -673,3 +714,5 @@ std::shared_ptr<type_expression> parser::generic_type()
 	auto name = consume(scanning::token_type::IDENTIFIER, "Type expected.");
 	return make_shared<variable_type_expression>(name);
 }
+
+

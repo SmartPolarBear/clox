@@ -741,7 +741,7 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 
 	for (const auto& field:cls->get_fields())
 	{
-		this_type->fields()[field->get_name().lexeme()] = resolve(field->get_type_expr()); //FIXME
+		this_type->fields()[field->get_name().lexeme()] = resolve(field->get_type_expr());
 	}
 
 	for (const auto& method:cls->get_methods())

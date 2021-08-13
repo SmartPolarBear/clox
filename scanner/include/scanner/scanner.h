@@ -63,7 +63,7 @@ enum class token_type
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
 	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
-	SIZEOF, ARRAY,
+	SIZEOF, ARRAY, OPERATOR,
 
 	FEND // not EOF because it conflicts with Microsoft's STL
 };
@@ -163,25 +163,26 @@ public:
 
 private:
 	std::unordered_map<std::string, token_type> keywords{
-			{ "and",    token_type::AND },
-			{ "class",  token_type::CLASS },
-			{ "else",   token_type::ELSE },
-			{ "false",  token_type::FALSE },
-			{ "for",    token_type::FOR },
-			{ "fun",    token_type::FUN },
-			{ "if",     token_type::IF },
-			{ "nil",    token_type::NIL },
-			{ "or",     token_type::OR },
-			{ "print",  token_type::PRINT },
-			{ "return", token_type::RETURN },
-			{ "base",   token_type::BASE },
-			{ "this",   token_type::THIS },
-			{ "true",   token_type::TRUE },
-			{ "var",    token_type::VAR },
-			{ "while",  token_type::WHILE },
-			{ "using",  token_type::USING },
-			{ "sizeof", token_type::SIZEOF },
-			{ "array",  token_type::ARRAY }
+			{ "and",      token_type::AND },
+			{ "class",    token_type::CLASS },
+			{ "else",     token_type::ELSE },
+			{ "false",    token_type::FALSE },
+			{ "for",      token_type::FOR },
+			{ "fun",      token_type::FUN },
+			{ "if",       token_type::IF },
+			{ "nil",      token_type::NIL },
+			{ "or",       token_type::OR },
+			{ "print",    token_type::PRINT },
+			{ "return",   token_type::RETURN },
+			{ "base",     token_type::BASE },
+			{ "this",     token_type::THIS },
+			{ "true",     token_type::TRUE },
+			{ "var",      token_type::VAR },
+			{ "while",    token_type::WHILE },
+			{ "using",    token_type::USING },
+			{ "sizeof",   token_type::SIZEOF },
+			{ "array",    token_type::ARRAY },
+			{ "operator", token_type::OPERATOR }
 	};
 
 	void scan_next_token();

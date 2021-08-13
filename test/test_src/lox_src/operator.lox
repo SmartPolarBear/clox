@@ -1,0 +1,20 @@
+class fuck{
+    var v:integer;
+
+    fun init(val:integer){
+        v=val;
+    }
+
+    fun output(){
+        print v;
+    }
+
+    operator ==(another:fuck){
+        return v==another.v;
+    }
+}
+
+var f1=fuck(1);
+var f2=fuck(2);
+
+print f1==f2;

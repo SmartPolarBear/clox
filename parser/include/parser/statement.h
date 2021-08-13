@@ -24,9 +24,43 @@
 
 #pragma once
 
+#include <format>
+#include <string>
+
 namespace clox::parsing
 {
+
+enum class function_statement_type
+{
+	FST_FUNCTION = 1,
+	FST_METHOD,
+	FST_OPERATOR
+};
+
+
 class statement : public parser_class_base
 {
+};
+}
+
+namespace std
+{
+template<>
+struct std::formatter<clox::parsing::function_statement_type> : std::formatter<std::string>
+{
+	auto format(clox::parsing::function_statement_type p, format_context& ctx)
+	{
+		switch (p)
+		{
+		case clox::parsing::function_statement_type::FST_FUNCTION:
+			return formatter<std::string>::format("function", ctx);
+		case clox::parsing::function_statement_type::FST_METHOD:
+			return formatter<std::string>::format("method", ctx);
+		case clox::parsing::function_statement_type::FST_OPERATOR:
+			return formatter<std::string>::format("operator", ctx);
+		default:
+			throw invalid_argument{ "p" };
+		}
+	}
 };
 }
