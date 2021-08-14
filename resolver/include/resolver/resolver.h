@@ -195,7 +195,6 @@ private:
 
 	std::tuple<std::shared_ptr<lox_class_type>,
 			std::shared_ptr<lox_class_type>,
-			std::shared_ptr<lox_instance_type>,
 			std::shared_ptr<lox_instance_type>>
 	resolve_class_type_decl(const std::shared_ptr<parsing::class_statement>& cls);
 

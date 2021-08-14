@@ -257,9 +257,12 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 	auto symbol = resolve_local(be, be->get_keyword());
 
-	auto inst = static_pointer_cast<lox_instance_type>(symbol->type());
+	if (!lox_type::is_class(*symbol->type()))
+	{
+		throw logic_error{ "base should have a class type" };
+	}
 
-	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
+	auto class_type = static_pointer_cast<lox_class_type>(symbol->type());
 
 	if (class_type->methods().contains(be->get_member().lexeme()))
 	{
@@ -439,6 +442,11 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
 	declare_name(stmt->get_name());
+
+	if (stmt->get_func_type() == function_statement_type::FST_OPERATOR)
+	{
+		// TODO
+	}
 
 	auto type = resolve_function_decl(stmt);
 	if (type->id() == PRIMITIVE_TYPE_ID_ANY)
@@ -684,7 +692,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 {
 	cur_class_.push(env_class_type::CT_CLASS);
 
-	auto[class_type, base_class_type, this_type, base_type] = resolve_class_type_decl(cls);
+	auto[class_type, base_class_type, this_type] = resolve_class_type_decl(cls);
 
 	/* The scope structure for class:
 	 * scope {
@@ -703,7 +711,7 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	// to support fields with this class type or relevant function return type
 
 	scope_begin();
-	define_name("base", base_type);
+	define_name("base", base_class_type); // base is not an instance.
 
 	scope_begin();
 	define_name("this", this_type);
@@ -722,7 +730,6 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 std::tuple<shared_ptr<lox_class_type>,
 		std::shared_ptr<lox_class_type>,
-		shared_ptr<lox_instance_type>,
 		shared_ptr<lox_instance_type>>
 resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 {
@@ -770,8 +777,7 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 
 	return { static_pointer_cast<lox_class_type>(this_type),
 			 static_pointer_cast<lox_class_type>(base_type),
-			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)),
-			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(base_type)) };
+			 make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(this_type)) };
 }
 
 
