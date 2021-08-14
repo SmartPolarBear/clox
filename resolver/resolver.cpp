@@ -385,6 +385,10 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 
 	auto var_type = declared_type ? declared_type : initializer_type;
 
+	if (lox_type::is_class(*var_type))
+	{
+		var_type = make_shared<lox_instance_type>(static_pointer_cast<lox_object_type>(var_type));
+	}
 
 	this->define_name(stmt->get_name(), var_type);
 }
@@ -622,6 +626,11 @@ shared_ptr<lox_type> resolver::resolve_function_decl(const shared_ptr<function_s
 	for (const auto& param:func->get_params())
 	{
 		shared_ptr<lox_type> param_type{ resolve(param.second) };
+		if (lox_type::is_class(*param_type))
+		{
+			param_type = make_shared<lox_instance_type>(static_pointer_cast<lox_object_type>(param_type));
+		}
+
 		params_.emplace_back(param.first, param_type);
 	}
 
@@ -690,7 +699,8 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	declare_name(cls->get_name());
 	define_name(cls->get_name(), class_type);
-	define_type(cls->get_name(), class_type);
+	// have already call define_type(cls->get_name(), class_type); in resolve_class_type_decl
+	// to support fields with this class type or relevant function return type
 
 	scope_begin();
 	define_name("base", base_type);
@@ -738,6 +748,8 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 
 	auto this_type = make_shared<lox_class_type>(cls->get_name().lexeme(),
 			static_pointer_cast<lox_object_type>(base_type));
+
+	define_type(cls->get_name(), this_type);
 
 	for (const auto& field:cls->get_fields())
 	{

@@ -10,11 +10,21 @@ class fuck{
     }
 
     operator ==(another:fuck){
+        print v;
+        print another.v;
         return v==another.v;
     }
 }
 
 var f1=fuck(1);
 var f2=fuck(2);
+var f3=fuck(2);
 
 print f1==f2;
+print f2==f1;
+
+print f1==f3;
+print f3==f1;
+
+print f2==f3;
+print f3==f2;
