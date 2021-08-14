@@ -32,6 +32,7 @@
 #include <vector>
 #include <ranges>
 #include <algorithm>
+#include <tuple>
 
 namespace clox::parsing
 {
@@ -162,9 +163,14 @@ private:
 	/// \return
 	std::shared_ptr<statement> declaration();
 
-	/// classDecl      → "class" IDENTIFIER "{" function* "}" ;
+	/// classDecl -> "class" IDENTIFIER "{" class_member* "}" ;
 	/// \return
 	std::shared_ptr<statement> class_declaration();
+
+	/// classMember -> funDecl | constructorDecl | var_decl
+	/// \return tuple{leading token type,statement}
+	std::tuple<scanning::token_type, std::shared_ptr<statement>> class_member();
+
 
 	/// funDecl -> "fun" function ;
 	/// function -> IDENTIFIER "(" parameters? ")" ":" typeExpr  block ;

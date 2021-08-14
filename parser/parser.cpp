@@ -21,6 +21,7 @@
 
 #include <parser/parser.h>
 #include <scanner/scanner.h>
+#include <resolver/operators.h>
 
 #include <logger/logger.h>
 
@@ -464,18 +465,11 @@ token parser::func_declaration_name(function_statement_type type)
 {
 	if (type == function_statement_type::FST_OPERATOR)
 	{
-		return consume({
-				token_type::BANG, token_type::BANG_EQUAL,
-				token_type::EQUAL, token_type::EQUAL_EQUAL,
-				token_type::GREATER, token_type::GREATER_EQUAL,
-				token_type::LESS, token_type::LESS_EQUAL,
-				token_type::MINUS, token_type::MINUS_MINUS,
-				token_type::PLUS, token_type::PLUS_PLUS,
-				token_type::STAR, token_type::STAR_STAR,
-				token_type::ARROW,
-				token_type::COMMA, token_type::DOT,
-				token_type::AND, token_type::OR
-		}, std::format("{} name is expected.", type));
+		return consume(clox::resolving::OVERRIDABLE_OPS, std::format("{} name is expected.", type));
+	}
+	else if (type == function_statement_type::FST_CTOR)
+	{
+		return previous(); // constructor itself should be its name
 	}
 	else
 	{
@@ -486,7 +480,6 @@ token parser::func_declaration_name(function_statement_type type)
 
 std::shared_ptr<statement> parser::func_declaration(function_statement_type type)
 {
-
 	auto name = func_declaration_name(type);
 	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", type));
 
@@ -670,33 +663,59 @@ std::shared_ptr<statement> parser::class_declaration()
 
 	consume(scanning::token_type::LEFT_BRACE, "'{' is expected after class name.");
 
-	vector<shared_ptr<function_statement>> methods{};
 	vector<shared_ptr<variable_statement>> fields{};
+
+	vector<shared_ptr<function_statement>> methods{};
+
 
 	while (!check(scanning::token_type::RIGHT_BRACE) && !is_end())
 	{
-		if (match({ scanning::token_type::VAR }))
+		auto[type, stmt]=class_member();
+		switch (type)
 		{
-			fields.push_back(static_pointer_cast<variable_statement>(var_declaration()));
-		}
-		else if (match({ scanning::token_type::FUN }))
-		{
-			methods.push_back(
-					static_pointer_cast<function_statement>(func_declaration(function_statement_type::FST_METHOD)));
-		}
-		else if (match({ scanning::token_type::OPERATOR }))
-		{
-			methods.push_back(
-					static_pointer_cast<function_statement>(func_declaration(function_statement_type::FST_OPERATOR)));
-		}
-		else
-		{
-			throw error(peek(), "Field or method or operator is expected.");
+		case token_type::VAR:
+			fields.push_back(static_pointer_cast<variable_statement>(stmt));
+			break;
+		case token_type::CONSTRUCTOR:
+		case token_type::FUN:
+		case token_type::OPERATOR:
+			methods.push_back(static_pointer_cast<function_statement>(stmt));
+			break;
+		default:
+			throw logic_error{ "type" };
 		}
 	}
 
+
 	consume(scanning::token_type::RIGHT_BRACE, "'}' is expected after class body.");
-	return make_shared<class_statement>(name, base_class, fields, methods);
+	return make_shared<class_statement>(name, base_class,
+			fields,
+			methods
+	);
+}
+
+std::tuple<clox::scanning::token_type, std::shared_ptr<statement>> parser::class_member()
+{
+	if (match({ scanning::token_type::VAR }))
+	{
+		return { scanning::token_type::VAR, var_declaration() };
+	}
+	else if (match({ scanning::token_type::FUN }))
+	{
+		return { scanning::token_type::FUN, func_declaration(function_statement_type::FST_METHOD) };
+	}
+	else if (match({ scanning::token_type::OPERATOR }))
+	{
+		return { scanning::token_type::OPERATOR, func_declaration(function_statement_type::FST_OPERATOR) };
+	}
+	else if (match({ scanning::token_type::CONSTRUCTOR }))
+	{
+		return { scanning::token_type::CONSTRUCTOR, func_declaration(function_statement_type::FST_CTOR) };
+	}
+	else
+	{
+		throw error(peek(), "Field or method or operator is expected.");
+	}
 }
 
 std::shared_ptr<type_expression> parser::type_expr()
@@ -714,5 +733,7 @@ std::shared_ptr<type_expression> parser::generic_type()
 	auto name = consume(scanning::token_type::IDENTIFIER, "Type expected.");
 	return make_shared<variable_type_expression>(name);
 }
+
+
 
 

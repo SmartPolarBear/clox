@@ -19,51 +19,25 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/18/2021.
+// Created by cleve on 8/14/2021.
 //
 
 #pragma once
 
-#include <format>
-#include <string>
+#include <scanner/scanner.h>
 
-namespace clox::parsing
+namespace clox::resolving
 {
-
-enum class function_statement_type
-{
-	FST_FUNCTION = 1,
-	FST_METHOD,
-	FST_OPERATOR,
-	FST_CTOR
-};
-
-
-class statement : public parser_class_base
-{
-};
-}
-
-namespace std
-{
-template<>
-struct std::formatter<clox::parsing::function_statement_type> : std::formatter<std::string>
-{
-	auto format(clox::parsing::function_statement_type p, format_context& ctx)
-	{
-		switch (p)
-		{
-		case clox::parsing::function_statement_type::FST_CTOR:
-			return formatter<std::string>::format("constructor", ctx);
-		case clox::parsing::function_statement_type::FST_FUNCTION:
-			return formatter<std::string>::format("function", ctx);
-		case clox::parsing::function_statement_type::FST_METHOD:
-			return formatter<std::string>::format("method", ctx);
-		case clox::parsing::function_statement_type::FST_OPERATOR:
-			return formatter<std::string>::format("operator", ctx);
-		default:
-			throw invalid_argument{ "p" };
-		}
-	}
+static inline constexpr auto OVERRIDABLE_OPS = {
+		clox::scanning::token_type::BANG, clox::scanning::token_type::BANG_EQUAL,
+		clox::scanning::token_type::EQUAL, clox::scanning::token_type::EQUAL_EQUAL,
+		clox::scanning::token_type::GREATER, clox::scanning::token_type::GREATER_EQUAL,
+		clox::scanning::token_type::LESS, clox::scanning::token_type::LESS_EQUAL,
+		clox::scanning::token_type::MINUS, clox::scanning::token_type::MINUS_MINUS,
+		clox::scanning::token_type::PLUS, clox::scanning::token_type::PLUS_PLUS,
+		clox::scanning::token_type::STAR, clox::scanning::token_type::STAR_STAR,
+		clox::scanning::token_type::ARROW,
+		clox::scanning::token_type::COMMA, clox::scanning::token_type::DOT,
+		clox::scanning::token_type::AND, clox::scanning::token_type::OR
 };
 }
