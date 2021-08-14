@@ -50,6 +50,7 @@ resolver::resolver(shared_ptr<symbol_table> st) :
 		symbols_(std::move(st)),
 		global_scope_{ std::make_shared<scope>() }
 {
+	global_scope_->types()["void"] = make_shared<lox_void_type>();
 
 	global_scope_->types()["object"] = lox_object_type::object();
 

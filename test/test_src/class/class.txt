@@ -1,11 +1,16 @@
 R"(
 class Person {
-  sayName() {
+  var name:string;
+
+  constructor(n:string){
+    this.name=n;
+  }
+
+  fun sayName() {
     print this.name;
   }
 }
 
-var jane = Person();
-jane.name = "Jane";
+var jane = Person("Jane");
 jane.sayName();
 )"

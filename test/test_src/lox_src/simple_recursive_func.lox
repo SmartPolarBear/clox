@@ -1,4 +1,4 @@
-fun recursive_fuck(ch) {
+fun recursive_fuck(ch:string):void {
     if(ch != "AAAAAA")
     {
         print "I fucked "+ch;

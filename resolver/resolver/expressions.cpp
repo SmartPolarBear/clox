@@ -125,7 +125,7 @@ std::shared_ptr<lox_type> resolver::visit_var_expression(const std::shared_ptr<p
 	if (!scopes_.empty())
 	{
 		if (auto existence = scope_top_find(ve->get_name().lexeme());existence.has_value() &&
-		!existence.value())
+																	 !existence.value())
 		{
 			logger::instance().error(ve->get_name(),
 					std::format("Reading {} before its initialization.", ve->get_name().lexeme()));
@@ -289,7 +289,8 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
 
-		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)));
+		callable = static_pointer_cast<lox_callable_type>(
+				class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)));
 	}
 
 	if (!callable)
@@ -317,7 +318,13 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		}
 	}
 
+	if (!callable->return_type_deduced())
+	{
+		return type_error(ce->get_paren(), "Too complex type for deducing. Specify return type explicitly !");
+	}
+
 	auto return_type = callable->return_type();
+
 	if (lox_type::is_class(*return_type))
 	{
 		return make_shared<lox_instance_type>(static_pointer_cast<lox_class_type>(return_type));

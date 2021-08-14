@@ -1,9 +1,8 @@
 class Person {
   var name:string;
 
-  constructor() {
-    print "this is constructor";
-    this.name="Jane";
+  constructor(n:string) {
+    name=n;
   }
 
   fun sayName() {
@@ -12,5 +11,5 @@ class Person {
 
 }
 
-var jane = Person();
+var jane = Person("Jane");
 jane.sayName();
