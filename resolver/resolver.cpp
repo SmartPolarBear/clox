@@ -892,10 +892,10 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 
 	switch (tk.type())
 	{
-	case scanning::token_type::PLUS:
 	case scanning::token_type::MINUS:
 	case scanning::token_type::STAR:
 	case scanning::token_type::SLASH:
+	{
 		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
 		{
 			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
@@ -908,8 +908,25 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 					return make_tuple(t, true, false);
 				}
 			}
+
 		}
 		break;
+	}
+
+	case scanning::token_type::PLUS:
+	{
+		auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
+								lox_object_type::floating(), lox_object_type::string() };
+
+		for (const auto& t:possible_types) // not  call intersect for extensibility
+		{
+			if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
+			{
+				return make_tuple(t, true, false);
+			}
+		}
+		break;
+	}
 
 	case scanning::token_type::LESS:
 	case scanning::token_type::GREATER:
@@ -918,7 +935,7 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
 		{
 			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
-									lox_object_type::floating() };
+									lox_object_type::floating(), lox_object_type::string() };
 
 			for (const auto& t:possible_types) // not  call intersect for extensibility
 			{
@@ -929,6 +946,7 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 			}
 		}
 
+	case scanning::token_type::BANG_EQUAL:
 	case scanning::token_type::EQUAL_EQUAL:
 		// TODO: any checking?
 		return make_tuple(lox_object_type::boolean(), true, false);
