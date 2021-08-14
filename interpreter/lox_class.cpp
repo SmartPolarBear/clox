@@ -34,7 +34,7 @@ using namespace clox::interpreting;
 
 size_t clox::interpreting::lox_class::arity()
 {
-	if (auto ctor = lookup_method("init");ctor)
+	if (auto ctor = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor)
 	{
 		return ctor->arity();
 	}
@@ -47,7 +47,7 @@ clox::interpreting::lox_class::call(struct interpreter* the_interpreter, const s
 {
 	auto inst = make_shared<lox_instance>(shared_from_this());
 
-	if (auto ctor = lookup_method("init");ctor)
+	if (auto ctor = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor)
 	{
 		ctor->bind(inst)->call(the_interpreter, args);
 	}

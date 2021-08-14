@@ -289,7 +289,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
 
-		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at("init"));
+		callable = static_pointer_cast<lox_callable_type>(class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)));
 	}
 
 	if (!callable)

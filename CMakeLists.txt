@@ -65,7 +65,8 @@ if (TemporaryFixStdFormat)
     # TODO: it's dangerous. Remove it right after CLion fix the bug.
 
     target_compile_options(clox
-            PRIVATE /wd4005)
+            PRIVATE /wd4005
+            PRIVATE /std:c++latest)
 
     target_compile_definitions(clox
             PRIVATE -D__cpp_lib_format

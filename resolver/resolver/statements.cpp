@@ -52,7 +52,7 @@ shared_ptr<lox_type> resolver::resolve_function_decl(const shared_ptr<function_s
 	bool ctor = false;
 	if (cur_class_.top() != env_class_type::CT_NONE)
 	{
-		if (func->get_name().lexeme() == "init")
+		if (func->get_func_type() == parsing::function_statement_type::FST_CTOR)
 		{
 			ctor = true;
 		}
@@ -110,8 +110,6 @@ void resolver::resolve_function_body(const shared_ptr<parsing::function_statemen
 
 	resolve(func->get_body()); // resolve the body
 }
-
-
 
 
 void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls)
@@ -210,9 +208,11 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 void resolver::complement_default_members(const shared_ptr<parsing::class_statement>& cls,
 		const shared_ptr<lox_class_type>& class_type)
 {
-	if (!class_type->methods().contains("init"))
+	if (!class_type->methods().contains(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)))
 	{
-		class_type->methods()["init"] = make_shared<lox_callable_type>("init", class_type,
+		class_type->methods()[scanning::scanner::keyword_from_type(
+				scanning::token_type::CONSTRUCTOR)] = make_shared<lox_callable_type>(
+				scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR), class_type,
 				lox_callable_type::param_list_type{}, true);
 	}
 }
@@ -229,7 +229,7 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 	for (const auto& method:cls->get_methods())
 	{
 		auto decl = env_function_type::FT_METHOD;
-		if (method->get_name().lexeme() == "init")
+		if (method->get_func_type() == parsing::function_statement_type::FST_CTOR)
 		{
 			decl = env_function_type::FT_CTOR;
 		}

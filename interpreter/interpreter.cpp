@@ -659,7 +659,7 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 	for (const auto& me:cls->get_methods())
 	{
 		methods[me->get_name().lexeme()] = make_shared<lox_function>(me, environment_,
-				me->get_name().lexeme() == "init");
+				me->get_func_type() == parsing::function_statement_type::FST_CTOR);
 	}
 
 	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base, methods);

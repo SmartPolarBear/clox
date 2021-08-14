@@ -148,11 +148,7 @@ private:
 class scanner final
 {
 public:
-	[[nodiscard]] explicit scanner(std::string src)
-			: src_(std::move(src))
-	{
-
-	}
+	[[nodiscard]] explicit scanner(std::string src);
 
 	[[nodiscard]]std::vector<token> scan();
 
@@ -161,8 +157,10 @@ public:
 		return cur_ >= src_.size();
 	}
 
+	[[nodiscard]] static std::string keyword_from_type(token_type t);
+
 private:
-	std::unordered_map<std::string, token_type> keywords{
+	static inline std::unordered_map<std::string, token_type> keywords_to_type_{
 			{ "and",         token_type::AND },
 			{ "class",       token_type::CLASS },
 			{ "else",        token_type::ELSE },
@@ -185,6 +183,8 @@ private:
 			{ "operator",    token_type::OPERATOR },
 			{ "constructor", token_type::CONSTRUCTOR }
 	};
+
+	static inline std::unordered_map<token_type, std::string> type_to_keywords_{};
 
 	void scan_next_token();
 

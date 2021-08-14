@@ -2,8 +2,10 @@
 #include <logger/logger.h>
 
 #include <format>
+#include <ranges>
 
 using namespace std;
+
 using namespace clox::scanning;
 using namespace clox::logging;
 
@@ -136,9 +138,9 @@ void scanner::scan_identifier()
 	while (validator::valid_identifier_component(peek()))advance();
 
 	auto text = whole_lexeme();
-	auto keyword = keywords.find(text);
+	auto keyword = keywords_to_type_.find(text);
 
-	if (keyword != keywords.end())add_token(keywords[text]);
+	if (keyword != keywords_to_type_.end())add_token(keywords_to_type_[text]);
 	else add_token(token_type::IDENTIFIER);
 }
 
@@ -298,5 +300,19 @@ void scanner::consume_block_comment()
 void scanner::consume_line_comment()
 {
 	while (peek() != '\n' && !is_end())advance();
+}
+
+scanner::scanner(std::string src)
+		: src_(std::move(src))
+{
+	for (const auto& p:keywords_to_type_)
+	{
+		type_to_keywords_[p.second] = p.first;
+	}
+}
+
+std::string scanner::keyword_from_type(token_type t)
+{
+	return type_to_keywords_.at(t);
 }
 
