@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 
+add_subdirectory(resolver)
+
 target_include_directories(clox PRIVATE include)
 
 target_sources(clox
-        PRIVATE resolver.cpp
         PRIVATE lox_type.cpp
         PRIVATE callable_type.cpp
         PRIVATE object_type.cpp
@@ -15,7 +16,6 @@ target_sources(clox
 target_include_directories(clox_test PRIVATE include)
 
 target_sources(clox_test
-        PRIVATE resolver.cpp
         PRIVATE lox_type.cpp
         PRIVATE callable_type.cpp
         PRIVATE object_type.cpp
