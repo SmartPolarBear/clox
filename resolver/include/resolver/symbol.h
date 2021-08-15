@@ -44,6 +44,7 @@ namespace clox::resolving
 enum class symbol_type
 {
 	ST_VARIABLE = 1,
+	ST_NAMED,
 	ST_FUNCTION
 };
 
@@ -57,6 +58,33 @@ public:
 
 // TODO: add function_symbol or something likely
 
+class function_multi_symbol
+		: public symbol
+{
+public:
+	[[nodiscard]] resolving::symbol_type symbol_type() const override;
+
+	[[nodiscard]] std::shared_ptr<lox_type> type() const override;
+};
+
+class named_symbol
+		: public symbol
+{
+public:
+	named_symbol() = default;
+
+	~named_symbol() = default;
+
+	explicit named_symbol(std::string name, std::shared_ptr<lox_type> type);
+
+	[[nodiscard]] resolving::symbol_type symbol_type() const override;
+
+	[[nodiscard]] std::shared_ptr<lox_type> type() const override;
+
+private:
+	std::string name_{};
+	std::shared_ptr<lox_type> type_{};
+};
 
 class variable_symbol
 		: public symbol

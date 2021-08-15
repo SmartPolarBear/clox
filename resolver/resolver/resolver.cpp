@@ -112,16 +112,22 @@ void resolver::scope_end()
 
 void resolver::declare_name(const clox::scanning::token& t, size_t dist)
 {
+	declare_name(t.lexeme(), t, dist);
+}
+
+
+void resolver::declare_name(const string& lexeme, const clox::scanning::token& error_tk, size_t dist)
+{
 	if (scopes_.empty())return;
 
 	auto top = scope_top(dist);
 
-	if (top->names().contains(t.lexeme()))
+	if (top->contains_name(lexeme))
 	{
-		logger::instance().error(t, std::format("{} already exists in this scoop.", t.lexeme()));
+		logger::instance().error(error_tk, std::format("{} already exists in this scoop.", lexeme));
 	}
 
-	top->names()[t.lexeme()] = false;
+	top->names()[lexeme] = nullptr; // initialize a slot
 }
 
 void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
@@ -133,8 +139,7 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 {
 	if (scopes_.empty())return;
 
-	scope_top(dist)->names()[tk] = true;
-	scope_top(dist)->type_of_names()[tk] = type;
+	scope_top(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
 }
 
 
@@ -155,9 +160,9 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 
 	for (const auto& s:scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
-		if (s->names().contains(tk.lexeme()))
+		if (s->contains_name(tk.lexeme()))
 		{
-			symbols_->put<variable_symbol>(expr, depth, s->type_of_names().at(tk.lexeme()));
+			symbols_->put<variable_symbol>(expr, depth, s->name(tk.lexeme())->type());
 			return symbols_->at(expr);
 		}
 		depth++;
@@ -171,9 +176,9 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 {
 	for (auto& scoop:scopes_)
 	{
-		if (scoop->types().contains(tk.lexeme()))
+		if (scoop->contains_type(tk.lexeme()))
 		{
-			return scoop->types().at(tk.lexeme());
+			return scoop->type(tk.lexeme());
 		}
 	}
 

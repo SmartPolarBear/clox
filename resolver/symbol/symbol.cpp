@@ -37,3 +37,29 @@ bool symbol_table::contains(const std::shared_ptr<parsing::expression>& expr) co
 {
 	return table_.contains(expr);
 }
+
+symbol_type named_symbol::symbol_type() const
+{
+	return resolving::symbol_type::ST_NAMED;
+}
+
+std::shared_ptr<lox_type> named_symbol::type() const
+{
+	return type_;
+}
+
+named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
+		: name_(std::move(name)), type_(std::move(type))
+{
+
+}
+
+symbol_type function_multi_symbol::symbol_type() const
+{
+	return resolving::symbol_type::ST_FUNCTION;
+}
+
+std::shared_ptr<lox_type> function_multi_symbol::type() const
+{
+	throw std::logic_error{"function_multi_symbol should not use type()"};
+}

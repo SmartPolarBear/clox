@@ -135,9 +135,11 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 	// to support fields with this class type or relevant function return type
 
 	scope_begin();
+	declare_name("base", cls->get_name());
 	define_name("base", base_class_type); // base is not an instance.
 
 	scope_begin();
+	declare_name("this", cls->get_name());
 	define_name("this", this_type);
 
 	auto _ = finally([this]

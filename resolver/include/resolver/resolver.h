@@ -33,6 +33,8 @@
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
 
+#include <resolver/scope.h>
+
 #include <vector>
 #include <stack>
 #include <map>
@@ -62,38 +64,6 @@ enum class [[clang::enum_extensibility(closed)]] env_class_type
 	CT_INHERITED_CLASS
 };
 
-
-class scope final
-{
-public:
-	using name_table_type = std::unordered_map<std::string, bool>;
-	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
-
-	friend class resolver;
-
-	scope() = default;
-
-	[[nodiscard]] name_table_type& names()
-	{
-		return names_;
-	}
-
-	[[nodiscard]]type_table_type& type_of_names()
-	{
-		return type_of_names_;
-	}
-
-	[[nodiscard]]type_table_type& types()
-	{
-		return types_;
-	}
-
-private:
-	mutable name_table_type names_{};
-	mutable type_table_type type_of_names_{};
-
-	mutable type_table_type types_{};
-};
 
 class resolver final
 		: public parsing::expression_visitor<std::shared_ptr<lox_type>>,
@@ -229,6 +199,8 @@ private:
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
+	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
+
 	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0);
 
 	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0);
@@ -244,8 +216,12 @@ private:
 	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
 		auto top = scope_top(dist);
-		if (!top->names().contains(key))return std::nullopt;
-		else return top->names().at(key);
+		if (!top->contains_name(key))return std::nullopt;
+		else
+		{
+			auto symbol = top->name(key);
+			return symbol != nullptr;
+		}
 	}
 
 	void scope_push(const std::shared_ptr<scope>& s)
