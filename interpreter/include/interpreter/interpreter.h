@@ -39,6 +39,8 @@
 #include <parser/parser.h>
 
 #include <resolver/symbol.h>
+#include <resolver/symbol_table.h>
+
 
 #include <variant>
 #include <string>

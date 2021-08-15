@@ -2,11 +2,16 @@ class Person {
   var name:string;
 
   constructor(n:string) {
-    name=n;
+    this.name=n;
   }
 
   fun sayName() {
     print this.name;
+  }
+
+  operator==(another:Person):boolean
+  {
+    return this.name==another.name;
   }
 
 }

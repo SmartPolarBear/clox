@@ -41,6 +41,7 @@
 #include <gsl/gsl>
 
 using namespace std;
+using namespace clox::resolving;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::interpreting;
@@ -446,7 +447,6 @@ void interpreter::execute(const shared_ptr<parsing::statement>& s)
 
 evaluating_result interpreter::visit_var_expression(const std::shared_ptr<var_expression>& e)
 {
-//	auto opt_val = environment_->get(e->get_name());
 	auto opt_val = variable_lookup(e->get_name(), e);
 	if (opt_val.has_value())
 	{
@@ -604,7 +604,20 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
-	auto dist = locals_->contains(expr) ? locals_->at(expr)->depth() : -1;
+	// FIXME
+	auto symbol = locals_->contains(expr) ? locals_->at(expr) : nullptr;
+	int64_t dist = -1;
+	if (symbol && symbol->symbol_type() != resolving::symbol_type::ST_VARIABLE)
+	{
+		throw clox::interpreting::runtime_error{ tk,
+												 std::format("{} is not a variable.",
+														 tk.lexeme()) };
+	}
+	else if (symbol)
+	{
+		dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+	}
+
 	if (dist != -1)
 	{
 		return environment_->get_at(tk.lexeme(), dist);
@@ -618,7 +631,19 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 void
 interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
 {
-	auto dist = locals_->contains(expr) ? locals_->at(expr)->depth() : -1;
+	auto symbol = locals_->contains(expr) ? locals_->at(expr) : nullptr;
+	int64_t dist = -1;
+	if (symbol && symbol->symbol_type() != resolving::symbol_type::ST_VARIABLE)
+	{
+		throw clox::interpreting::runtime_error{ tk,
+												 std::format("{} is not a variable.",
+														 tk.lexeme()) };
+	}
+	else if (symbol)
+	{
+		dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+	}
+
 	if (dist != -1)
 	{
 		environment_->assign_at(tk, val, dist);
@@ -716,7 +741,9 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
 	// FIXME: should support fields
-	auto dist = locals_->at(expr)->depth();
+	auto symbol = locals_->at(expr);
+	auto dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
 
 	auto this_inst = get<shared_ptr<lox_instance>>(environment_->get_at("this", dist - 1).value());

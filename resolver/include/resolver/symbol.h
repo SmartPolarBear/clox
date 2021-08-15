@@ -40,15 +40,39 @@
 
 namespace clox::resolving
 {
+
+enum class symbol_type
+{
+	ST_VARIABLE = 1,
+	ST_FUNCTION
+};
+
 class symbol
+{
+public:
+	[[nodiscard]] virtual symbol_type symbol_type() const = 0;
+
+	[[nodiscard]] virtual std::shared_ptr<lox_type> type() const = 0;
+};
+
+// TODO: add function_symbol or something likely
+
+
+class variable_symbol
+		: public symbol
 {
 public:
 	static inline constexpr size_t INVALID_DEPTH = -1;
 public:
-	[[nodiscard]] explicit symbol(int64_t depth = INVALID_DEPTH,
+	[[nodiscard]] explicit variable_symbol(int64_t depth = INVALID_DEPTH,
 			std::shared_ptr<lox_type> type = nullptr)
 			: depth_(depth), type_(std::move(type))
 	{
+	}
+
+	[[nodiscard]] resolving::symbol_type symbol_type() const override
+	{
+		return resolving::symbol_type::ST_VARIABLE;
 	}
 
 	[[nodiscard]] int64_t depth() const
@@ -71,37 +95,12 @@ public:
 		type_ = t;
 	}
 
-	auto operator<=>(const symbol& another) const = default;
+//	auto operator<=>(const variable_symbol& another) const = default;
 
 private:
 	int64_t depth_{};
 	std::shared_ptr<lox_type> type_{};
 };
 
-class symbol_table
-{
-public:
-	template<class... Args>
-	void put(const std::shared_ptr<parsing::expression>& expr, Args&& ... args)
-	{
-		if (table_.contains(expr))
-		{
-			throw std::invalid_argument{ "expr is already in the table" };
-		}
 
-		auto attributes = std::make_shared<symbol>(std::forward<Args>(args)...);
-		table_[expr] = attributes;
-	}
-
-	[[nodiscard]] std::shared_ptr<symbol> at(const std::shared_ptr<parsing::expression>& expr);
-
-	[[nodiscard]] bool contains(const std::shared_ptr<parsing::expression>& expr) const;
-
-	void set_depth(const std::shared_ptr<parsing::expression>& expr, int64_t d);
-
-	void set_type(const std::shared_ptr<parsing::expression>& expr, const std::shared_ptr<lox_type>& type);
-
-private:
-	std::unordered_map<std::shared_ptr<parsing::expression>, std::shared_ptr<symbol>> table_{};
-};
 }

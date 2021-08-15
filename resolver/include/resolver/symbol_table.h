@@ -19,43 +19,36 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/4/2021.
+// Created by cleve on 8/15/2021.
 //
+
+#pragma once
 
 #include <resolver/symbol.h>
 
-using namespace clox::resolving;
-
-std::shared_ptr<symbol> clox::resolving::symbol_table::at(const std::shared_ptr<parsing::expression>& expr)
+namespace clox::resolving
 {
-	return table_.at(expr);
-}
-
-bool symbol_table::contains(const std::shared_ptr<parsing::expression>& expr) const
+class symbol_table
 {
-	return table_.contains(expr);
-}
+public:
+	template<typename TSymbol, class... Args>
+	requires std::derived_from<TSymbol, symbol>
+	void put(const std::shared_ptr<parsing::expression>& expr, Args&& ... args)
+	{
+		if (table_.contains(expr))
+		{
+			throw std::invalid_argument{ "expr is already in the table" };
+		}
 
-void symbol_table::set_depth(const std::shared_ptr<parsing::expression>& expr, int64_t d)
-{
-	if (contains(expr))
-	{
-		at(expr)->set_depth(d);
+		auto attributes = std::make_shared<TSymbol>(std::forward<Args>(args)...);
+		table_[expr] = attributes;
 	}
-	else
-	{
-		put(expr, d, nullptr);
-	}
-}
 
-void symbol_table::set_type(const std::shared_ptr<parsing::expression>& expr, const std::shared_ptr<lox_type>& type)
-{
-	if (contains(expr))
-	{
-		at(expr)->set_type(type);
-	}
-	else
-	{
-		put(expr, symbol::INVALID_DEPTH, type);
-	}
+	[[nodiscard]] std::shared_ptr<symbol> at(const std::shared_ptr<parsing::expression>& expr);
+
+	[[nodiscard]] bool contains(const std::shared_ptr<parsing::expression>& expr) const;
+
+private:
+	std::unordered_map<std::shared_ptr<parsing::expression>, std::shared_ptr<symbol>> table_{};
+};
 }

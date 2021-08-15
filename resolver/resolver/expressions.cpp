@@ -54,8 +54,12 @@ resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_
 
 	// set the depth of expression
 	auto symbol = resolve_local(e, e->get_name());
+	if (symbol->symbol_type() != symbol_type::ST_VARIABLE)
+	{
+		return type_error(e->get_name(), std::format("{} is not a variable", e->get_name().lexeme()));
+	}
 
-	auto compa = check_type_assignment(e->get_name(), symbol->type(), value_type);
+	auto compa = check_type_assignment(e->get_name(), static_pointer_cast<variable_symbol>(symbol)->type(), value_type);
 
 	return get<0>(compa);
 }
@@ -133,6 +137,8 @@ std::shared_ptr<lox_type> resolver::visit_var_expression(const std::shared_ptr<p
 	}
 
 	auto symbol = resolve_local(ve, ve->get_name());
+
+
 
 	return symbol->type();
 }

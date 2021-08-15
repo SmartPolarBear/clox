@@ -157,10 +157,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	{
 		if (s->names().contains(tk.lexeme()))
 		{
-
-			symbols_->set_depth(expr, depth);
-			symbols_->set_type(expr, s->type_of_names().at(tk.lexeme()));
-
+			symbols_->put<variable_symbol>(expr, depth, s->type_of_names().at(tk.lexeme()));
 			return symbols_->at(expr);
 		}
 		depth++;
