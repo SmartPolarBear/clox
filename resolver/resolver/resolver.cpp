@@ -130,6 +130,20 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 	top->names()[lexeme] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 }
 
+
+void resolver::declare_function_name(const clox::scanning::token& t, size_t dist)
+{
+	if (scopes_.empty())return;
+
+	auto top = scope_top(dist);
+
+	if (!top->contains_name(t.lexeme()))
+	{
+		top->names()[t.lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+	}
+}
+
+
 void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
 {
 	define_name(tk.lexeme(), type, dist);
@@ -186,22 +200,24 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 }
 
 
-void resolver::define_name(const clox::scanning::token& tk, const shared_ptr<parsing::statement>& stmt,
+void resolver::define_function_name(const clox::scanning::token& tk, const shared_ptr<parsing::statement>& stmt,
 		const shared_ptr<lox_callable_type>& type, size_t dist)
 {
-	define_name(tk.lexeme(), tk, stmt, type, dist);
+	define_function_name(tk.lexeme(), tk, stmt, type, dist);
 }
 
-void resolver::define_name(const string& lexeme, const clox::scanning::token& error_tk,
+void resolver::define_function_name(const string& lexeme, const clox::scanning::token& error_tk,
 		const shared_ptr<parsing::statement>& stmt,
 		const shared_ptr<lox_callable_type>& type, size_t dist)
 {
 	if (scopes_.empty())return;
 
 	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
-	if (scope_top(dist)->names().at(lexeme))
+	auto s = scope_top(dist);
+
+	if (s->names().at(lexeme))
 	{
-		metatype = dynamic_pointer_cast<lox_overloaded_metatype>(scope_top(dist)->names().at(lexeme)->type());
+		metatype = dynamic_pointer_cast<lox_overloaded_metatype>(s->names().at(lexeme)->type());
 
 		if (!metatype)
 		{
@@ -211,20 +227,20 @@ void resolver::define_name(const string& lexeme, const clox::scanning::token& er
 	else
 	{
 		metatype = make_shared<lox_overloaded_metatype>(lexeme);
-		scope_top(dist)->names().at(lexeme) = make_shared<named_symbol>(lexeme, metatype);
+		s->names()[lexeme] = make_shared<named_symbol>(lexeme, metatype);
 	}
 
 	try
 	{
 		metatype->put(stmt, type);
 	}
-	catch (const invalid_def_too_many_args& e)
+	catch (const too_many_params& e)
 	{
-		type_error(error_tk, std::format("Too many parameters in function : {}", e.what()));
+		type_error(error_tk, e.what());
 	}
 	catch (const redefined_symbol& e)
 	{
-		type_error(error_tk, std::format("Ambiguous function : {}", e.what()));
+		type_error(error_tk, e.what());
 	}
 }
 

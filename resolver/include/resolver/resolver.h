@@ -199,6 +199,8 @@ private:
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
+	void declare_function_name(const scanning::token& t, size_t dist = 0);
+
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 
 	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0);
@@ -210,7 +212,7 @@ private:
 	/// \param stmt
 	/// \param type
 	/// \param dist
-	void define_name(const clox::scanning::token& tk,
+	void define_function_name(const clox::scanning::token& tk,
 			const std::shared_ptr<parsing::statement>& stmt,
 			const std::shared_ptr<lox_callable_type>& type,
 			size_t dist = 0);
@@ -220,7 +222,7 @@ private:
 	/// \param stmt
 	/// \param type
 	/// \param dist
-	void define_name(const std::string& lexeme, const clox::scanning::token& error_tk,
+	void define_function_name(const std::string& lexeme, const clox::scanning::token& error_tk,
 			const std::shared_ptr<parsing::statement>& stmt,
 			const std::shared_ptr<lox_callable_type>& type,
 			size_t dist = 0);

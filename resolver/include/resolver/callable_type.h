@@ -26,7 +26,6 @@
 
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
-#include <resolver/callable_type_exceptions.h>
 
 #include <parser/parser.h>
 
@@ -159,6 +158,30 @@ private:
 	};
 
 	std::shared_ptr<lox_overloaded_node> root_{};
+};
+
+class redefined_symbol final
+		: public std::runtime_error
+{
+public:
+	explicit redefined_symbol(const std::shared_ptr<lox_callable_type>& cur,
+			const std::shared_ptr<lox_callable_type>& conflict);
+
+private:
+	std::shared_ptr<lox_callable_type> cur_{};
+	std::shared_ptr<lox_callable_type> conflict_{};
+
+};
+
+class too_many_params final
+		: public std::runtime_error
+{
+public:
+	explicit too_many_params(const 	std::shared_ptr<lox_callable_type>& func);
+
+private:
+	std::shared_ptr<lox_callable_type> func_{};
+
 };
 
 

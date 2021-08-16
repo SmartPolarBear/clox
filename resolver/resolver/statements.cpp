@@ -358,7 +358,7 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
-	declare_name(stmt->get_name());
+	declare_function_name(stmt->get_name());
 
 	if (stmt->get_func_type() == function_statement_type::FST_OPERATOR)
 	{
@@ -373,7 +373,7 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 
 	auto func_type = static_pointer_cast<lox_callable_type>(type);
 
-	define_name(stmt->get_name(), stmt, func_type); // use special define_name
+	define_function_name(stmt->get_name(), stmt, func_type); // use special define_name
 
 	cur_func_type_.push(func_type);
 

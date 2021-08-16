@@ -35,12 +35,31 @@ using namespace clox::helper;
 
 using namespace clox::resolving;
 
+
+redefined_symbol::redefined_symbol(const std::shared_ptr<lox_callable_type>& cur,
+		const std::shared_ptr<lox_callable_type>& conflict)
+		: cur_(cur),
+		  conflict_(),
+		  std::runtime_error(std::format("Ambiguous function signature: {} and {}",
+				  cur->printable_string(), conflict->printable_string()))
+{
+
+}
+
+too_many_params::too_many_params(const std::shared_ptr<lox_callable_type>& func)
+		: func_(func),
+		  std::runtime_error(std::format("Too many parameters in function signature {}", func->printable_string()))
+{
+
+}
+
+
 lox_callable_type::lox_callable_type(std::string name, return_type_variant return_type,
 		param_list_type params, bool ctor)
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
 		  params_(std::move(params)),
-		  lox_object_type(std::move(name), TYPE_ID_CLASS, TYPE_CLASS | FLAG_CALLABLE, object())
+		  lox_object_type(std::move(name), TYPE_ID_STRING_CLASS, TYPE_CLASS | FLAG_CALLABLE, object())
 {
 	if (ctor)
 	{
@@ -149,13 +168,13 @@ void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stm
 	{
 		if (node->depth_ > 256)
 		{
-			throw invalid_def_too_many_args(callable->printable_string());
+			throw too_many_params{ callable };
 		}
 
-		if (!node->next_[param_iter->second])
+		if (!node->next_.contains(param_iter->second)) // exact match
 		{
 			auto next = std::make_shared<lox_overloaded_node>();
-			node->next_[param_iter->second] = next;
+			node->next_.insert(std::make_pair(param_iter->second, next));
 			next->parent(node);
 		}
 
@@ -164,7 +183,7 @@ void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stm
 
 	if (node->end_)
 	{
-		throw redefined_symbol(callable->printable_string());
+		throw redefined_symbol{ callable, node->callable_ };
 	}
 
 	node->end_ = true;
@@ -181,12 +200,14 @@ lox_overloaded_metatype::get(const lox_callable_type::param_list_type& params)
 		 node && node->depth_ <= 256 && param_iter != params.end();
 		 param_iter++)
 	{
-		if (!node->next_.contains(param_iter->second))
+		auto lb = node->next_.lower_bound(param_iter->second); // not less than
+
+		if (lb == node->next_.end())
 		{
 			return std::nullopt;
 		}
 
-		node = node->next_[param_iter->second];
+		node = lb->second;
 	}
 
 	if (!node->end_)

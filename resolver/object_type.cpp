@@ -218,7 +218,7 @@ lox_nil_type::lox_nil_type()
 
 
 lox_string_type::lox_string_type()
-		: lox_object_type("string", TYPE_ID_CLASS, 0, lox_object_type::object())
+		: lox_object_type("string", TYPE_ID_STRING_CLASS, TYPE_CLASS, lox_object_type::object())
 {
 }
 
