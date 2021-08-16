@@ -205,6 +205,27 @@ private:
 
 	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0);
 
+	/// define name for callable
+	/// \param tk
+	/// \param stmt
+	/// \param type
+	/// \param dist
+	void define_name(const clox::scanning::token& tk,
+			const std::shared_ptr<parsing::statement>& stmt,
+			const std::shared_ptr<lox_callable_type>& type,
+			size_t dist = 0);
+
+	/// define name for callable
+	/// \param lexeme
+	/// \param stmt
+	/// \param type
+	/// \param dist
+	void define_name(const std::string& lexeme, const clox::scanning::token& error_tk,
+			const std::shared_ptr<parsing::statement>& stmt,
+			const std::shared_ptr<lox_callable_type>& type,
+			size_t dist = 0);
+
+
 	void define_type(const scanning::token& tk, const std::shared_ptr<lox_type>& type, uint64_t dist = 0);
 
 	std::shared_ptr<scope> scope_top(size_t dist = 0)

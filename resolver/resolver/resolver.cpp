@@ -186,5 +186,45 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 }
 
 
+void resolver::define_name(const clox::scanning::token& tk, const shared_ptr<parsing::statement>& stmt,
+		const shared_ptr<lox_callable_type>& type, size_t dist)
+{
+	define_name(tk.lexeme(), tk, stmt, type, dist);
+}
 
+void resolver::define_name(const string& lexeme, const clox::scanning::token& error_tk,
+		const shared_ptr<parsing::statement>& stmt,
+		const shared_ptr<lox_callable_type>& type, size_t dist)
+{
+	if (scopes_.empty())return;
+
+	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
+	if (scope_top(dist)->names().at(lexeme))
+	{
+		metatype = dynamic_pointer_cast<lox_overloaded_metatype>(scope_top(dist)->names().at(lexeme)->type());
+
+		if (!metatype)
+		{
+			type_error(error_tk, std::format("function {} is conflict with variables.", type->printable_string()));
+		}
+	}
+	else
+	{
+		metatype = make_shared<lox_overloaded_metatype>(lexeme);
+		scope_top(dist)->names().at(lexeme) = make_shared<named_symbol>(lexeme, metatype);
+	}
+
+	try
+	{
+		metatype->put(stmt, type);
+	}
+	catch (const invalid_def_too_many_args& e)
+	{
+		type_error(error_tk, std::format("Too many parameters in function : {}", e.what()));
+	}
+	catch (const redefined_symbol& e)
+	{
+		type_error(error_tk, std::format("Ambiguous function : {}", e.what()));
+	}
+}
 

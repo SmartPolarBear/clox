@@ -26,15 +26,18 @@
 
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
+#include <resolver/callable_type_exceptions.h>
 
 #include <parser/parser.h>
 
 #include <vector>
 #include <variant>
+#include <map>
+#include <optional>
+#include <stdexcept>
 
 namespace clox::resolving
 {
-
 
 class lox_callable_type
 		: public lox_object_type,
@@ -88,5 +91,71 @@ private:
 	return_type_variant return_type_{};
 	param_list_type params_{};
 };
+
+
+class lox_overloaded_metatype final
+		: public lox_object_type,
+		  public std::enable_shared_from_this<lox_overloaded_metatype>
+{
+public:
+	explicit lox_overloaded_metatype(const std::string& name) :
+			lox_object_type(name, TYPE_ID_OVERLOADED_FUNC, FLAG_CALLABLE, nullptr)
+	{
+	}
+
+	~lox_overloaded_metatype() = default;
+
+	void put(const std::shared_ptr<parsing::statement>& stmt,
+			const std::shared_ptr<lox_callable_type>& callable);
+
+	std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>
+	get(const lox_callable_type::param_list_type& params);
+
+private:
+
+	class lox_overloaded_node final
+			: public std::enable_shared_from_this<lox_overloaded_node>
+	{
+	public:
+		friend class lox_overloaded_metatype;
+
+		lox_overloaded_node() = default;
+
+		~lox_overloaded_node() = default;
+
+		[[nodiscard]] explicit lox_overloaded_node(std::shared_ptr<parsing::statement> stmt,
+				std::shared_ptr<lox_callable_type> callable)
+				: end_(true), stmt_(std::move(stmt)), callable_(std::move(callable))
+		{
+		}
+
+		void parent(const lox_overloaded_node& pa)
+		{
+			parent_ = pa.shared_from_this();
+			depth_ = pa.depth_ + 1;
+		}
+
+	private:
+		struct node_ptr_comparer final
+		{
+			bool operator()(const std::shared_ptr<lox_type>& lhs, const std::shared_ptr<lox_type> rhs) const
+			{
+				return lox_type::unify(*lhs, *rhs);
+			}
+		};
+
+		size_t depth_{ 0 };
+		std::weak_ptr<lox_overloaded_node> parent_;
+
+		bool end_{};
+		std::shared_ptr<parsing::statement> stmt_;
+		std::shared_ptr<lox_callable_type> callable_;
+
+		std::map<std::shared_ptr<lox_type>, std::shared_ptr<lox_overloaded_node>, node_ptr_comparer> next_{};
+	};
+
+	lox_overloaded_node root_{};
+};
+
 
 }

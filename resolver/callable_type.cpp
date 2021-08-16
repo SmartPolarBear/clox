@@ -123,3 +123,76 @@ bool lox_callable_type::return_type_deduced() const
 }
 
 
+void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stmt,
+		const std::shared_ptr<lox_callable_type>& callable)
+{
+	if (callable->param_size() == 0)
+	{
+		if (root_.end_)
+		{
+			throw redefined_symbol{ callable->printable_string() };
+		}
+
+		root_.end_ = true;
+		root_.stmt_ = stmt;
+		root_.callable_ = callable;
+
+		return;
+	}
+
+	auto param_list = callable->params();
+	auto node = root_.next_[param_list.front().second];
+
+	for (auto param_iter = param_list.begin();
+		 node && node->depth_ <= 256 && param_iter != param_list.end();
+		 param_iter++)
+	{
+		if (node->depth_ > 256)
+		{
+			throw invalid_def_too_many_args(callable->printable_string());
+		}
+
+		if (!node->next_.contains(param_iter->second))
+		{
+			auto next = std::make_shared<lox_overloaded_node>();
+			node->next_[param_iter->second] = next;
+			next->parent(*node);
+		}
+
+		node = node->next_[param_iter->second];
+	}
+
+	if (node->end_)
+	{
+		throw redefined_symbol(callable->printable_string());
+	}
+
+	node->end_ = true;
+	node->stmt_ = stmt;
+	node->callable_ = callable;
+}
+
+std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>
+lox_overloaded_metatype::get(const lox_callable_type::param_list_type& params)
+{
+	auto node = root_.next_[params.front().second];
+
+	for (auto param_iter = params.begin();
+		 node && node->depth_ <= 256 && param_iter != params.end();
+		 param_iter++)
+	{
+		if (!node->next_.contains(param_iter->second))
+		{
+			return std::nullopt;
+		}
+
+		node = node->next_[param_iter->second];
+	}
+
+	if (!node->end_)
+	{
+		return std::nullopt;
+	}
+
+	return std::make_tuple(node->stmt_, node->callable_);
+}

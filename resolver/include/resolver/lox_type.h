@@ -64,6 +64,8 @@ enum primitive_type_id : type_id
 	TYPE_ID_CLASS,
 	TYPE_ID_INSTANCE,
 
+	TYPE_ID_OVERLOADED_FUNC,
+
 	PRESET_TYPE_ID_MAX,
 };
 
