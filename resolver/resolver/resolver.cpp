@@ -127,7 +127,7 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 		logger::instance().error(error_tk, std::format("{} already exists in this scoop.", lexeme));
 	}
 
-	top->names()[lexeme] = nullptr; // initialize a slot
+	top->names()[lexeme] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 }
 
 void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)

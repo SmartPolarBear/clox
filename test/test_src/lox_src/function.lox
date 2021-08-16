@@ -2,4 +2,6 @@ fun do_it(a:integer):integer{
     return a+a;
 }
 
+
+
 print do_it(1);
