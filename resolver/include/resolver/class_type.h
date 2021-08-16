@@ -57,5 +57,7 @@ public:
 private:
 	type_map_type fields_{};
 	callable_type_map_type methods_{};
+
+	static type_id id_counter;
 };
 }

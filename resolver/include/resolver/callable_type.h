@@ -99,7 +99,8 @@ class lox_overloaded_metatype final
 {
 public:
 	explicit lox_overloaded_metatype(const std::string& name) :
-			lox_object_type(name, TYPE_ID_OVERLOADED_FUNC, FLAG_CALLABLE, nullptr)
+			lox_object_type(name, TYPE_ID_OVERLOADED_FUNC, FLAG_CALLABLE, nullptr),
+			root_(std::make_shared<lox_overloaded_node>())
 	{
 	}
 
@@ -129,10 +130,10 @@ private:
 		{
 		}
 
-		void parent(const lox_overloaded_node& pa)
+		void parent(const std::shared_ptr<lox_overloaded_node>& pa)
 		{
-			parent_ = pa.shared_from_this();
-			depth_ = pa.depth_ + 1;
+			parent_ = pa;
+			depth_ = pa->depth_ + 1;
 		}
 
 	private:
@@ -140,6 +141,9 @@ private:
 		{
 			bool operator()(const std::shared_ptr<lox_type>& lhs, const std::shared_ptr<lox_type> rhs) const
 			{
+				if (*lhs == *rhs)
+					return false;
+
 				return lox_type::unify(*lhs, *rhs);
 			}
 		};
@@ -154,7 +158,7 @@ private:
 		std::map<std::shared_ptr<lox_type>, std::shared_ptr<lox_overloaded_node>, node_ptr_comparer> next_{};
 	};
 
-	lox_overloaded_node root_{};
+	std::shared_ptr<lox_overloaded_node> root_{};
 };
 
 

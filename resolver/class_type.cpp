@@ -26,11 +26,15 @@
 
 #include <utility>
 
+using namespace clox::resolving;
+
+type_id lox_class_type::id_counter{ PRESET_TYPE_ID_MAX };
+
 clox::resolving::lox_class_type::lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
 		type_map_type fields,
 		callable_type_map_type methods)
 		: fields_(std::move(fields)),
 		  methods_(std::move(methods)),
-		  lox_object_type(std::move(name), TYPE_ID_CLASS, TYPE_CLASS, parent)
+		  lox_object_type(std::move(name), ++id_counter, TYPE_CLASS, parent)
 {
 }

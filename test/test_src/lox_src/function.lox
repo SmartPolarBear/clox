@@ -2,6 +2,8 @@ fun do_it(a:integer):integer{
     return a+a;
 }
 
-
+fun do_it(a:string):string{
+    return a+a;
+}
 
 print do_it(1);

@@ -44,18 +44,26 @@ clox::resolving::type_id clox::resolving::lox_instance_type::id() const
 
 bool clox::resolving::lox_instance_type::operator<(const clox::resolving::lox_type& target) const
 {
+	if (lox_type::is_instance(target))
+	{
+		operator<(*dynamic_cast<const lox_instance_type&>(target).type_);
+	}
 	return type_ && type_->operator<(target);
 }
 
 bool clox::resolving::lox_instance_type::operator==(const clox::resolving::lox_type& target) const
 {
-	return type_ && type_->operator==(target);
+	if (lox_type::is_instance(target))
+	{
+		return operator==(*dynamic_cast<const lox_instance_type&>(target).type_);
+	}
 
+	return type_ && type_->operator==(target);
 }
 
 bool clox::resolving::lox_instance_type::operator!=(const clox::resolving::lox_type& target) const
 {
-	return type_ && type_->operator!=(target);
+	return !(*this == target);
 }
 
 clox::resolving::lox_instance_type::lox_instance_type(std::shared_ptr<lox_object_type> obj)

@@ -373,7 +373,7 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 
 	auto func_type = static_pointer_cast<lox_callable_type>(type);
 
-	define_name(stmt->get_name(), func_type);
+	define_name(stmt->get_name(), stmt, func_type); // use special define_name
 
 	cur_func_type_.push(func_type);
 
