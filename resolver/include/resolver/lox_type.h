@@ -47,6 +47,7 @@ enum lox_type_flags : uint64_t
 
 
 using type_id = int64_t;
+using type_id_diff = int64_t;
 
 enum primitive_type_id : type_id
 {

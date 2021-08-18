@@ -184,6 +184,11 @@ std::shared_ptr<lox_object_type> lox_object_type::string()
 
 bool lox_object_type::operator==(const lox_type& another) const
 {
+	if (lox_type::is_instance(another))
+	{
+		return operator==(*dynamic_cast<const lox_instance_type&>(another).underlying_type());
+	}
+
 	return id() == another.id();
 }
 
@@ -238,7 +243,7 @@ bool lox_type::unify(const lox_type& base, const lox_type& derived)
 	{
 		return unify(base, *dynamic_cast<const lox_instance_type&>(derived).underlying_type());
 	}
-
+	
 	return dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 }
 

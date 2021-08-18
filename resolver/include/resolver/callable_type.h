@@ -35,6 +35,18 @@
 #include <optional>
 #include <stdexcept>
 
+namespace std
+{
+template<>
+struct hash<std::shared_ptr<clox::resolving::lox_type>>
+{
+	auto operator()(const std::shared_ptr<clox::resolving::lox_type>& p) const noexcept
+	{
+		return p->id();
+	}
+};
+}
+
 namespace clox::resolving
 {
 
@@ -109,7 +121,7 @@ public:
 			const std::shared_ptr<lox_callable_type>& callable);
 
 	std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>
-	get(const lox_callable_type::param_list_type& params);
+	get(const std::vector<std::shared_ptr<lox_type>>& params);
 
 private:
 
@@ -136,16 +148,6 @@ private:
 		}
 
 	private:
-		struct node_ptr_comparer final
-		{
-			bool operator()(const std::shared_ptr<lox_type>& lhs, const std::shared_ptr<lox_type> rhs) const
-			{
-				if (*lhs == *rhs)
-					return false;
-
-				return lox_type::unify(*lhs, *rhs);
-			}
-		};
 
 		size_t depth_{ 0 };
 		std::weak_ptr<lox_overloaded_node> parent_;
@@ -154,7 +156,7 @@ private:
 		std::shared_ptr<parsing::statement> stmt_;
 		std::shared_ptr<lox_callable_type> callable_;
 
-		std::map<std::shared_ptr<lox_type>, std::shared_ptr<lox_overloaded_node>, node_ptr_comparer> next_{};
+		std::unordered_map<std::shared_ptr<lox_type>, std::shared_ptr<lox_overloaded_node>> next_{};
 	};
 
 	std::shared_ptr<lox_overloaded_node> root_{};
@@ -177,7 +179,7 @@ class too_many_params final
 		: public std::runtime_error
 {
 public:
-	explicit too_many_params(const 	std::shared_ptr<lox_callable_type>& func);
+	explicit too_many_params(const std::shared_ptr<lox_callable_type>& func);
 
 private:
 	std::shared_ptr<lox_callable_type> func_{};

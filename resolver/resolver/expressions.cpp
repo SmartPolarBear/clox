@@ -273,6 +273,13 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		throw logic_error{ "callee isn't nullable" };
 	}
 
+	vector <shared_ptr<lox_type>> args{};
+	for (const auto& arg:ce->get_args())
+	{
+		auto type = resolve(arg);
+		args.push_back(type);
+	}
+
 	shared_ptr<lox_callable_type> callable{ nullptr };
 
 	if (lox_type::is_instance(*callee))
@@ -287,7 +294,16 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	}
 	else if (lox_type::is_callable(*callee))
 	{
-		callable = static_pointer_cast<lox_callable_type>(callee);
+		if (callee->id() == TYPE_ID_OVERLOADED_FUNC)
+		{
+			auto metatype = dynamic_pointer_cast<lox_overloaded_metatype>(callee);
+
+			auto resolve_ret = metatype->get(args);
+		}
+		else
+		{
+			callable = static_pointer_cast<lox_callable_type>(callee);
+		}
 	}
 	else if (lox_type::is_class(*callee))
 	{
