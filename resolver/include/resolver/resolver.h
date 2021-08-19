@@ -154,8 +154,8 @@ private:
 
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	void resolve_function_call(const std::shared_ptr<parsing::statement>& func,
-			const std::shared_ptr<parsing::call_expression>& call);
+	std::shared_ptr<lox_type> resolve_function_call(const std::shared_ptr<parsing::call_expression>& call,
+			const std::shared_ptr<lox_overloaded_metatype>& callee);
 
 	/// Resolve what can be confirmed just by the signature of the function.
 	/// \param func

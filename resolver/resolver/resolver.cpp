@@ -244,7 +244,27 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 	}
 }
 
-void resolver::resolve_function_call(const shared_ptr<parsing::statement>& func,
-		const shared_ptr<parsing::call_expression>& call)
+std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsing::call_expression>& call,
+		const std::shared_ptr<lox_overloaded_metatype>& callee)
 {
+	vector<shared_ptr<lox_type>> args{};
+
+	for (const auto& arg:call->get_args())
+	{
+		auto type = resolve(arg);
+		args.push_back(type);
+	}
+
+	auto resolve_ret = callee->get(args);
+	if (!resolve_ret.has_value())
+	{
+		return type_error(call->get_paren(), "Incompatible parameter type");
+	}
+
+	auto[stmt, callable]=resolve_ret.value();
+
+	bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+			static_pointer_cast<statement>(stmt));
+
+	return callable;
 }

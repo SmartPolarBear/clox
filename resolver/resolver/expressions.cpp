@@ -296,18 +296,13 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	{
 		if (callee->id() == TYPE_ID_OVERLOADED_FUNC)
 		{
-			auto metatype = dynamic_pointer_cast<lox_overloaded_metatype>(callee);
-
-			auto resolve_ret = metatype->get(args);
-			if (!resolve_ret.has_value())
+			auto resolve_ret = resolve_function_call(ce, dynamic_pointer_cast<lox_overloaded_metatype>(callee));
+			if (!lox_type::is_callable(*resolve_ret))
 			{
-				return type_error(ce->get_paren(), "Incompatible parameter type");
+				return resolve_ret;
 			}
 
-			auto[stmt, c]=resolve_ret.value();
-			resolve_function_call(stmt, ce);
-
-			callable = c;
+			callable = static_pointer_cast<lox_callable_type>(resolve_ret);
 		}
 		else
 		{
