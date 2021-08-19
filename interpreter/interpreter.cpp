@@ -604,18 +604,24 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
-	// FIXME
-	auto symbol = locals_->contains(expr) ? locals_->get(expr) : nullptr;
+	auto local = locals_->get(expr);
+	if (!local.has_value())
+	{
+		return globals_->get(tk);
+	}
+
+	auto binding = local.value();
+
 	int64_t dist = -1;
-	if (symbol && symbol->symbol_type() != resolving::symbol_type::ST_VARIABLE)
+	if (binding->type() != binding_type::BINDING_VARIABLE)
 	{
 		throw clox::interpreting::runtime_error{ tk,
 												 std::format("{} is not a variable.",
 														 tk.lexeme()) };
 	}
-	else if (symbol)
+	else
 	{
-		dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+		dist = static_pointer_cast<variable_binding>(binding)->depth();
 	}
 
 	if (dist != -1)
@@ -631,17 +637,24 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 void
 interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
 {
-	auto symbol = locals_->contains(expr) ? locals_->at(expr) : nullptr;
+	auto local = locals_->get(expr);
+	if (!local.has_value())
+	{
+		globals_->assign(tk, val);
+	}
+
+	auto binding = local.value();
+
 	int64_t dist = -1;
-	if (symbol && symbol->symbol_type() != resolving::symbol_type::ST_VARIABLE)
+	if (binding->type() != resolving::binding_type::BINDING_VARIABLE)
 	{
 		throw clox::interpreting::runtime_error{ tk,
 												 std::format("{} is not a variable.",
 														 tk.lexeme()) };
 	}
-	else if (symbol)
+	else
 	{
-		dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+		dist = static_pointer_cast<variable_binding>(binding)->depth();
 	}
 
 	if (dist != -1)
@@ -741,8 +754,8 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
 	// FIXME: should support fields
-	auto symbol = locals_->at(expr);
-	auto dist = static_pointer_cast<variable_symbol>(symbol)->depth();
+	auto symbol = locals_->get(expr).value(); // it must exist granted by the resolver
+	auto dist = static_pointer_cast<variable_binding>(symbol)->depth();
 
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
 

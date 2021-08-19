@@ -34,10 +34,18 @@
 namespace clox::resolving
 {
 
+enum class binding_type
+{
+	BINDING_VARIABLE,
+	BINDING_FUNCTION,
+};
+
 class binding
 {
 public:
 	[[nodiscard]] virtual std::shared_ptr<parsing::expression> expression() const = 0;
+
+	[[nodiscard]] virtual binding_type type() const = 0;
 };
 
 class variable_binding
@@ -49,6 +57,11 @@ public:
 	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d)
 			: expr_(std::move(e)), depth_(d)
 	{
+	}
+
+	[[nodiscard]] binding_type type() const override
+	{
+		return binding_type::BINDING_VARIABLE;
 	}
 
 	[[nodiscard]] std::shared_ptr<parsing::expression> expression() const override
@@ -70,6 +83,11 @@ class function_binding
 		: public binding
 {
 public:
+	[[nodiscard]] binding_type type() const override
+	{
+		return binding_type::BINDING_FUNCTION;
+	}
+
 	function_binding() = default;
 
 	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s)
