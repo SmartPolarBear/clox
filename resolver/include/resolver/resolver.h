@@ -151,7 +151,7 @@ private:
 
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
-	void /*TODO*/resolve_function_call(const std::shared_ptr<parsing::statement>& func,
+	void resolve_function_call(const std::shared_ptr<parsing::statement>& func,
 			const std::shared_ptr<parsing::call_expression>& call);
 
 	/// Resolve what can be confirmed just by the signature of the function.

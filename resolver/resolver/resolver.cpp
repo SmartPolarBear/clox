@@ -244,3 +244,7 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 	}
 }
 
+void resolver::resolve_function_call(const shared_ptr<parsing::statement>& func,
+		const shared_ptr<parsing::call_expression>& call)
+{
+}

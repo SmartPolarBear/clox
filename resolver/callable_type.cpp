@@ -209,10 +209,10 @@ lox_overloaded_metatype::get(const std::vector<std::shared_ptr<lox_type>>& param
 		}
 
 		type_id_diff diff = INT64_MAX;
-		std::shared_ptr<lox_overloaded_node> next{ node->next_.begin()->second };
+		std::shared_ptr<lox_overloaded_node> next{ nullptr };
 		bool found = false;
 
-		for (auto iter = ++node->next_.begin(); iter != node->next_.end(); iter++)
+		for (auto iter = node->next_.begin(); iter != node->next_.end(); iter++)
 		{
 			if (lox_type::unify(*iter->first, **param_iter))
 			{

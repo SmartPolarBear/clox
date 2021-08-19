@@ -39,7 +39,7 @@ uint64_t clox::resolving::lox_instance_type::flags() const
 
 clox::resolving::type_id clox::resolving::lox_instance_type::id() const
 {
-	return TYPE_ID_INSTANCE;
+	return type_->id();
 }
 
 bool clox::resolving::lox_instance_type::operator<(const clox::resolving::lox_type& target) const

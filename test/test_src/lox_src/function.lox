@@ -7,3 +7,4 @@ fun do_it(a:string):string{
 }
 
 print do_it(1);
+print do_it("a");
