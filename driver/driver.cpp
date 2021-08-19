@@ -46,7 +46,6 @@ int clox::driver::run_code(helper::console& output_cons, const string& code)
 	auto stmts = ps.parse();
 	if (logger::instance().has_errors())return 65;
 
-	auto symbol_tbl = make_shared<symbol_table>();
 
 	resolver rsv{};
 

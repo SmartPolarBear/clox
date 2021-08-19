@@ -59,7 +59,7 @@ resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_
 		return type_error(e->get_name(), std::format("{} is not a variable", e->get_name().lexeme()));
 	}
 
-	auto compa = check_type_assignment(e->get_name(), static_pointer_cast<variable_symbol>(symbol)->type(), value_type);
+	auto compa = check_type_assignment(e->get_name(), static_pointer_cast<named_symbol>(symbol)->type(), value_type);
 
 	return get<0>(compa);
 }

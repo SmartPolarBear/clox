@@ -86,49 +86,5 @@ private:
 	std::shared_ptr<lox_type> type_{};
 };
 
-class variable_symbol
-		: public symbol
-{
-public:
-	static inline constexpr size_t INVALID_DEPTH = -1;
-public:
-	[[nodiscard]] explicit variable_symbol(int64_t depth = INVALID_DEPTH,
-			std::shared_ptr<lox_type> type = nullptr)
-			: depth_(depth), type_(std::move(type))
-	{
-	}
-
-	[[nodiscard]] resolving::symbol_type symbol_type() const override
-	{
-		return resolving::symbol_type::ST_VARIABLE;
-	}
-
-	[[nodiscard]] int64_t depth() const
-	{
-		return depth_;
-	}
-
-	void set_depth(int64_t d)
-	{
-		depth_ = d;
-	}
-
-	[[nodiscard]] std::shared_ptr<lox_type> type() const
-	{
-		return type_;
-	}
-
-	void set_type(const std::shared_ptr<lox_type>& t)
-	{
-		type_ = t;
-	}
-
-//	auto operator<=>(const variable_symbol& another) const = default;
-
-private:
-	int64_t depth_{};
-	std::shared_ptr<lox_type> type_{};
-};
-
 
 }
