@@ -212,11 +212,11 @@ lox_overloaded_metatype::get(const std::vector<std::shared_ptr<lox_type>>& param
 		std::shared_ptr<lox_overloaded_node> next{ nullptr };
 		bool found = false;
 
-		for (auto iter = node->next_.begin(); iter != node->next_.end(); iter++)
+		for (auto & iter : node->next_)
 		{
-			if (lox_type::unify(*iter->first, **param_iter))
+			if (lox_type::unify(*iter.first, **param_iter))
 			{
-				auto base_object = std::static_pointer_cast<lox_object_type>(iter->first);
+				auto base_object = std::static_pointer_cast<lox_object_type>(iter.first);
 				auto derive_object = std::static_pointer_cast<lox_object_type>(*param_iter);
 				if (auto d = derive_object->id() - base_object->id();d < diff)
 				{
@@ -224,7 +224,8 @@ lox_overloaded_metatype::get(const std::vector<std::shared_ptr<lox_type>>& param
 					{
 						throw std::logic_error{ "diff should>=0" };
 					}
-					next = iter->second;
+
+					next = iter.second;
 					diff = d;
 					found = true;
 				}

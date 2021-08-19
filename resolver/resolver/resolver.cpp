@@ -46,9 +46,9 @@ using namespace clox::interpreting;
 using namespace std;
 using namespace gsl;
 
-resolver::resolver(shared_ptr<symbol_table> st) :
-		symbols_(std::move(st)),
-		global_scope_{ std::make_shared<scope>() }
+resolver::resolver() :
+		global_scope_{ std::make_shared<scope>() },
+		bindings_(make_shared<binding_table>())
 {
 	global_scope_->types()["void"] = make_shared<lox_void_type>();
 
@@ -176,8 +176,8 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
-			symbols_->put<variable_symbol>(expr, depth, s->name(tk.lexeme())->type());
-			return symbols_->at(expr);
+			bindings_->put<variable_binding>(expr, expr, depth);
+			return s->name(tk.lexeme());
 		}
 		depth++;
 	}

@@ -32,6 +32,7 @@
 #include <resolver/callable_type.h>
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/binding.h>
 
 #include <resolver/scope.h>
 
@@ -72,9 +73,11 @@ class resolver final
 {
 
 public:
-	explicit resolver(std::shared_ptr<symbol_table> tbl);
+	explicit resolver();
 
 	~resolver() = default;
+
+	[[nodiscard]] std::shared_ptr<binding_table> bindings() const;
 
 	// expression
 
@@ -271,6 +274,6 @@ private:
 	std::stack<std::shared_ptr<lox_callable_type>> cur_func_type_{};
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
-	std::shared_ptr<symbol_table> symbols_{ nullptr };
+	std::shared_ptr<binding_table> bindings_{ nullptr };
 };
 }

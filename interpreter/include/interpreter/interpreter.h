@@ -32,6 +32,7 @@
 
 #include <interpreter/evaluating_result.h>
 #include <interpreter/environment.h>
+#include <resolver/binding.h>
 
 #include <scanner/nil_value.h>
 #include <scanner/scanner.h>
@@ -55,7 +56,7 @@ class interpreter final :
 {
 
 public:
-	[[nodiscard]] explicit interpreter(helper::console& cons, std::shared_ptr<resolving::symbol_table> table);
+	[[nodiscard]] explicit interpreter(helper::console& cons, std::shared_ptr<resolving::binding_table> table);
 
 public:
 
@@ -155,6 +156,6 @@ private:
 	std::shared_ptr<environment> globals_{ nullptr };
 	std::shared_ptr<environment> environment_{ nullptr };
 
-	std::shared_ptr<resolving::symbol_table> locals_{};
+	std::shared_ptr<resolving::binding_table> locals_{};
 };
 }

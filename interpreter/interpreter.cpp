@@ -47,7 +47,7 @@ using namespace clox::parsing;
 using namespace clox::interpreting;
 
 
-interpreter::interpreter(helper::console& cons, std::shared_ptr<resolving::symbol_table> table)
+interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
 		: expression_visitor<evaluating_result>(),
 		  statement_visitor<void>(),
 		  globals_(std::make_shared<environment>()),
@@ -605,7 +605,7 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
 	// FIXME
-	auto symbol = locals_->contains(expr) ? locals_->at(expr) : nullptr;
+	auto symbol = locals_->contains(expr) ? locals_->get(expr) : nullptr;
 	int64_t dist = -1;
 	if (symbol && symbol->symbol_type() != resolving::symbol_type::ST_VARIABLE)
 	{

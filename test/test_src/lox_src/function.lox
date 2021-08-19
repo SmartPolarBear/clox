@@ -1,5 +1,5 @@
 fun do_it(a:integer):integer{
-    return a+a;
+    return a+a*2;
 }
 
 fun do_it(a:string):string{
