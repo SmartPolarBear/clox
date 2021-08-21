@@ -38,17 +38,20 @@ class environment final
 		: public std::enable_shared_from_this<environment>
 {
 public:
-	using map_type = std::unordered_map<std::string, evaluating_result>;
+	using value_map_type = std::unordered_map<std::string, evaluating_result>;
+	using func_map_type = std::unordered_map<std::string, std::unordered_map<std::shared_ptr<parsing::statement>, std::shared_ptr<callable>>>;
 
 	environment() : parent_(),
-					values_(std::make_shared<map_type>())
+					values_(std::make_shared<value_map_type>()),
+					funcs_(std::make_shared<func_map_type>())
 	{
 
 	}
 
 	explicit environment(const std::shared_ptr<environment>& parent)
 			: parent_(parent),
-			  values_(std::make_shared<map_type>())
+			  values_(std::make_shared<value_map_type>()),
+			  funcs_(std::make_shared<func_map_type>())
 	{
 
 	}
@@ -64,6 +67,8 @@ public:
 
 	void put(const std::string& name, evaluating_result value);
 
+	void
+	put(const std::string& name, const std::shared_ptr<parsing::statement>&, const std::shared_ptr<class callable>&);
 
 	void assign(const scanning::token& name, evaluating_result val);
 
@@ -73,7 +78,10 @@ public:
 private:
 	std::weak_ptr<environment> ancestor(int64_t dist);
 
-	std::shared_ptr<map_type> values_{};
+	std::shared_ptr<value_map_type> values_{};
+
+	// if we directly use values_, MSVC will report strange error. Work it around
+	std::shared_ptr<func_map_type> funcs_{};
 
 	std::weak_ptr<environment> parent_{};
 };

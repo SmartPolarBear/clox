@@ -563,12 +563,32 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		args.push_back(evaluate(arg));
 	}
 
-	if (!holds_alternative<shared_ptr<callable>>(callee))
+	if (!holds_alternative<shared_ptr<callable>>(callee) && !holds_alternative<overloaded_functions>(callee))
 	{
 		throw clox::interpreting::runtime_error{ ce->get_paren(), "Expression isn't callable." };
 	}
 
-	auto func = get<shared_ptr<callable>>(callee);
+
+	shared_ptr<callable> func{ nullptr };
+
+	if (holds_alternative<shared_ptr<callable>>(callee))
+	{
+		func = get<shared_ptr<callable>>(callee);
+	}
+	else
+	{
+		auto binding = locals_->get(ce).value();
+		if (auto func_binding = dynamic_pointer_cast<function_binding>(binding);func_binding)
+		{
+			func = get<overloaded_functions>(callee).at(func_binding->statement());
+		}
+		else if (!func_binding)
+		{
+			throw clox::interpreting::runtime_error{ ce->get_paren(),
+													 "Internal: function binding required." };
+		}
+	}
+
 	if (args.size() != func->arity())
 	{
 		throw clox::interpreting::runtime_error{ ce->get_paren(),
@@ -587,7 +607,7 @@ void interpreter::install_native_functions()
 void interpreter::visit_function_statement(const std::shared_ptr<function_statement>& stmt)
 {
 	auto func = make_shared<lox_function>(stmt, environment_);
-	environment_->put(stmt->get_name().lexeme(), func);
+	environment_->put(stmt->get_name().lexeme(), stmt, func);
 }
 
 void interpreter::visit_return_statement(const std::shared_ptr<return_statement>& rs)

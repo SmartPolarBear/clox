@@ -25,13 +25,18 @@
 
 #include <scanner/scanner.h>
 
+#include <parser/gen/parser_classes.inc>
+
 #include <variant>
 #include <string>
 
 #include <memory>
+#include <map>
 
 namespace clox::interpreting
 {
+
+using overloaded_functions = std::unordered_map<std::shared_ptr<parsing::statement>, std::shared_ptr<class callable>>;
 
 using evaluating_result = std::variant<
 		scanning::integer_literal_type,
@@ -40,7 +45,8 @@ using evaluating_result = std::variant<
 		scanning::string_literal_type,
 		scanning::nil_value_tag_type,
 		std::shared_ptr<class lox_instance>,
-		std::shared_ptr<class callable>>;
+		std::shared_ptr<class callable>,
+		overloaded_functions>;
 
 class callable
 {

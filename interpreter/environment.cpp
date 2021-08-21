@@ -36,6 +36,10 @@ std::optional<evaluating_result> clox::interpreting::environment::get(const clox
 	{
 		return values_->at(name.lexeme());
 	}
+	else if (funcs_->contains(name.lexeme()))
+	{
+		return funcs_->at(name.lexeme());
+	}
 
 	if (auto pa = parent_.lock())
 	{
@@ -72,12 +76,18 @@ std::optional<evaluating_result> environment::get_at(const string& name, int64_t
 	auto an = ancestor(depth);
 	if (auto p = an.lock())
 	{
-		if(!p->values_->contains(name))
+		if (p->values_->contains(name))
 		{
-			return std::nullopt;
+			return p->values_->at(name);
+		}
+		else if (p->funcs_->contains(name))
+		{
+			return p->funcs_->at(name);
 		}
 
-		return p->values_->at(name);
+		return std::nullopt;
+
+
 	}
 	return std::nullopt;
 }
@@ -110,4 +120,10 @@ void environment::assign_at(const clox::scanning::token& name, evaluating_result
 	{
 		throw std::runtime_error{ "Internal error" };
 	}
+}
+
+void environment::put(const string& name, const shared_ptr<parsing::statement>& stmt,
+		const shared_ptr<struct callable>& func)
+{
+	(*funcs_)[name][stmt] = func;
 }
