@@ -57,6 +57,8 @@ class lox_callable_type
 public:
 	using param_list_type = std::vector<std::pair<scanning::token, std::shared_ptr<lox_type>>>;
 	using return_type_variant = std::variant<type_deduce_defer_tag, std::shared_ptr<lox_type>>;
+
+	static inline constexpr size_t MAX_PARAMETER_COUNT = 256;
 public:
 
 	[[nodiscard]] lox_callable_type(std::string name, return_type_variant return_type,
@@ -170,9 +172,13 @@ private:
 		std::unordered_map<std::shared_ptr<lox_type>, std::shared_ptr<lox_overloaded_node>> next_{};
 	};
 
+	std::shared_ptr<lox_overloaded_metatype::lox_overloaded_node>
+	overloading_resolve(std::vector<std::shared_ptr<lox_type>>::iterator param_iter,
+			const std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
+
 	std::shared_ptr<lox_overloaded_node> root_{};
 
-	std::vector<std::shared_ptr<lox_callable_type>> all_{};
+	std::vector<std::pair<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>> all_{};
 };
 
 class redefined_symbol final

@@ -5,11 +5,25 @@ class Person {
     this.name=n;
   }
 
+  constructor(n1:string,n2:string){
+    this.name=n1+" "+n2;
+  }
+
   fun sayName() {
     print this.name;
+  }
+
+  fun sayName(attach:string){
+    var msg=this.name+attach;
+    print msg;
   }
 
 }
 
 var jane = Person("Jane");
 jane.sayName();
+jane.sayName("Hello");
+
+var jane_bill=Person("Jane","Bill");
+jane_bill.sayName();
+jane_bill.sayName("Hello");

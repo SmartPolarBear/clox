@@ -147,30 +147,14 @@ bool lox_callable_type::return_type_deduced() const
 void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stmt,
 		const std::shared_ptr<lox_callable_type>& callable)
 {
-//	if (callable->param_size() == 0)
-//	{
-//		if (root_.end_)
-//		{
-//			throw redefined_symbol{ callable->printable_string() };
-//		}
-//
-//		root_->end_ = true;
-//		root_->stmt_ = stmt;
-//		root_->callable_ = callable;
-//
-//		return;
-//	}
-
-	all_.push_back(callable);
-
 	auto param_list = callable->params();
 	auto node = root_;
 
 	for (auto param_iter = param_list.begin();
-		 node && node->depth_ <= 256 && param_iter != param_list.end();
+		 node && node->depth_ <= lox_callable_type::MAX_PARAMETER_COUNT && param_iter != param_list.end();
 		 param_iter++)
 	{
-		if (node->depth_ > 256)
+		if (node->depth_ > lox_callable_type::MAX_PARAMETER_COUNT)
 		{
 			throw too_many_params{ callable };
 		}
@@ -193,62 +177,64 @@ void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stm
 	node->end_ = true;
 	node->stmt_ = stmt;
 	node->callable_ = callable;
+
+	all_.emplace_back(stmt, callable);
 }
 
 std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>
 lox_overloaded_metatype::get(const std::vector<std::shared_ptr<lox_type>>& params)
 {
-	auto node = root_;
+	auto node = overloading_resolve(
+			const_cast<std::vector<std::shared_ptr<lox_type>>&>(params).begin(),
+			const_cast<std::vector<std::shared_ptr<lox_type>>&>(params).end(),
+			root_);
 
-	for (auto param_iter = params.begin();
-		 node && node->depth_ <= 256 && param_iter != params.end();
-		 param_iter++)
-	{
-		if ((*param_iter)->id() == PRIMITIVE_TYPE_ID_ANY)
-		{
-			node = node->next_.begin()->second;
-			continue; // any type is compatible with any kind of type
-		}
-
-		type_id_diff diff = INT64_MAX;
-		std::shared_ptr<lox_overloaded_node> next{ nullptr };
-		bool found = false;
-
-		for (auto& iter : node->next_)
-		{
-			if (lox_type::unify(*iter.first, **param_iter))
-			{
-				auto base_object = std::static_pointer_cast<lox_object_type>(iter.first);
-				auto derive_object = std::static_pointer_cast<lox_object_type>(*param_iter);
-				if (auto d = derive_object->id() - base_object->id();d < diff)
-				{
-					if (d < 0)
-					{
-						throw std::logic_error{ "diff should>=0" };
-					}
-
-					next = iter.second;
-					diff = d;
-					found = true;
-				}
-			}
-		}
-
-		if (found)
-		{
-			node = next;
-		}
-		else
-		{
-			return std::nullopt;
-		}
-
-	}
-
-	if (!node->end_)
+	if (!node)
 	{
 		return std::nullopt;
 	}
 
 	return std::make_tuple(node->stmt_, node->callable_);
+}
+
+std::shared_ptr<lox_overloaded_metatype::lox_overloaded_node>
+lox_overloaded_metatype::overloading_resolve(std::vector<std::shared_ptr<lox_type>>::iterator param_iter,
+		const std::vector<std::shared_ptr<lox_type>>::iterator end,
+		std::shared_ptr<lox_overloaded_node> node)
+{
+	if (param_iter == end)
+	{
+		if (node->end_)
+		{
+			return node;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	type_id_diff diff = INT64_MAX;
+	std::shared_ptr<lox_overloaded_node> next{ nullptr };
+	bool found = false;
+
+	for (auto& iter : node->next_)
+	{
+		if (lox_type::unify(*iter.first, **param_iter))
+		{
+			auto base_object = std::static_pointer_cast<lox_object_type>(iter.first);
+			auto derive_object = std::static_pointer_cast<lox_object_type>(*param_iter);
+			if (auto d = derive_object->id() - base_object->id();d <= diff)
+			{
+				auto next_node = overloading_resolve(param_iter + 1, end, iter.second);
+				if (next_node)
+				{
+					next = next_node;
+					diff = d;
+				}
+			}
+		}
+	}
+
+	return next;
 }

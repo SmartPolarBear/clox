@@ -232,18 +232,18 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 		resolve(field);
 	}
 
-	for (const auto& method:cls->get_methods())
+	for (const auto& m:class_type->methods())
 	{
-		auto decl = env_function_type::FT_METHOD;
-		if (method->get_func_type() == parsing::function_statement_type::FST_CTOR)
+		for (const auto&[stmt, func_type]:*m.second)
 		{
-			decl = env_function_type::FT_CTOR;
-		}
+			auto method = static_pointer_cast<function_statement>(stmt);
 
-		auto metatype = class_type->methods()[method->get_name().lexeme()];
+			auto decl = env_function_type::FT_METHOD;
+			if (method->get_func_type() == parsing::function_statement_type::FST_CTOR)
+			{
+				decl = env_function_type::FT_CTOR;
+			}
 
-		for (const auto& func_type:*metatype)
-		{
 			cur_func_type_.push(func_type);
 
 			auto _ = gsl::finally([this]
@@ -264,9 +264,7 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 					func_type->set_return_type(make_shared<lox_void_type>());
 				}
 			}
-		} // for
-
-
+		}
 	}
 }
 

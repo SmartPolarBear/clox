@@ -174,7 +174,7 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 
 	if (!lox_type::is_instance(*obj_type))
 	{
-		return type_error(ptr->get_name(), std::format("{} is not a instance", ptr->get_name().lexeme()));
+		return type_error(ptr->get_name(), std::format("{} is not a instance", obj_type->printable_string()));
 	}
 
 	auto inst = static_pointer_cast<lox_instance_type>(obj_type);
