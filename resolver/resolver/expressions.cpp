@@ -206,10 +206,25 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 
 std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
-	auto target_type = resolve(se->get_val());
-	auto value_type = resolve(se->get_object());
+	auto value_type = resolve(se->get_val());
 
-	auto ret = check_type_assignment(se->get_name(), target_type, value_type);
+	auto object_type = resolve(se->get_object());
+	if (lox_type::is_instance(*object_type))
+	{
+		object_type = static_pointer_cast<lox_instance_type>(object_type)->underlying_type();
+	}
+
+	if (!lox_type::is_class(*object_type))
+	{
+		return type_error(se->get_name(), std::format("Set property {} of non-class type {}", se->get_name().lexeme(),
+				object_type->printable_string()));
+	}
+
+	auto class_type = static_pointer_cast<lox_class_type>(object_type);
+
+	auto property_type = class_type->fields()[se->get_name().lexeme()];
+
+	auto ret = check_type_assignment(se->get_name(), property_type, value_type);
 
 	return get<0>(ret);
 }

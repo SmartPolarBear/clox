@@ -73,9 +73,9 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 		);
 	}
 
-	return make_tuple(type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
+	return make_tuple(type_error(tk, std::format(R"(Cannot assign type "{2}" to "{0}" of type "{1}")",
 					tk.lexeme(),
-					scope_top()->name(tk.lexeme())->type()->printable_string(),
+					left->printable_string(),
 					right->printable_string())),
 			false,
 			false);
