@@ -1,8 +1,8 @@
-fun do_it(a:integer):integer{
+fun do_it(a:integer):integer {
     return a+a*2;
 }
 
-fun do_it(a:string):string{
+fun do_it(a:string):string {
     return a+a;
 }
 

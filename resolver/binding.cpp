@@ -35,5 +35,6 @@ clox::resolving::binding_table::get(const std::shared_ptr<parsing::expression>& 
 	{
 		return nullopt;
 	}
+
 	return bindings_.at(e);
 }

@@ -312,9 +312,15 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	else if (lox_type::is_class(*callee))
 	{
 		auto class_t = static_pointer_cast<lox_class_type>(callee);
+		auto metatype = class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));
 
-		callable = static_pointer_cast<lox_callable_type>(
-				class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)));
+		auto resolve_ret = resolve_function_call(ce, metatype);
+		if (!lox_type::is_callable(*resolve_ret))
+		{
+			return resolve_ret;
+		}
+
+		callable = static_pointer_cast<lox_callable_type>(resolve_ret);
 	}
 
 	if (!callable)

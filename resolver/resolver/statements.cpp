@@ -196,7 +196,8 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 		{
 			continue;
 		}
-		this_type->methods()[method->get_name().lexeme()] = static_pointer_cast<lox_callable_type>(type);
+//		this_type->methods()[method->get_name().lexeme()] = static_pointer_cast<lox_callable_type>(type);
+		this_type->put_method(method->get_name().lexeme(), method, static_pointer_cast<lox_callable_type>(type));
 	}
 
 	complement_default_members(cls, this_type);
@@ -212,10 +213,13 @@ void resolver::complement_default_members(const shared_ptr<parsing::class_statem
 {
 	if (!class_type->methods().contains(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)))
 	{
-		class_type->methods()[scanning::scanner::keyword_from_type(
-				scanning::token_type::CONSTRUCTOR)] = make_shared<lox_callable_type>(
-				scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR), class_type,
-				lox_callable_type::param_list_type{}, true);
+//		class_type->methods()[scanning::scanner::keyword_from_type(
+//				scanning::token_type::CONSTRUCTOR)] = make_shared<lox_callable_type>(
+//				scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR), class_type,
+//				lox_callable_type::param_list_type{}, true);
+		auto name = scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR);
+		class_type->put_method(name,
+				nullptr, make_shared<lox_callable_type>(name, class_type, lox_callable_type::param_list_type{}, true));
 	}
 }
 
@@ -236,28 +240,33 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 			decl = env_function_type::FT_CTOR;
 		}
 
-		auto func_type = class_type->methods()[method->get_name().lexeme()];
+		auto metatype = class_type->methods()[method->get_name().lexeme()];
 
-		cur_func_type_.push(func_type);
-
-		auto _ = gsl::finally([this]
+		for (const auto& func_type:*metatype)
 		{
-			cur_func_type_.pop();
-		});
+			cur_func_type_.push(func_type);
 
-		resolve_function_body(method, decl);
+			auto _ = gsl::finally([this]
+			{
+				cur_func_type_.pop();
+			});
 
-		if (!func_type->return_type_deduced())
-		{
-			if (decl == env_function_type::FT_CTOR)
+			resolve_function_body(method, decl);
+
+			if (!func_type->return_type_deduced())
 			{
-				func_type->set_return_type(class_type);
+				if (decl == env_function_type::FT_CTOR)
+				{
+					func_type->set_return_type(class_type);
+				}
+				else
+				{
+					func_type->set_return_type(make_shared<lox_void_type>());
+				}
 			}
-			else
-			{
-				func_type->set_return_type(make_shared<lox_void_type>());
-			}
-		}
+		} // for
+
+
 	}
 }
 

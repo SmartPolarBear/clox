@@ -161,6 +161,8 @@ void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stm
 //		return;
 //	}
 
+	all_.push_back(callable);
+
 	auto param_list = callable->params();
 	auto node = root_;
 
@@ -212,7 +214,7 @@ lox_overloaded_metatype::get(const std::vector<std::shared_ptr<lox_type>>& param
 		std::shared_ptr<lox_overloaded_node> next{ nullptr };
 		bool found = false;
 
-		for (auto & iter : node->next_)
+		for (auto& iter : node->next_)
 		{
 			if (lox_type::unify(*iter.first, **param_iter))
 			{

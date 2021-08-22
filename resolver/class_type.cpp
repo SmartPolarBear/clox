@@ -28,13 +28,24 @@
 
 using namespace clox::resolving;
 
-type_id lox_class_type::id_counter{ PRESET_TYPE_ID_MAX };
+type_id lox_class_type::id_counter_{ PRESET_TYPE_ID_MAX };
 
 clox::resolving::lox_class_type::lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
 		type_map_type fields,
 		callable_type_map_type methods)
 		: fields_(std::move(fields)),
 		  methods_(std::move(methods)),
-		  lox_object_type(std::move(name), ++id_counter, TYPE_CLASS, parent)
+		  lox_object_type(std::move(name), ++id_counter_, TYPE_CLASS, parent)
 {
+}
+
+void lox_class_type::put_method(const std::string& name, const std::shared_ptr<parsing::statement>& stmt,
+		const std::shared_ptr<lox_callable_type>& func)
+{
+	if (!methods_.contains(name))
+	{
+		methods_.insert(std::make_pair(name, std::make_shared<lox_overloaded_metatype>(name)));
+	}
+
+	methods_[name]->put(stmt, func);
 }

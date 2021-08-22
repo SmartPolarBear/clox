@@ -9,11 +9,6 @@ class Person {
     print this.name;
   }
 
-  operator==(another:Person):boolean
-  {
-    return this.name==another.name;
-  }
-
 }
 
 var jane = Person("Jane");

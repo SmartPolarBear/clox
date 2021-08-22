@@ -37,7 +37,7 @@ class lox_class_type
 {
 public:
 	using type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
-	using callable_type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_callable_type>>;
+	using callable_type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_overloaded_metatype>>;
 
 public:
 	[[nodiscard]] explicit lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
@@ -54,10 +54,14 @@ public:
 		return methods_;
 	}
 
+	void put_method(const std::string& name, const std::shared_ptr<parsing::statement>& stmt,
+			const std::shared_ptr<lox_callable_type>& func);
+
+
 private:
 	type_map_type fields_{};
 	callable_type_map_type methods_{};
 
-	static type_id id_counter;
+	static type_id id_counter_;
 };
 }

@@ -117,6 +117,17 @@ public:
 
 	~lox_overloaded_metatype() = default;
 
+	auto begin() const
+	{
+		return all_.begin();
+	}
+
+	auto end() const
+	{
+		return all_.end();
+	}
+
+
 	void put(const std::shared_ptr<parsing::statement>& stmt,
 			const std::shared_ptr<lox_callable_type>& callable);
 
@@ -160,6 +171,8 @@ private:
 	};
 
 	std::shared_ptr<lox_overloaded_node> root_{};
+
+	std::vector<std::shared_ptr<lox_callable_type>> all_{};
 };
 
 class redefined_symbol final
