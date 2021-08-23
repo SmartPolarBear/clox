@@ -5,7 +5,7 @@ class Person {
     this.name=n;
   }
 
-  constructor(n1:string,n2:string){
+  constructor(n1:string,n2:string) {
     this.name=n1+" "+n2;
   }
 
@@ -13,9 +13,13 @@ class Person {
     print this.name;
   }
 
-  fun sayName(attach:string){
-    var msg=this.name+attach;
+  fun sayName(attach:string) {
+    var msg=this.name+" "+attach;
     print msg;
+  }
+
+  operator==(another:Person):boolean {
+    return true;
   }
 
 }
@@ -24,8 +28,8 @@ var jane = Person("Jane");
 jane.sayName();
 jane.sayName("Hello");
 
-/*
+
 var jane_bill=Person("Jane","Bill");
 jane_bill.sayName();
 jane_bill.sayName("Hello");
-*/
+

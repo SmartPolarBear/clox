@@ -575,7 +575,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 	{
 		func = get<shared_ptr<callable>>(callee);
 	}
-	else
+	else if (holds_alternative<overloaded_functions>(callee))
 	{
 		auto binding = locals_->get(ce).value();
 		if (auto func_binding = dynamic_pointer_cast<function_binding>(binding);func_binding)
