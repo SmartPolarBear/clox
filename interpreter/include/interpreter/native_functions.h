@@ -30,8 +30,8 @@ class clock_func final
 		: public callable
 {
 public:
-	size_t arity() override;
 
-	evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
+	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+			const std::vector<evaluating_result>& args) override;
 };
 }

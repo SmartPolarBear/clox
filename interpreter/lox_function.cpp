@@ -30,13 +30,9 @@ using namespace std;
 
 using namespace clox::interpreting;
 
-size_t clox::interpreting::lox_function::arity()
-{
-	return decl_->get_params().size();
-}
-
 clox::interpreting::evaluating_result
-clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::vector<evaluating_result>& args)
+clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+		const std::vector<evaluating_result>& args)
 {
 	auto env = make_shared<environment>(closure_);
 
@@ -60,7 +56,7 @@ clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::
 				return this_val.value();
 			}
 		}
-		
+
 		return rv.value();
 	}
 	catch (...)

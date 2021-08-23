@@ -51,9 +51,9 @@ using evaluating_result = std::variant<
 class callable
 {
 public:
-	virtual size_t arity() = 0;
-
-	virtual evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) = 0;
+	virtual evaluating_result
+	call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+			const std::vector<evaluating_result>& args) = 0;
 };
 
 }

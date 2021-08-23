@@ -39,7 +39,7 @@ class environment final
 {
 public:
 	using value_map_type = std::unordered_map<std::string, evaluating_result>;
-	using func_map_type = std::unordered_map<std::string, std::unordered_map<std::shared_ptr<parsing::statement>, std::shared_ptr<callable>>>;
+	using func_map_type = std::unordered_map<std::string, overloaded_functions>;
 
 	environment() : parent_(),
 					values_(std::make_shared<value_map_type>()),

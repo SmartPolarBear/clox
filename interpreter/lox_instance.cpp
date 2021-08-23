@@ -45,9 +45,17 @@ clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(cons
 		return fields_.at(tk.lexeme());
 	}
 
-	if (auto method = class_->lookup_method(tk.lexeme());method)
+	if (auto m = class_->lookup_method(tk.lexeme());m)
 	{
-		return method->bind(const_pointer_cast<lox_instance>(shared_from_this()));
+		auto method = m.value();
+
+		for (auto& p:method)
+		{
+			p.second = dynamic_pointer_cast<lox_function>(p.second)->bind(
+					const_pointer_cast<lox_instance>(shared_from_this()));
+		}
+
+		return method;
 	}
 
 	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };

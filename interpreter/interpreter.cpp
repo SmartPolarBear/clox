@@ -589,14 +589,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		}
 	}
 
-	if (args.size() != func->arity())
-	{
-		throw clox::interpreting::runtime_error{ ce->get_paren(),
-												 std::format("{} arguments are expected, but {} are found.",
-														 func->arity(), args.size()) };
-	}
-
-	return func->call(this, args);
+	return func->call(this, ce, args);
 }
 
 void interpreter::install_native_functions()
@@ -713,14 +706,15 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 		environment_->put("base", base);
 	}
 
-	unordered_map<string, std::shared_ptr<lox_function>> methods{};
+	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base);
+
+
 	for (const auto& me:cls->get_methods())
 	{
-		methods[me->get_name().lexeme()] = make_shared<lox_function>(me, environment_,
-				me->get_func_type() == parsing::function_statement_type::FST_CTOR);
+		lox_cls->put_method(me->get_name().lexeme(), me, make_shared<lox_function>(me, environment_,
+				me->get_func_type() == parsing::function_statement_type::FST_CTOR));
 	}
 
-	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base, methods);
 
 	if (base)
 	{
@@ -789,7 +783,13 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 												 std::format("'{}' is undefined.", expr->get_member().lexeme()) };
 	}
 
-	return method->bind(this_inst);
+	auto bound_methods = method.value();
+	for (auto& m:bound_methods)
+	{
+		m.second = dynamic_pointer_cast<lox_function>(m.second)->bind(this_inst);
+	}
+
+	return bound_methods;
 }
 
 long double interpreter::get_number(const evaluating_result& l)

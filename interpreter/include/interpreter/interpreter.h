@@ -53,6 +53,10 @@ class interpreter final :
 		virtual parsing::expression_visitor<evaluating_result>,
 		virtual parsing::statement_visitor<void>
 {
+public:
+	friend class lox_class;
+
+	friend class lox_function;
 
 public:
 	[[nodiscard]] explicit interpreter(helper::console& cons, std::shared_ptr<resolving::binding_table> table);
@@ -139,7 +143,7 @@ private:
 	// FIXME: temporarily all using long double for all numbers
 	static long double get_number(const evaluating_result& l);
 
-	static bool is_number(const evaluating_result &e);
+	static bool is_number(const evaluating_result& e);
 
 	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 

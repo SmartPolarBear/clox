@@ -47,15 +47,14 @@ public:
 	{
 	}
 
-	explicit lox_class(std::string name, std::shared_ptr<lox_class> base,
-			std::unordered_map<std::string, std::shared_ptr<class lox_function>> methods)
-			: name_(std::move(name)), base_(base), methods_(std::move(methods))
+	explicit lox_class(std::string name, const std::shared_ptr<lox_class>& base)
+			: name_(std::move(name)), base_(base)
 	{
 	}
 
-	size_t arity() override;
 
-	evaluating_result call(struct interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
+	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+			const std::vector<evaluating_result>& args) override;
 
 	std::string printable_string() override;
 
@@ -64,12 +63,15 @@ public:
 		return name_;
 	}
 
-	std::shared_ptr<lox_function> lookup_method(const std::string& name);
+	void put_method(const std::string& name, const std::shared_ptr<parsing::statement>&,
+			const std::shared_ptr<class callable>&);
+
+	std::optional<overloaded_functions> lookup_method(const std::string& name);
 
 
 private:
 	std::string name_{};
 	std::weak_ptr<lox_class> base_{};
-	std::unordered_map<std::string, std::shared_ptr<class lox_function>> methods_{};
+	std::unordered_map<std::string, overloaded_functions> methods_{};
 };
 }

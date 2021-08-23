@@ -24,6 +24,8 @@ var jane = Person("Jane");
 jane.sayName();
 jane.sayName("Hello");
 
+/*
 var jane_bill=Person("Jane","Bill");
 jane_bill.sayName();
 jane_bill.sayName("Hello");
+*/

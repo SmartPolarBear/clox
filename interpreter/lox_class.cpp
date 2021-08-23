@@ -25,6 +25,8 @@
 #include <format>
 #include <memory>
 
+#include <interpreter/interpreter.h>
+
 #include <interpreter/lox_function.h>
 #include <interpreter/lox_class.h>
 
@@ -32,24 +34,39 @@ using namespace std;
 
 using namespace clox::interpreting;
 
-size_t clox::interpreting::lox_class::arity()
-{
-	if (auto ctor = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor)
-	{
-		return ctor->arity();
-	}
-
-	return 0;
-}
 
 clox::interpreting::evaluating_result
-clox::interpreting::lox_class::call(struct interpreter* the_interpreter, const std::vector<evaluating_result>& args)
+clox::interpreting::lox_class::call(interpreter* the_interpreter,
+		const std::shared_ptr<parsing::expression>& caller, const std::vector<evaluating_result>& args)
 {
 	auto inst = make_shared<lox_instance>(shared_from_this());
 
-	if (auto ctor = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor)
+	if (auto ctor_ret = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor_ret)
 	{
-		ctor->bind(inst)->call(the_interpreter, args);
+		auto ctor = ctor_ret.value();
+		if (auto binding_ret = the_interpreter->locals_->get(caller);binding_ret.has_value())
+		{
+			auto binding = binding_ret.value();
+			if (binding->type() == resolving::binding_type::BINDING_FUNCTION)
+			{
+				static_pointer_cast<lox_function>(
+						ctor.at(static_pointer_cast<resolving::function_binding>(binding)->statement()))->bind(
+						inst)->call(
+						the_interpreter, caller, args);
+			}
+			else
+			{
+				throw clox::interpreting::runtime_error{
+						dynamic_pointer_cast<parsing::call_expression>(caller)->get_paren(),
+						"Calling non-function object" };
+			}
+		}
+		else
+		{
+			throw clox::interpreting::runtime_error{
+					dynamic_pointer_cast<parsing::call_expression>(caller)->get_paren(),
+					"Calling non-exist object" };
+		}
 	}
 
 	return inst;
@@ -60,7 +77,8 @@ std::string clox::interpreting::lox_class::printable_string()
 	return std::format("class {}", name_);
 }
 
-std::shared_ptr<lox_function> clox::interpreting::lox_class::lookup_method(const std::string& name)
+std::optional<overloaded_functions>
+clox::interpreting::lox_class::lookup_method(const std::string& name)
 {
 	if (methods_.contains(name))
 	{
@@ -72,5 +90,12 @@ std::shared_ptr<lox_function> clox::interpreting::lox_class::lookup_method(const
 		return base->lookup_method(name);
 	}
 
-	return nullptr;
+	return nullopt;
+}
+
+void
+lox_class::put_method(const string& name, const shared_ptr<parsing::statement>& stmt,
+		const shared_ptr<struct callable>& func)
+{
+	methods_[name][stmt] = func;
 }

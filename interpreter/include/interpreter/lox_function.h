@@ -57,9 +57,7 @@ public:
 
 	~lox_function() = default;
 
-	size_t arity() override;
-
-	evaluating_result call(class interpreter* the_interpreter, const std::vector<evaluating_result>& args) override;
+	evaluating_result call(class interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller, const std::vector<evaluating_result>& args) override;
 
 	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance>& inst);
 

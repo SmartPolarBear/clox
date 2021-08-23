@@ -33,13 +33,11 @@ using namespace clox::interpreting;
 
 using namespace std::chrono;
 
-size_t clox::interpreting::clock_func::arity()
-{
-	return 0;
-}
 
 evaluating_result
-clox::interpreting::clock_func::call(interpreter* the_interpreter, const std::vector<evaluating_result>& args)
+clox::interpreting::clock_func::call(struct interpreter* the_interpreter,
+		const std::shared_ptr<parsing::expression>& caller,
+		const std::vector<evaluating_result>& args)
 {
 	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
