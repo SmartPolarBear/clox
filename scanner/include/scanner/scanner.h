@@ -65,12 +65,19 @@ enum class token_type
 	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
 	SIZEOF, ARRAY, OPERATOR, CONSTRUCTOR,
 
-	FEND // not EOF because it conflicts with Microsoft's STL
+	FEND, // not EOF because it conflicts with Microsoft's STL
+	VIRTUAL // virtual token which is not generated from code
 };
 
 struct empty_literal_tag
 {
 };
+
+struct virtual_token_tag
+{
+};
+
+static inline constexpr virtual_token_tag virtual_token;
 
 using integer_literal_type = long long;
 using floating_literal_type = long double;
@@ -109,6 +116,10 @@ public:
 	{
 	}
 
+	[[nodiscard]] explicit token(virtual_token_tag)
+			: token(token_type::VIRTUAL, "", empty_literal, 0)
+	{
+	}
 
 	~token() = default;
 

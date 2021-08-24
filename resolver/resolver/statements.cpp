@@ -213,10 +213,6 @@ void resolver::complement_default_members(const shared_ptr<parsing::class_statem
 {
 	if (!class_type->methods().contains(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR)))
 	{
-//		class_type->methods()[scanning::scanner::keyword_from_type(
-//				scanning::token_type::CONSTRUCTOR)] = make_shared<lox_callable_type>(
-//				scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR), class_type,
-//				lox_callable_type::param_list_type{}, true);
 		auto name = scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR);
 		class_type->put_method(name,
 				nullptr, make_shared<lox_callable_type>(name, class_type, lox_callable_type::param_list_type{}, true));

@@ -24,7 +24,14 @@ void clox::logging::logger::set_console(clox::helper::console& cons)
 void clox::logging::logger::error(size_t line, const std::string& message)
 {
 	errors_++;
-	console_->out() << format("[Line {}] Error: {}", line, message) << endl;
+	if(line==0)
+	{
+		console_->out() << format("{}", message) << endl;
+	}
+	else
+	{
+		console_->out() << format("[Line {}] Error: {}", line, message) << endl;
+	}
 }
 
 void clox::logging::logger::error(const clox::scanning::token& token, const std::string& msg)
@@ -32,6 +39,10 @@ void clox::logging::logger::error(const clox::scanning::token& token, const std:
 	if (token.type() == token_type::FEND)
 	{
 		error(token.line(), std::format("{} at end.\n", msg));
+	}
+	else if(token.type()==token_type::VIRTUAL)
+	{
+		error(0, std::format("Internal compiler error.\n", msg));
 	}
 	else
 	{

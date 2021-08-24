@@ -71,6 +71,22 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 
 	auto ret = check_type_binary_expression(expr->get_op(), l_type, r_type);
 
+	if (auto operator_binding_ret = get<2>(ret);operator_binding_ret)
+	{
+		auto[stmt, method]=operator_binding_ret.value();
+
+		auto get_expr = make_shared<get_expression>(expr->get_left(), expr->get_op());
+
+		scanning::token virtual_paren{ scanning::virtual_token };
+
+		auto call_expr = make_shared<call_expression>(get_expr, virtual_paren,
+				vector<shared_ptr<expression>>{ expr->get_right() });
+
+		bindings_->put<operator_binding>(expr, expr, call_expr);
+		bindings_->put<function_binding>(call_expr, call_expr, stmt);
+
+	}
+
 	return get<0>(ret);
 }
 

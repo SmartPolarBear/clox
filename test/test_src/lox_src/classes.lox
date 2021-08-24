@@ -19,7 +19,7 @@ class Person {
   }
 
   operator==(another:Person):boolean {
-    return true;
+    return this.name==another.name;
   }
 
 }
@@ -28,8 +28,12 @@ var jane = Person("Jane");
 jane.sayName();
 jane.sayName("Hello");
 
+var jane2 = Person("Jane");
+print jane==jane2;
 
 var jane_bill=Person("Jane","Bill");
 jane_bill.sayName();
 jane_bill.sayName("Hello");
+
+print jane==jane_bill;
 

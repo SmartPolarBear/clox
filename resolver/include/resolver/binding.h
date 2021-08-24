@@ -38,6 +38,7 @@ enum class binding_type
 {
 	BINDING_VARIABLE,
 	BINDING_FUNCTION,
+	BINDING_OPERATOR,
 };
 
 class binding
@@ -109,6 +110,37 @@ public:
 private:
 	std::shared_ptr<parsing::call_expression> expr_{ nullptr };
 	std::shared_ptr<parsing::statement> stmt_{ nullptr };
+};
+
+class operator_binding
+		: public binding
+{
+public:
+	[[nodiscard]] binding_type type() const override
+	{
+		return binding_type::BINDING_FUNCTION;
+	}
+
+	operator_binding() = default;
+
+	explicit operator_binding(std::shared_ptr<parsing::expression> e, std::shared_ptr<parsing::call_expression> ce)
+			: expr_(std::move(e)), call_expr_(std::move(ce))
+	{
+	}
+
+	[[nodiscard]] std::shared_ptr<parsing::expression> expression() const override
+	{
+		return expr_;
+	}
+
+	[[nodiscard]] std::shared_ptr<parsing::call_expression> target() const
+	{
+		return call_expr_;
+	}
+
+private:
+	std::shared_ptr<parsing::expression> expr_{ nullptr };
+	std::shared_ptr<parsing::call_expression> call_expr_{ nullptr };
 };
 
 class binding_table

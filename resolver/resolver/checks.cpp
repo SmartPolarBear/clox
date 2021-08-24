@@ -76,7 +76,7 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 			false);
 }
 
-type_compatibility
+resolver::overloadable_operator_type_check_result
 resolver::check_type_binary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l,
 		const shared_ptr<lox_type>& r)
 {
@@ -100,11 +100,11 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 					left->printable_string(),
 					right->printable_string())),
 			false,
-			false);
+			nullopt);
 }
 
 
-type_compatibility
+resolver::overloadable_operator_type_check_result
 resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
@@ -123,7 +123,7 @@ resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk
 			{
 				if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
 				{
-					return make_tuple(t, true, false);
+					return make_tuple(t, true, nullopt);
 				}
 			}
 
@@ -140,7 +140,7 @@ resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk
 		{
 			if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
 			{
-				return make_tuple(t, true, false);
+				return make_tuple(t, true, nullopt);
 			}
 		}
 		break;
@@ -159,7 +159,7 @@ resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk
 			{
 				if (lox_type::unify(*t, *left) && lox_type::unify(*t, *right))
 				{
-					return make_tuple(lox_object_type::boolean(), true, false);
+					return make_tuple(lox_object_type::boolean(), true, nullopt);
 				}
 			}
 		}
@@ -167,10 +167,10 @@ resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk
 	case scanning::token_type::BANG_EQUAL:
 	case scanning::token_type::EQUAL_EQUAL:
 		// All primitive types have valid operator==
-		return make_tuple(lox_object_type::boolean(), true, false);
+		return make_tuple(lox_object_type::boolean(), true, nullopt);
 
 	case scanning::token_type::COMMA:
-		return make_tuple(right, true, false);
+		return make_tuple(right, true, nullopt);
 	default:
 		break;
 	}
@@ -180,12 +180,12 @@ resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk
 					left->printable_string(),
 					right->printable_string())),
 			false,
-			false);
+			nullopt);
 
 }
 
 
-type_compatibility
+resolver::overloadable_operator_type_check_result
 resolver::check_type_binary_expression_class(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
 		const shared_ptr<lox_type>& right)
 {
@@ -197,7 +197,7 @@ resolver::check_type_binary_expression_class(const clox::scanning::token& tk, co
 		switch (tk.type())
 		{
 		case scanning::token_type::COMMA:
-			return make_tuple(right, true, false);
+			return make_tuple(right, true, nullopt);
 		default:
 			return make_tuple(type_error(tk,
 							std::format(R"( operator {} is not defined for {} and {}, nor is it generated automatically. )",
@@ -205,7 +205,7 @@ resolver::check_type_binary_expression_class(const clox::scanning::token& tk, co
 									left->printable_string(),
 									right->printable_string())),
 					false,
-					false);
+					nullopt);
 		}
 	}
 
@@ -218,14 +218,15 @@ resolver::check_type_binary_expression_class(const clox::scanning::token& tk, co
 								left->printable_string(),
 								right->printable_string())),
 				false,
-				false);
+				nullopt);
 	}
 
 	auto op_methods = left_class->methods().at(tk.lexeme());
 	if (auto m = op_methods->get({ right });m)
 	{
-		auto method = get<1>(m.value());
-		return make_tuple(method->return_type(), true, false);
+		auto &[stmt, method] =m.value();
+
+		return make_tuple(method->return_type(), true, m);
 	}
 
 	return make_tuple(type_error(tk,
@@ -234,7 +235,7 @@ resolver::check_type_binary_expression_class(const clox::scanning::token& tk, co
 							left->printable_string(),
 							right->printable_string())),
 			false,
-			false);
+			nullopt);
 }
 
 

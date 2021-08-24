@@ -185,13 +185,20 @@ private:
 	type_compatibility check_type_assignment(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
 
-	type_compatibility check_type_binary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+	using overloadable_operator_type_check_result = std::tuple<std::shared_ptr<lox_type>,
+			bool,
+			std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>>;
+
+	overloadable_operator_type_check_result
+	check_type_binary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
 
-	type_compatibility check_type_binary_expression_primitive(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+	overloadable_operator_type_check_result
+	check_type_binary_expression_primitive(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
 
-	type_compatibility check_type_binary_expression_class(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
+	overloadable_operator_type_check_result
+	check_type_binary_expression_class(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
 
 	type_compatibility check_type_unary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left);
