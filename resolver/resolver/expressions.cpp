@@ -384,4 +384,3 @@ std::shared_ptr<binding_table> resolver::bindings() const
 }
 
 
-

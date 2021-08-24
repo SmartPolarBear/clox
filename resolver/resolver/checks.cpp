@@ -28,6 +28,7 @@
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/operators.h>
 
 #include <logger/logger.h>
 
@@ -60,14 +61,8 @@ resolver::check_type_assignment(const clox::scanning::token& tk, const shared_pt
 	{
 		auto narrowing = !lox_type::unify(*left, *right) && lox_type::unify(*right, *left);
 
-		auto type = compatible ? left : type_error(tk, std::format(R"({} of type "{}" is not assignable for type "{}")",
-				tk.lexeme(),
-				scope_top()->name(tk.lexeme())->type()->printable_string(),
-				right->printable_string()));
-
-
 		return make_tuple(
-				type,
+				left,
 				compatible,
 				narrowing
 		);
@@ -90,13 +85,36 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 	if (lox_type::is_instance(*left))left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
 	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
 
+	if (lox_type::is_primitive(*left) || left->id() == TYPE_ID_STRING_CLASS /*FIXME*/)
+	{
+		return check_type_binary_expression_primitive(tk, left, right);
+	}
+	else if (lox_type::is_class(*left))
+	{
+		return check_type_binary_expression_class(tk, left, right);
+	}
+
+
+	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} and {} )",
+					tk.lexeme(),
+					left->printable_string(),
+					right->printable_string())),
+			false,
+			false);
+}
+
+
+type_compatibility
+resolver::check_type_binary_expression_primitive(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
 	switch (tk.type())
 	{
 	case scanning::token_type::MINUS:
 	case scanning::token_type::STAR:
 	case scanning::token_type::SLASH:
 	{
-		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+		if (lox_type::is_primitive(*right))
 		{
 			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
 									lox_object_type::floating() };
@@ -132,7 +150,7 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 	case scanning::token_type::GREATER:
 	case scanning::token_type::LESS_EQUAL:
 	case scanning::token_type::GREATER_EQUAL:
-		if (lox_type::is_primitive(*left) && lox_type::is_primitive(*right))
+		if (lox_type::is_primitive(*right))
 		{
 			auto possible_types = { lox_object_type::boolean(), lox_object_type::integer(),
 									lox_object_type::floating(), lox_object_type::string() };
@@ -148,7 +166,7 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 
 	case scanning::token_type::BANG_EQUAL:
 	case scanning::token_type::EQUAL_EQUAL:
-		// TODO: any checking?
+		// All primitive types have valid operator==
 		return make_tuple(lox_object_type::boolean(), true, false);
 
 	case scanning::token_type::COMMA:
@@ -163,7 +181,62 @@ resolver::check_type_binary_expression(const clox::scanning::token& tk, const sh
 					right->printable_string())),
 			false,
 			false);
+
 }
+
+
+type_compatibility
+resolver::check_type_binary_expression_class(const clox::scanning::token& tk, const shared_ptr<lox_type>& left,
+		const shared_ptr<lox_type>& right)
+{
+	if (!std::any_of(OVERRIDABLE_OPS.begin(), OVERRIDABLE_OPS.end(), [&tk](const auto& val)
+	{
+		return val == tk.type();
+	}))
+	{
+		switch (tk.type())
+		{
+		case scanning::token_type::COMMA:
+			return make_tuple(right, true, false);
+		default:
+			return make_tuple(type_error(tk,
+							std::format(R"( operator {} is not defined for {} and {}, nor is it generated automatically. )",
+									tk.lexeme(),
+									left->printable_string(),
+									right->printable_string())),
+					false,
+					false);
+		}
+	}
+
+	auto left_class = static_pointer_cast<lox_class_type>(left);
+	if (!left_class->methods().contains(tk.lexeme()))
+	{
+		return make_tuple(type_error(tk,
+						std::format(R"( operator {} is not defined for {} and {}, nor is it generated automatically. )",
+								tk.lexeme(),
+								left->printable_string(),
+								right->printable_string())),
+				false,
+				false);
+	}
+
+	auto op_methods = left_class->methods().at(tk.lexeme());
+	if (auto m = op_methods->get({ right });m)
+	{
+		auto method = get<1>(m.value());
+		return make_tuple(method->return_type(), true, false);
+	}
+
+	return make_tuple(type_error(tk,
+					std::format(R"( operator {} is not defined for {} and {}, nor is it generated automatically. )",
+							tk.lexeme(),
+							left->printable_string(),
+							right->printable_string())),
+			false,
+			false);
+}
+
 
 type_compatibility
 resolver::check_type_unary_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& l)
