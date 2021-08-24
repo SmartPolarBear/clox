@@ -62,6 +62,27 @@ interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
 clox::interpreting::evaluating_result
 clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
+	if (locals_->contains(be))
+	{
+		if (auto op_binding_ret = locals_->get(be);op_binding_ret)
+		{
+
+			if (auto op_binding = op_binding_ret.value();op_binding->type() !=
+														 resolving::binding_type::BINDING_OPERATOR)
+			{
+				throw clox::interpreting::runtime_error(be->get_op(),
+						std::format("Internal compiler error: wrong binding type."));
+			}
+			else
+			{
+				auto binding = static_pointer_cast<operator_binding>(op_binding);
+				return evaluate(binding->operator_implementation_call());
+			}
+		}
+		throw clox::interpreting::runtime_error(be->get_op(),
+				std::format("Internal compiler error: wrong binding."));
+	}
+
 	auto left = evaluate(be->get_left());
 	auto right = evaluate(be->get_right());
 

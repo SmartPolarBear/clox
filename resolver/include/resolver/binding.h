@@ -118,7 +118,7 @@ class operator_binding
 public:
 	[[nodiscard]] binding_type type() const override
 	{
-		return binding_type::BINDING_FUNCTION;
+		return binding_type::BINDING_OPERATOR;
 	}
 
 	operator_binding() = default;
@@ -133,7 +133,7 @@ public:
 		return expr_;
 	}
 
-	[[nodiscard]] std::shared_ptr<parsing::call_expression> target() const
+	[[nodiscard]] std::shared_ptr<parsing::call_expression> operator_implementation_call() const
 	{
 		return call_expr_;
 	}
