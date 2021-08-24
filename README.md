@@ -32,28 +32,118 @@ This project is built with
 
 |Naive CLOX|Typed CLOX|CLOXc
 |----------|----------|---------|
-✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> ✅ Unit test coverage <br> ✅ Refined REPL experience <br> 🔄 Type Checking | 🔄 Make CLOX a static-typed language. A dynamic subset of lox will be available as well. <br> ❌ Compile Typed-CLOX to binary executable with LLVM <br> ❌ LOX standard library |
+✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> ✅ Unit test coverage <br> ✅ Refined REPL experience <br> 🔄 Type Checking | 🔄 Make CLOX a static-typed language. <br> ❌ Compile Typed-CLOX to bytecode <br> ❌ LOX standard library |
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
-## Documentation  
 
-Here is a hand-on quick instruction. Refer to [Documentation for extended LOX language (not exist yet)]() for details.  
+## Major Changes from Original LOX  
 
-### Variables and Constants  
+To extend the language and equip it with type system, several changes in grammar are made.
+
+### Type System  
+
+#### Vision of the Type System
+
+|Feature|Status|
+|-------|------|
+|Primitive types like `integer`|✅|
+|Class types|✅|
+|Basic type checking|✅|
+|Union type and nullable type|🔄|
+|Checks for nullability|❌|  
+
+#### Changes from Original LOX
+
+**Variables** should be either declared with a type, or initialized by a type-deducible initializer:
+```
+var val1:integer; 
+var val2=1+1;
+```
+**Functions** and **Methods** should be either declared with a type, or simple enough for return type to be deduced. All parameters, unlike variables, should be declared with a type.  
+A common situation where return type is impossible to be deduced is that a recursive call appear before any `return` statement.
+```
+fun hello() // type deduced: void
+{
+   print "hello";
+}
+
+fun hello2(a:integer) // type deduced: integer
+{
+   return a+2*a;
+}
+
+fun fib(a:integer)  // type deduced: integer
+{
+  if(a==1 or a==2)
+  {
+    return 1;
+  }
+  
+  return fib(a-1)+fib(a-2);
+}
+
+fun too_complex(d:integer) // ERROR: too complex for return type deducing
+{
+   if(d==10)
+   {
+      print "fin";
+   }
+   too_complex(d+1);
+}
+
+```
+
+### Class  
+Now, methods, operator methods and variables can appear in class declaration. Unlike original LOX language, a new keyword, `constructor` is introduced to define a constructor. Furthermore, keyword `operator` is introduced to define operator methods. Note that not every operator can be defined by it.  
+Another key different is that `fun` keyword is now required for methods.  
+
+```
+class Person {
+  var name:string;
+
+  constructor(n:string) {
+    this.name=n;
+  }
+
+  constructor(n1:string,n2:string) {
+    this.name=n1+" "+n2;
+  }
+
+  fun sayName() {
+    print this.name;
+  }
+
+  fun sayName(attach:string) {
+    var msg=this.name+" "+attach;
+    print msg;
+  }
+
+  operator==(another:Person):boolean {
+    return this.name==another.name;
+  }
+
+}
+```
+
+## Documentation
+
+Here is a hand-on quick instruction. Refer to [Documentation for extended LOX language (not exist yet)]() for details.
+
+### Variables and Constants
 ```
 var a=10; // it's a variable
 a=20; // variable can be reassigned
 ```
 
-### Built-in `print` Statement  
+### Built-in `print` Statement
 ```
 var a=10;
 print a; // 10
 print a=20; // 20, a's value will be 20 afterwards.
 ```
 
-// TODO
+// TODO  
 
 ## Contributing  
 

@@ -37,7 +37,7 @@ static inline constexpr auto OVERRIDABLE_OPS = {
 		clox::scanning::token_type::PLUS, clox::scanning::token_type::PLUS_PLUS,
 		clox::scanning::token_type::STAR, clox::scanning::token_type::STAR_STAR,
 		clox::scanning::token_type::ARROW,
-		clox::scanning::token_type::COMMA, clox::scanning::token_type::DOT,
+		clox::scanning::token_type::DOT,
 		clox::scanning::token_type::AND, clox::scanning::token_type::OR
 };
 }
