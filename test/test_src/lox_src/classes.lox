@@ -29,6 +29,7 @@ jane.sayName();
 jane.sayName("Hello");
 
 var jane2 = Person("Jane");
+
 print jane==jane2;
 
 var jane_bill=Person("Jane","Bill");
@@ -36,4 +37,10 @@ jane_bill.sayName();
 jane_bill.sayName("Hello");
 
 print jane==jane_bill;
+
+print 1==2;
+var a=1;
+var b=2;
+print a==b;
+print a+a==b;
 
