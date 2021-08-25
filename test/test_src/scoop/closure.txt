@@ -1,8 +1,8 @@
 R"(
-fun closure():void
+fun closure()
 {
     var i=0;
-    fun count():void{
+    fun count(){
         i=i+1;
         print i;
     }

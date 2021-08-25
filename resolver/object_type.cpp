@@ -229,11 +229,6 @@ lox_string_type::lox_string_type()
 
 bool lox_type::unify(const lox_type& base, const lox_type& derived)
 {
-	if (derived.id() == PRIMITIVE_TYPE_ID_ANY)
-	{
-		return true;
-	}
-
 	if (lox_type::is_instance(base))
 	{
 		return unify(*dynamic_cast<const lox_instance_type&>(base).underlying_type(), derived);
@@ -243,7 +238,17 @@ bool lox_type::unify(const lox_type& base, const lox_type& derived)
 	{
 		return unify(base, *dynamic_cast<const lox_instance_type&>(derived).underlying_type());
 	}
-	
+
+	if (derived.id() == PRIMITIVE_TYPE_ID_ANY)
+	{
+		return true;
+	}
+
+	if (derived.id() == PRIMITIVE_TYPE_ID_VOID || base.id() == PRIMITIVE_TYPE_ID_VOID)
+	{
+		return false;
+	}
+
 	return dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 }
 
