@@ -212,6 +212,12 @@ private:
 	type_compatibility check_type_logical_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
 			const std::shared_ptr<lox_type>& right);
 
+	using call_resolving_check_result = std::tuple<std::shared_ptr<lox_type>, bool>;
+
+	call_resolving_check_result check_type_call_expression(const std::shared_ptr<parsing::call_expression>& ce,
+			const std::shared_ptr<lox_type>& callee,
+			const std::vector<std::shared_ptr<lox_type>>& args);
+
 	void scope_begin();
 
 	void scope_end();

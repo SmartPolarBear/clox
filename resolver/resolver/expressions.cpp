@@ -54,7 +54,7 @@ resolver::visit_assignment_expression(const std::shared_ptr<parsing::assignment_
 
 	// set the depth of expression
 	auto symbol = resolve_local(e, e->get_name());
-	if (symbol->symbol_type() != symbol_type::ST_VARIABLE)
+	if (symbol->symbol_type() != symbol_type::ST_NAMED)
 	{
 		return type_error(e->get_name(), std::format("{} is not a variable", e->get_name().lexeme()));
 	}
@@ -305,79 +305,20 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	}
 
 	vector<shared_ptr<lox_type>> args{};
-	for (const auto& arg:ce->get_args())
+	for (const auto& arg: ce->get_args())
 	{
 		auto type = resolve(arg);
 		args.push_back(type);
 	}
 
-	shared_ptr<lox_callable_type> callable{ nullptr };
+	auto[callable_type, compatible]=check_type_call_expression(ce, callee, args);
 
-	if (lox_type::is_instance(*callee))
+	if (!compatible)
 	{
-		auto underlying = static_pointer_cast<lox_instance_type>(callee)
-				->underlying_type();
-
-		if (lox_type::is_callable(*underlying))
-		{
-			callable = static_pointer_cast<lox_callable_type>(underlying);
-		}
-	}
-	else if (lox_type::is_callable(*callee))
-	{
-		if (callee->id() == TYPE_ID_OVERLOADED_FUNC)
-		{
-			auto resolve_ret = resolve_function_call(ce, dynamic_pointer_cast<lox_overloaded_metatype>(callee));
-			if (!lox_type::is_callable(*resolve_ret))
-			{
-				return resolve_ret;
-			}
-
-			callable = static_pointer_cast<lox_callable_type>(resolve_ret);
-		}
-		else
-		{
-			callable = static_pointer_cast<lox_callable_type>(callee);
-		}
-	}
-	else if (lox_type::is_class(*callee))
-	{
-		auto class_t = static_pointer_cast<lox_class_type>(callee);
-		auto metatype = class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));
-
-		auto resolve_ret = resolve_function_call(ce, metatype);
-		if (!lox_type::is_callable(*resolve_ret))
-		{
-			return resolve_ret;
-		}
-
-		callable = static_pointer_cast<lox_callable_type>(resolve_ret);
+		return callable_type;
 	}
 
-	if (!callable)
-	{
-		return type_error(ce->get_paren(),
-				std::format("Type {} is neither a callable nor a class", callee->printable_string()));
-	}
-
-	if (ce->get_args().size() != callable->param_size())
-	{
-		return type_error(ce->get_paren(),
-				std::format("{} args are needed, but {} are given", callable->param_size(), ce->get_args().size()));
-	}
-
-	auto size = callable->param_size();
-	for (decltype(size) i = 0; i < size; i++)
-	{
-		auto arg_type = resolve(ce->get_args()[i]);
-		auto param_type = callable->param_type(i);
-		if (!lox_type::unify(*param_type, *arg_type))
-		{
-			return type_error(ce->get_paren(),
-					std::format("{}th argument of type {} is not compatible with parameter with type {}.",
-							i, arg_type->printable_string(), param_type->printable_string()));
-		}
-	}
+	auto callable = dynamic_pointer_cast<lox_callable_type>(callable_type);
 
 	if (!callable->return_type_deduced())
 	{
@@ -398,5 +339,4 @@ std::shared_ptr<binding_table> resolver::bindings() const
 {
 	return bindings_;
 }
-
 

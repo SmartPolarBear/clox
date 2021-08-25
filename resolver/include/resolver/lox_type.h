@@ -99,6 +99,11 @@ public:
 		return t.flags() & lox_type_flags::FLAG_INSTANCE;
 	}
 
+	static bool is_preset_type(const lox_type& t)
+	{
+		return t.id() < PRESET_TYPE_ID_MAX;
+	}
+
 	static bool unify(const lox_type& base, const lox_type& derived);
 
 	static std::shared_ptr<lox_type>

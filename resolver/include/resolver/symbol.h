@@ -43,8 +43,7 @@ namespace clox::resolving
 
 enum class symbol_type
 {
-	ST_VARIABLE = 1,
-	ST_NAMED,
+	ST_NAMED = 1,
 	ST_FUNCTION
 };
 
