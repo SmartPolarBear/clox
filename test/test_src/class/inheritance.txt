@@ -1,13 +1,17 @@
 R"(
-class Doughnut {
+/*class Doughnut {
   fun cook() {
     print "Fry until golden brown.";
   }
 }
 
+var dn=Doughnut();
+dn.cook();
+
+
 class BostonCream : Doughnut {}
 
-BostonCream().cook();
+BostonCream().cook();*/
 
 class A {
   fun method() {
@@ -21,6 +25,7 @@ class B : A {
   }
 
   fun test() {
+    this.method();
     base.method();
   }
 }
@@ -28,4 +33,5 @@ class B : A {
 class C : B {}
 
 C().test();
+
 )"

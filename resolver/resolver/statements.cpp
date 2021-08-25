@@ -69,7 +69,7 @@ shared_ptr<lox_type> resolver::resolve_function_decl(const shared_ptr<function_s
 	}
 
 	vector<pair<scanning::token, shared_ptr<lox_type>>> params_{};
-	for (const auto& param:func->get_params())
+	for (const auto& param: func->get_params())
 	{
 		shared_ptr<lox_type> param_type{ resolve(param.second) };
 		if (lox_type::is_class(*param_type))
@@ -102,7 +102,7 @@ void resolver::resolve_function_body(const shared_ptr<parsing::function_statemen
 		cur_func_.pop();
 	});
 
-	for (const auto& param:func_type->params())
+	for (const auto& param: func_type->params())
 	{
 		declare_name(param.first);
 		define_name(param.first, param.second);
@@ -184,12 +184,12 @@ resolver::resolve_class_type_decl(const shared_ptr<class_statement>& cls)
 
 	define_type(cls->get_name(), this_type);
 
-	for (const auto& field:cls->get_fields())
+	for (const auto& field: cls->get_fields())
 	{
 		this_type->fields()[field->get_name().lexeme()] = resolve(field->get_type_expr());
 	}
 
-	for (const auto& method:cls->get_methods())
+	for (const auto& method: cls->get_methods())
 	{
 		auto type = resolve_function_decl(method);
 		if (type->id() == PRIMITIVE_TYPE_ID_ANY)
@@ -215,7 +215,8 @@ void resolver::complement_default_members(const shared_ptr<parsing::class_statem
 	{
 		auto name = scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR);
 		class_type->put_method(name,
-				nullptr, make_shared<lox_callable_type>(name, class_type, lox_callable_type::param_list_type{}, true));
+				nullptr,
+				make_shared<lox_callable_type>(name, class_type, lox_callable_type::param_list_type{}, true));
 	}
 }
 
@@ -223,15 +224,20 @@ void resolver::complement_default_members(const shared_ptr<parsing::class_statem
 void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>& cls,
 		const std::shared_ptr<lox_class_type>& class_type)
 {
-	for (const auto& field:cls->get_fields())
+	for (const auto& field: cls->get_fields())
 	{
 		resolve(field);
 	}
 
-	for (const auto& m:class_type->methods())
+	for (const auto& m: class_type->methods())
 	{
-		for (const auto&[stmt, func_type]:*m.second)
+		for (const auto&[stmt, func_type]: *m.second)
 		{
+			if (!stmt)
+			{
+				continue; //FIXME
+			}
+
 			auto method = static_pointer_cast<function_statement>(stmt);
 
 			auto decl = env_function_type::FT_METHOD;

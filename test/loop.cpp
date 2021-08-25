@@ -36,11 +36,13 @@ protected:
 
 	virtual void SetUp()
 	{
+		clox::logging::logger::instance().clear_error();
 
 	}
 
 	virtual void TearDown()
 	{
+		clox::logging::logger::instance().clear_error();
 
 	}
 

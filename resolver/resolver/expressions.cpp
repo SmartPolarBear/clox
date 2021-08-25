@@ -154,6 +154,11 @@ std::shared_ptr<lox_type> resolver::visit_var_expression(const std::shared_ptr<p
 
 	auto symbol = resolve_local(ve, ve->get_name());
 
+	if (!symbol)
+	{
+		return type_error(ve->get_name(), std::format("Name \"{}\" is not exist.", ve->get_name().lexeme()));
+	}
+
 	return symbol->type();
 }
 

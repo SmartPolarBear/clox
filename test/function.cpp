@@ -86,16 +86,16 @@ using namespace std;
 using namespace clox::driver;
 
 
-TEST_F(FunctionTest, Naive)
-{
-	test_scaffold_console cons{};
-
-	int ret = run_code(cons, naive_);
-	ASSERT_EQ(ret, 0);
-
-	auto output = cons.get_written_text();
-	ASSERT_FALSE(output.empty());
-}
+//TEST_F(FunctionTest, Naive)
+//{
+//	test_scaffold_console cons{};
+//
+//	int ret = run_code(cons, naive_);
+//	ASSERT_EQ(ret, 0);
+//
+//	auto output = cons.get_written_text();
+//	ASSERT_FALSE(output.empty());
+//}
 
 TEST_F(FunctionTest, SimpleTest)
 {
