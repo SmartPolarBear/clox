@@ -39,7 +39,7 @@ namespace clox::scanning
 enum class token_type
 {
 	// Single-character tokens.
-	LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
+	LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET /* [ */, RIGHT_BRACKET, LEFT_BRACE /* { */, RIGHT_BRACE,
 	COMMA, DOT,
 	SEMICOLON, COLON /* : */, SLASH,
 	QMARK /* ? */,

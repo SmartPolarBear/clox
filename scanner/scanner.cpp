@@ -156,6 +156,12 @@ void scanner::scan_next_token()
 	case ')':
 		add_token(token_type::RIGHT_PAREN);
 		break;
+	case '[':
+		add_token(token_type::LEFT_BRACKET);
+		break;
+	case ']':
+		add_token(token_type::RIGHT_BRACKET);
+		break;
 	case '{':
 		add_token(token_type::LEFT_BRACE);
 		break;
@@ -305,7 +311,7 @@ void scanner::consume_line_comment()
 scanner::scanner(std::string src)
 		: src_(std::move(src))
 {
-	for (const auto& p:keywords_to_type_)
+	for (const auto& p: keywords_to_type_)
 	{
 		type_to_keywords_[p.second] = p.first;
 	}

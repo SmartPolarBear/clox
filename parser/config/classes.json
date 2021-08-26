@@ -492,6 +492,23 @@
           "name": "name_"
         }
       ]
+    },
+    {
+      "name": "array_type_expression",
+      "base": [
+        4,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "element_type_"
+        },
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "dimension_"
+        }
+      ]
     }
   ]
 }

@@ -336,7 +336,7 @@ token parser::consume(token_type t, const std::string& msg)
 
 token parser::consume(initializer_list<scanning::token_type> tks, const string& msg)
 {
-	for (const auto& t:tks)
+	for (const auto& t: tks)
 	{
 		if (check(t))return advance();
 	}
@@ -731,7 +731,20 @@ std::shared_ptr<type_expression> parser::non_union_type()
 std::shared_ptr<type_expression> parser::generic_type()
 {
 	auto name = consume(scanning::token_type::IDENTIFIER, "Type expected.");
-	return make_shared<variable_type_expression>(name);
+	if (match({ token_type::LEFT_BRACKET }))
+	{
+		auto arr_type = make_shared<array_type_expression>(make_shared<variable_type_expression>(name), expr());
+		while (match({ token_type::LEFT_BRACKET }))
+		{
+			auto len_expr = expr();
+			arr_type = make_shared<array_type_expression>(arr_type, expr());
+		}
+		return arr_type;
+	}
+	else
+	{
+		return make_shared<variable_type_expression>(name);
+	}
 }
 
 
