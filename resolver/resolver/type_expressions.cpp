@@ -50,3 +50,20 @@ std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::sh
 {
 	return type_lookup(vte->get_name());
 }
+
+
+shared_ptr<lox_type> resolver::visit_union_type_expression(const std::shared_ptr<struct union_type_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}
+
+shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr<struct array_type_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}
+
+shared_ptr<lox_type>
+resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_type_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}

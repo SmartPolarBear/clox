@@ -71,8 +71,9 @@ class resolver final
 		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>,
 		  public parsing::statement_visitor<void>
 {
-
 public:
+
+
 	explicit resolver();
 
 	~resolver() = default;
@@ -138,6 +139,15 @@ public:
 
 	std::shared_ptr<lox_type>
 	visit_variable_type_expression(const std::shared_ptr<parsing::variable_type_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_union_type_expression(const std::shared_ptr<parsing::union_type_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_array_type_expression(const std::shared_ptr<parsing::array_type_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_callable_type_expression(const std::shared_ptr<parsing::callable_type_expression>& ptr) override;
 
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
