@@ -733,26 +733,60 @@ std::shared_ptr<type_expression> parser::type_expr()
 
 std::shared_ptr<type_expression> parser::non_union_type()
 {
-	return generic_type();
-}
-
-std::shared_ptr<type_expression> parser::generic_type()
-{
-	auto name = consume(scanning::token_type::IDENTIFIER, "Type expected.");
-	if (match({ token_type::LEFT_BRACKET }))
+	shared_ptr<type_expression> type{ nullptr };
+	if (match({ token_type::FUN }))
 	{
-		auto arr_type = make_shared<array_type_expression>(make_shared<variable_type_expression>(name), expr());
-		while (match({ token_type::LEFT_BRACKET }))
-		{
-			auto len_expr = expr();
-			arr_type = make_shared<array_type_expression>(arr_type, expr());
-		}
-		return arr_type;
+		type = callable_type();
 	}
 	else
 	{
-		return make_shared<variable_type_expression>(name);
+		type = variable_type();
 	}
+
+	while (match({ token_type::LEFT_BRACKET }))
+	{
+		auto bracket = previous();
+		auto len_expr = expr();
+		type = make_shared<array_type_expression>(type, bracket, expr());
+
+		consume(token_type::RIGHT_BRACKET, "enclosing ] is needed after array length.");
+	}
+
+	return type;
+}
+
+
+std::shared_ptr<type_expression> parser::callable_type()
+{
+	auto fun_token = previous();
+
+	auto lparen = consume(token_type::LEFT_PAREN, "'(' is expected after 'fun'");
+
+	vector<shared_ptr<type_expression>> param_types;
+	if (!check(token_type::RIGHT_PAREN))
+	{
+		do
+		{
+			param_types.push_back(type_expr());
+		} while (match({ token_type::COMMA }));
+	}
+
+	auto rparen = consume(token_type::RIGHT_PAREN, "')' is expected after parameter types");
+
+	shared_ptr<type_expression> return_type{ nullptr };
+	if (match({ token_type::COLON }))
+	{
+		return_type = type_expr();
+	}
+
+	return make_shared<callable_type_expression>(fun_token, lparen, param_types, rparen, return_type);
+}
+
+
+std::shared_ptr<type_expression> parser::variable_type()
+{
+	auto name = consume(scanning::token_type::IDENTIFIER, "Type name expected.");
+	return make_shared<variable_type_expression>(name);
 }
 
 

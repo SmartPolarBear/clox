@@ -526,8 +526,41 @@
           "name": "element_type_"
         },
         {
+          "type": "clox::scanning::token",
+          "name": "left_bracket_"
+        },
+        {
           "type": "std::shared_ptr<expression>",
           "name": "dimension_"
+        }
+      ]
+    },
+    {
+      "name": "callable_type_expression",
+      "base": [
+        4,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "fun_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "lparen_"
+        },
+        {
+          "type": "std::vector<std::shared_ptr<type_expression>>",
+          "name": "params_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "rparen_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "return_type"
         }
       ]
     }

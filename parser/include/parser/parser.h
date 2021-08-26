@@ -190,13 +190,19 @@ private:
 	/// \return
 	std::shared_ptr<type_expression> type_expr();
 
-	/// non_union_type -> generic_type
+	/// non_union_type -> callable_type | variable_type ("[" array_len "]")
+	/// array_len -> expr
 	/// \return
 	std::shared_ptr<type_expression> non_union_type();
 
-	/// generic_type -> IDENTIFIER
+	/// callable_type -> "fun"  "(" parameter_types? ")" ":" typeExpr
+	/// parameter_types -> type_expr *
 	/// \return
-	std::shared_ptr<type_expression> generic_type();
+	std::shared_ptr<type_expression> callable_type();
+
+	/// variable_type -> IDENTIFIER
+	/// \return
+	std::shared_ptr<type_expression> variable_type();
 
 
 	/// block -> "{" declaration* "}" ;
