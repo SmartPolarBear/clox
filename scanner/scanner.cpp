@@ -214,6 +214,9 @@ void scanner::scan_next_token()
 	case '?':
 		add_token(token_type::QMARK);
 		break;
+	case '|':
+		add_token(token_type::PIPE);
+		break;
 	case ':':
 		add_token(token_type::COLON);
 		break;

@@ -720,7 +720,15 @@ std::tuple<clox::scanning::token_type, std::shared_ptr<statement>> parser::class
 
 std::shared_ptr<type_expression> parser::type_expr()
 {
-	return non_union_type();
+	auto left = non_union_type();
+	if (match({ token_type::PIPE }))
+	{
+		auto pipe = previous();
+		auto right = non_union_type();
+		left = make_shared<union_type_expression>(left, pipe, right);
+	}
+
+	return left;
 }
 
 std::shared_ptr<type_expression> parser::non_union_type()

@@ -43,6 +43,7 @@ enum class token_type
 	COMMA, DOT,
 	SEMICOLON, COLON /* : */, SLASH,
 	QMARK /* ? */,
+	PIPE /* | */,
 
 	// One or two character tokens.
 	BANG, BANG_EQUAL,

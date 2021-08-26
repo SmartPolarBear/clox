@@ -494,6 +494,27 @@
       ]
     },
     {
+      "name": "union_type_expression",
+      "base": [
+        4,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "left_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "pipe_op_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "right_"
+        }
+      ]
+    },
+    {
       "name": "array_type_expression",
       "base": [
         4,
