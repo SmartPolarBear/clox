@@ -746,8 +746,7 @@ std::shared_ptr<type_expression> parser::non_union_type()
 	while (match({ token_type::LEFT_BRACKET }))
 	{
 		auto bracket = previous();
-		auto len_expr = expr();
-		type = make_shared<array_type_expression>(type, bracket, expr());
+		type = make_shared<array_type_expression>(type, bracket);
 
 		consume(token_type::RIGHT_BRACKET, "enclosing ] is needed after array length.");
 	}

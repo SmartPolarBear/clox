@@ -22,7 +22,7 @@
 // Created by cleve on 8/27/2021.
 //
 
-#include <resolver/lox_union_type.h>
+#include <resolver/union_type.h>
 
 #include <utility>
 

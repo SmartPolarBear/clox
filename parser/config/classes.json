@@ -528,10 +528,6 @@
         {
           "type": "clox::scanning::token",
           "name": "left_bracket_"
-        },
-        {
-          "type": "std::shared_ptr<expression>",
-          "name": "dimension_"
         }
       ]
     },
