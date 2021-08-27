@@ -55,11 +55,15 @@ class lox_callable_type
 		  public std::enable_shared_from_this<lox_callable_type>
 {
 public:
-	using param_list_type = std::vector<std::pair<scanning::token, std::shared_ptr<lox_type>>>;
+	using parameter_type = std::pair<std::optional<scanning::token>, std::shared_ptr<lox_type>>;
+	using param_list_type = std::vector<parameter_type>;
 	using return_type_variant = std::variant<type_deduce_defer_tag, std::shared_ptr<lox_type>>;
 
 	static inline constexpr size_t MAX_PARAMETER_COUNT = 256;
 public:
+
+	[[nodiscard]] explicit lox_callable_type(return_type_variant return_type,
+			param_list_type params, bool ctor = false);
 
 	[[nodiscard]] lox_callable_type(std::string name, return_type_variant return_type,
 			param_list_type params, bool ctor = false);

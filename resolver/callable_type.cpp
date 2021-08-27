@@ -61,12 +61,21 @@ lox_callable_type::lox_callable_type(std::string name, return_type_variant retur
 		: name_(std::move(name)),
 		  return_type_(std::move(return_type)),
 		  params_(std::move(params)),
-		  lox_object_type(std::move(name), TYPE_ID_STRING_CLASS, TYPE_CLASS | FLAG_CALLABLE, object())
+		  lox_object_type(std::move(name), TYPE_ID_FUNC, TYPE_CLASS | FLAG_CALLABLE, object())
 {
 	if (ctor)
 	{
 		lox_object_type::flags_ |= FLAG_CTOR;
 	}
+}
+
+lox_callable_type::lox_callable_type(lox_callable_type::return_type_variant return_type,
+		lox_callable_type::param_list_type params, bool ctor)
+		: name_(),
+		  return_type_(std::move(return_type)),
+		  params_(std::move(params)),
+		  lox_object_type("", TYPE_ID_FUNC, TYPE_CLASS | FLAG_CALLABLE, object())
+{
 }
 
 
@@ -77,9 +86,16 @@ std::string lox_callable_type::printable_string()
 
 	auto ret = std::format("<callable object {} -> {} ( ", name_, type_string);
 
-	for (const auto& param:params_)
+	for (const auto& param: params_)
 	{
-		ret += std::format("{}:{},", param.first.lexeme(), param.second->printable_string());
+		if (param.first.has_value())
+		{
+			ret += std::format("{}:{},", param.first.value().lexeme(), param.second->printable_string());
+		}
+		else
+		{
+			ret += std::format("{},", param.second->printable_string());
+		}
 	}
 
 	*ret.rbegin() = ')';
@@ -218,7 +234,7 @@ lox_overloaded_metatype::overloading_resolve(std::vector<std::shared_ptr<lox_typ
 	std::shared_ptr<lox_overloaded_node> next{ nullptr };
 	bool found = false;
 
-	for (auto& iter : node->next_)
+	for (auto& iter: node->next_)
 	{
 		if (lox_type::unify(*iter.first, **param_iter))
 		{

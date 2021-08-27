@@ -560,7 +560,7 @@
         },
         {
           "type": "std::shared_ptr<type_expression>",
-          "name": "return_type"
+          "name": "return_type_"
         }
       ]
     }

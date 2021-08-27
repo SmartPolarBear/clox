@@ -63,7 +63,17 @@ shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr
 }
 
 shared_ptr<lox_type>
-resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_type_expression>& ptr)
+resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_type_expression>& cte)
 {
-	return std::shared_ptr<lox_type>();
+	lox_callable_type::param_list_type params{};
+	for (const auto& param: cte->get_params())
+	{
+		params.emplace_back(nullopt, resolve(param));
+	}
+
+	auto callable = make_shared<lox_callable_type>(resolve(cte->get_return_type()),
+			params,
+			false);
+
+	return callable;
 }

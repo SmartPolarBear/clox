@@ -68,7 +68,7 @@ shared_ptr<lox_type> resolver::resolve_function_decl(const shared_ptr<function_s
 		return type_error(func->get_name(), "An initializer of class cannot have a explicit return type");
 	}
 
-	vector<pair<scanning::token, shared_ptr<lox_type>>> params_{};
+	lox_callable_type::param_list_type params_{};
 	for (const auto& param: func->get_params())
 	{
 		shared_ptr<lox_type> param_type{ resolve(param.second) };
@@ -104,8 +104,16 @@ void resolver::resolve_function_body(const shared_ptr<parsing::function_statemen
 
 	for (const auto& param: func_type->params())
 	{
-		declare_name(param.first);
-		define_name(param.first, param.second);
+		if (!param.first.has_value())
+		{
+			type_error(func->get_name(), "A function with body must have all parameters named.");
+			return;
+		}
+
+		auto param_name = param.first.value();
+
+		declare_name(param_name);
+		define_name(param_name, param.second /*type of the parameter*/);
 	}
 
 	resolve(func->get_body()); // resolve the body
