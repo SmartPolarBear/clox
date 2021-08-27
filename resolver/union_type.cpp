@@ -23,3 +23,77 @@
 //
 
 #include <resolver/union_type.h>
+
+using namespace std;
+
+std::string clox::resolving::union_type::printable_string()
+{
+	string ret{};
+	for (const auto& child: children_)
+	{
+		ret += std::format("{},", child->printable_string());
+	}
+	*ret.rbegin() = '\0';
+	return ret;
+}
+
+uint64_t clox::resolving::union_type::flags() const
+{
+	return FLAG_UNION_TYPE;
+}
+
+clox::resolving::type_id clox::resolving::union_type::id() const
+{
+	return TYPE_ID_UNION;
+}
+
+bool clox::resolving::union_type::operator<(const clox::resolving::lox_type& target) const
+{
+	if (!lox_type::is_union(target))
+	{
+		return false;
+	}
+
+	auto target_union_type = dynamic_cast<const union_type&>(target);
+
+	for (const auto& target_child: target_union_type.children_)
+	{
+		if (!ranges::any_of(children_, [&target_child](const auto& child)
+		{
+			return target_child < child;
+		}))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool clox::resolving::union_type::operator==(const clox::resolving::lox_type& target) const
+{
+	if (!lox_type::is_union(target))
+	{
+		return false;
+	}
+
+	auto target_union_type = dynamic_cast<const union_type&>(target);
+
+	for (const auto& target_child: target_union_type.children_)
+	{
+		if (!ranges::any_of(children_, [&target_child](const auto& child)
+		{
+			return target_child == child;
+		}))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool clox::resolving::union_type::operator!=(const clox::resolving::lox_type& another) const
+{
+	return !this->operator==(another);
+}

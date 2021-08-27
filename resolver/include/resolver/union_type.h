@@ -38,5 +38,23 @@
 
 namespace clox::resolving
 {
+class union_type final
+		: public lox_type
+{
+public:
+	std::string printable_string() override;
 
+	uint64_t flags() const override;
+
+	type_id id() const override;
+
+	bool operator<(const lox_type& target) const override;
+
+	bool operator==(const lox_type& lox_type) const override;
+
+	bool operator!=(const lox_type& lox_type) const override;
+
+private:
+	std::vector<std::shared_ptr<lox_type>> children_;
+};
 }

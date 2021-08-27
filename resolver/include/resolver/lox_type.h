@@ -43,6 +43,7 @@ enum lox_type_flags : uint64_t
 	FLAG_CALLABLE = 8,
 	FLAG_CTOR = 16,
 	FLAG_INSTANCE = 32,
+	FLAG_UNION_TYPE = 64
 };
 
 
@@ -64,6 +65,7 @@ enum primitive_type_id : type_id
 
 	TYPE_ID_STRING_CLASS,
 	TYPE_ID_FUNC,
+	TYPE_ID_UNION,
 	TYPE_ID_OVERLOADED_FUNC,
 
 	PRESET_TYPE_ID_MAX,
@@ -98,6 +100,11 @@ public:
 	static bool is_instance(const lox_type& t)
 	{
 		return t.flags() & lox_type_flags::FLAG_INSTANCE;
+	}
+
+	static bool is_union(const lox_type& t)
+	{
+		return t.flags() & lox_type_flags::FLAG_UNION_TYPE;
 	}
 
 	static bool is_preset_type(const lox_type& t)
