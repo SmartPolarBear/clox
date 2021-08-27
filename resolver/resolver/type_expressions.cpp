@@ -25,8 +25,10 @@
 #include <resolver/resolver.h>
 
 #include <resolver/lox_type.h>
+
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
+#include <resolver/lox_union_type.h>
 #include <resolver/instance_type.h>
 
 #include <logger/logger.h>
@@ -52,12 +54,15 @@ std::shared_ptr<lox_type> resolver::visit_variable_type_expression(const std::sh
 }
 
 
-shared_ptr<lox_type> resolver::visit_union_type_expression(const std::shared_ptr<struct union_type_expression>& ptr)
+shared_ptr<lox_type> resolver::visit_union_type_expression(const std::shared_ptr<struct union_type_expression>& ute)
 {
-	return std::shared_ptr<lox_type>();
+	auto left = resolve(ute->get_left());
+	auto right = resolve(ute->get_right());
+
+	return lox_union_type::unite(left, right);
 }
 
-shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr<struct array_type_expression>& ptr)
+shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr<struct array_type_expression>& ate)
 {
 	return std::shared_ptr<lox_type>();
 }

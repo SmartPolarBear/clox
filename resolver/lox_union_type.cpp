@@ -22,11 +22,14 @@
 // Created by cleve on 8/27/2021.
 //
 
-#include <resolver/union_type.h>
+#include <resolver/lox_union_type.h>
+
+#include <utility>
 
 using namespace std;
+using namespace clox::resolving;
 
-std::string clox::resolving::union_type::printable_string()
+std::string clox::resolving::lox_union_type::printable_string()
 {
 	string ret{};
 	for (const auto& child: children_)
@@ -37,24 +40,24 @@ std::string clox::resolving::union_type::printable_string()
 	return ret;
 }
 
-uint64_t clox::resolving::union_type::flags() const
+uint64_t clox::resolving::lox_union_type::flags() const
 {
 	return FLAG_UNION_TYPE;
 }
 
-clox::resolving::type_id clox::resolving::union_type::id() const
+clox::resolving::type_id clox::resolving::lox_union_type::id() const
 {
 	return TYPE_ID_UNION;
 }
 
-bool clox::resolving::union_type::operator<(const clox::resolving::lox_type& target) const
+bool clox::resolving::lox_union_type::operator<(const clox::resolving::lox_type& target) const
 {
 	if (!lox_type::is_union(target))
 	{
 		return false;
 	}
 
-	auto target_union_type = dynamic_cast<const union_type&>(target);
+	auto target_union_type = dynamic_cast<const lox_union_type&>(target);
 
 	for (const auto& target_child: target_union_type.children_)
 	{
@@ -70,14 +73,14 @@ bool clox::resolving::union_type::operator<(const clox::resolving::lox_type& tar
 	return true;
 }
 
-bool clox::resolving::union_type::operator==(const clox::resolving::lox_type& target) const
+bool clox::resolving::lox_union_type::operator==(const clox::resolving::lox_type& target) const
 {
 	if (!lox_type::is_union(target))
 	{
 		return false;
 	}
 
-	auto target_union_type = dynamic_cast<const union_type&>(target);
+	auto target_union_type = dynamic_cast<const lox_union_type&>(target);
 
 	for (const auto& target_child: target_union_type.children_)
 	{
@@ -93,7 +96,39 @@ bool clox::resolving::union_type::operator==(const clox::resolving::lox_type& ta
 	return true;
 }
 
-bool clox::resolving::union_type::operator!=(const clox::resolving::lox_type& another) const
+bool clox::resolving::lox_union_type::operator!=(const clox::resolving::lox_type& another) const
 {
 	return !this->operator==(another);
+}
+
+clox::resolving::lox_union_type::lox_union_type(clox::resolving::lox_union_type::children_list_type children)
+		: children_(std::move(children))
+{
+}
+
+shared_ptr<lox_union_type>
+clox::resolving::lox_union_type::unite(const shared_ptr<lox_type>& left, const shared_ptr<lox_type>& right)
+{
+	children_list_type children{};
+
+	auto flatten = [&children](const std::shared_ptr<lox_type>& type)
+	{
+		if (lox_type::is_union(*type))
+		{
+			auto type_union = static_pointer_cast<lox_union_type>(type);
+			for (const auto& child: *type_union)
+			{
+				children.push_back(child);
+			}
+		}
+		else
+		{
+			children.push_back(type);
+		}
+	};
+
+	flatten(left);
+	flatten(right);
+
+	return make_shared<lox_union_type>(children);
 }

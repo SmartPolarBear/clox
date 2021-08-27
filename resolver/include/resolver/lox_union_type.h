@@ -38,15 +38,32 @@
 
 namespace clox::resolving
 {
-class union_type final
+
+class lox_union_type final
 		: public lox_type
 {
 public:
+	using children_list_type = std::vector<std::shared_ptr<lox_type>>;
+
+public:
+	explicit lox_union_type(children_list_type children);
+
+	auto begin()
+	{
+		return children_.begin();
+	}
+
+	auto end()
+	{
+		return children_.end();
+	}
+
+
 	std::string printable_string() override;
 
-	uint64_t flags() const override;
+	[[nodiscard]] uint64_t flags() const override;
 
-	type_id id() const override;
+	[[nodiscard]] type_id id() const override;
 
 	bool operator<(const lox_type& target) const override;
 
@@ -54,7 +71,10 @@ public:
 
 	bool operator!=(const lox_type& lox_type) const override;
 
+	static std::shared_ptr<lox_union_type>
+	unite(const std::shared_ptr<lox_type>& left, const std::shared_ptr<lox_type>& right);
+
 private:
-	std::vector<std::shared_ptr<lox_type>> children_;
+	children_list_type children_{};
 };
 }
