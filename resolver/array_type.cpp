@@ -27,6 +27,6 @@
 clox::resolving::lox_array_type::lox_array_type(const std::shared_ptr<lox_type>& elem)
 		: lox_class_type(std::format("array<{}>", elem->printable_string()), lox_class_type::object()),
 		  element_type_(elem),
-		  size_(size)
+		  size_(0)
 {
 }
