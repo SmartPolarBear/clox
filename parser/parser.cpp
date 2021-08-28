@@ -224,31 +224,20 @@ std::shared_ptr<expression> parser::prefix()
 
 std::shared_ptr<expression> parser::postfix()
 {
-	if (check(token_type::PLUS_PLUS, 1))
-	{
-		while (check(token_type::PLUS_PLUS, 1))
-		{
-			auto op = peek(1);
-			auto left = primary();
-			consume(token_type::PLUS_PLUS, "Invalid postfix expression");
+	auto left = call();
 
-			return make_shared<postfix_expression>(left, op);
-		}
+	if (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
+	{
+		left = make_shared<postfix_expression>(left, previous(), nullptr);
 	}
-	else if (check(token_type::MINUS_MINUS, 1))
+	else if (match({ token_type::LEFT_BRACKET }))
 	{
-		while (check(token_type::MINUS_MINUS, 1))
-		{
-			auto op = peek(1);
-			auto left = primary();
-			consume(token_type::MINUS_MINUS, "Invalid postfix expression");
-
-			return make_shared<postfix_expression>(left, op);
-		}
+		auto op = previous();
+		auto index_expr = expr();
+		left = make_shared<postfix_expression>(left, op, index_expr);
 	}
 
-
-	return call();
+	return left;
 }
 
 std::shared_ptr<expression> parser::call()

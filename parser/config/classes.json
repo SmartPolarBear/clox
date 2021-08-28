@@ -144,6 +144,10 @@
         {
           "type": "clox::scanning::token",
           "name": "op_"
+        },
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "optional_right_"
         }
       ]
     },
