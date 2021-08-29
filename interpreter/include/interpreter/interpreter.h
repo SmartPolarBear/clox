@@ -117,6 +117,7 @@ public:
 	evaluating_result
 	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
 
+	void visit_foreach_statement(const std::shared_ptr<parsing::foreach_statement>& ptr) override;
 
 public:
 	void execute(const std::shared_ptr<parsing::statement>& s);

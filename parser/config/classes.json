@@ -402,6 +402,35 @@
       ]
     },
     {
+      "name": "foreach_statement",
+      "base": [
+        2,
+        3
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "lparen_"
+        },
+        {
+          "type": "std::shared_ptr<statement>",
+          "name": "var_decl_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "in_keyword_"
+        },
+        {
+          "type": "std::shared_ptr<expression>",
+          "name": "iterable_"
+        },
+        {
+          "type": "std::shared_ptr<statement>",
+          "name": "body_"
+        }
+      ]
+    },
+    {
       "name": "if_statement",
       "base": [
         2,

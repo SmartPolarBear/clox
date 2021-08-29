@@ -507,7 +507,7 @@ std::shared_ptr<statement> parser::func_declaration(function_statement_type type
 	return make_shared<function_statement>(name, type, params, ret_type, body);
 }
 
-std::shared_ptr<statement> parser::var_declaration()
+std::shared_ptr<statement> parser::var_statement()
 {
 	auto name = consume(token_type::IDENTIFIER, "Variable name is expected.");
 
@@ -523,8 +523,15 @@ std::shared_ptr<statement> parser::var_declaration()
 		initializer = initializer_expr();
 	}
 
-	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
 	return make_shared<variable_statement>(name, type, initializer);
+}
+
+
+std::shared_ptr<statement> parser::var_declaration()
+{
+	auto var_stmt = var_statement();
+	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
+	return var_stmt;
 }
 
 std::vector<std::shared_ptr<statement>> parser::block()
@@ -588,18 +595,53 @@ std::shared_ptr<statement> parser::for_stmt()
 	auto lparen = consume(scanning::token_type::LEFT_PAREN, "'(' is expected after 'for'.");
 
 	shared_ptr<statement> initializer{ nullptr };
+	enum
+	{
+		INIT_NON, INIT_VAR, INIT_EXPR_STMT
+	} initializer_type;
+
 	if (match({ token_type::SEMICOLON }))
 	{
-		// Do nothing
+		initializer_type = INIT_NON;
 	}
 	else if (match({ token_type::VAR }))
 	{
-		initializer = var_declaration();
+		initializer = var_statement();
+		initializer_type = INIT_VAR;
 	}
 	else
 	{
 		initializer = expr_stmt();
+		initializer_type = INIT_EXPR_STMT;
 	}
+
+
+	if (match({ token_type::IN }))
+	{
+		auto in_keyword = previous();
+		return foreach_finish_parse(initializer, lparen, in_keyword);
+	}
+	else if (match({ token_type::SEMICOLON }))
+	{
+		return plain_for_finish_parse(initializer, lparen);
+	}
+
+	throw logic_error{ "Should not reach here" };
+}
+
+
+std::shared_ptr<statement>
+parser::foreach_finish_parse(const shared_ptr<statement>& initializer, const token& lparen, const token& in_keyword)
+{
+	auto iterable = expr();
+	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after for clauses.");
+
+	return make_shared<foreach_statement>(lparen, initializer, in_keyword, iterable, stmt());
+}
+
+std::shared_ptr<statement>
+parser::plain_for_finish_parse(const shared_ptr<statement>& initializer, const clox::scanning::token& lparen)
+{
 
 	shared_ptr<expression> cond{ nullptr };
 	if (!check(token_type::SEMICOLON))
@@ -638,6 +680,7 @@ std::shared_ptr<statement> parser::for_stmt()
 
 	return body;
 }
+
 
 std::shared_ptr<statement> parser::class_declaration()
 {
@@ -802,7 +845,3 @@ std::shared_ptr<expression> parser::initializer_list_expr()
 	}
 	return make_shared<initializer_list_expression>(init_items);
 }
-
-
-
-

@@ -837,3 +837,8 @@ interpreter::visit_initializer_list_expression(const std::shared_ptr<struct init
 {
 	return clox::interpreting::evaluating_result();
 }
+
+void interpreter::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+{
+
+}

@@ -351,4 +351,9 @@ resolver::visit_initializer_list_expression(const std::shared_ptr< initializer_l
 	return std::shared_ptr<lox_type>();
 }
 
+void resolver::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+{
+
+}
+
 

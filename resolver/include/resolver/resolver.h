@@ -138,6 +138,8 @@ public:
 
 	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
 
+	void visit_foreach_statement(const std::shared_ptr<parsing:: foreach_statement>& ptr) override;
+
 	// type expressions
 
 	std::shared_ptr<lox_type>
@@ -160,6 +162,7 @@ public:
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::type_expression>& expr);
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
+
 
 private:
 

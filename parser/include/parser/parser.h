@@ -76,11 +76,14 @@ private:
 	/// \return
 	std::shared_ptr<statement> if_stmt();
 
-	/// forStmt -> "for" "(" ( varDecl | exprStmt | ";" )
+	/// forStmt -> "for" "(" plainForParams | rangeBasedForParams ")" statement ;
+	/// plainForParams ->  ( varStmt ";" | exprStmt | ";" )
 	///                 expression? ";"
-	///                 expression? ")" statement ;
+	///                 expression?
+	/// rangeBasedForParams -> varStmt ":" expression
 	/// \return
 	std::shared_ptr<statement> for_stmt();
+
 
 	/// returnStmt -> "return" expression? ";" ;
 	/// \return
@@ -193,8 +196,11 @@ private:
 	scanning::token func_declaration_name(function_statement_type type);
 
 
-	/// var_decl -> "var" IDENTIFIER (":" typeExpr)? ("=" initializer)? ";"
+	/// var_stmt -> "var" IDENTIFIER (":" typeExpr)? ("=" initializer)?
+	// 	var_decl -> var_stmt ";"
 	/// \return
+	std::shared_ptr<statement> var_statement();
+
 	std::shared_ptr<statement> var_declaration();
 
 	/// type_expr -> non_union_type ;
@@ -225,6 +231,12 @@ private:
 	/// \return
 	std::shared_ptr<expression> call_finish_parse(const std::shared_ptr<expression>& expr);
 
+	std::shared_ptr<statement>
+	plain_for_finish_parse(const std::shared_ptr<statement>& initializer, const clox::scanning::token& lparen);
+
+	std::shared_ptr<statement>
+	foreach_finish_parse(const std::shared_ptr<statement>& initializer, const token& lparen, const token& in_keyword);
+
 	void synchronize();
 
 	token consume(scanning::token_type t, const std::string& msg);
@@ -235,7 +247,7 @@ private:
 
 	bool match(std::initializer_list<scanning::token_type> types, int64_t next)
 	{
-		for (const auto& t:types)
+		for (const auto& t: types)
 		{
 			if (check(t, next))
 			{

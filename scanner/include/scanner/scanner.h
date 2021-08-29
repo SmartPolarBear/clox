@@ -62,7 +62,7 @@ enum class token_type
 	INTEGER, FLOATING,
 
 	// Keywords.
-	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
+	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, IN,
 	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
 	SIZEOF, ARRAY, OPERATOR, CONSTRUCTOR,
 
@@ -178,6 +178,7 @@ private:
 			{ "else",        token_type::ELSE },
 			{ "false",       token_type::FALSE },
 			{ "for",         token_type::FOR },
+			{ "in",          token_type::IN },
 			{ "fun",         token_type::FUN },
 			{ "if",          token_type::IF },
 			{ "nil",         token_type::NIL },
