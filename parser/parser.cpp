@@ -782,12 +782,15 @@ std::shared_ptr<expression> parser::initializer_expr()
 	if (match({ token_type::LEFT_BRACE }))
 	{
 		auto init_list_expr = initializer_list_expr();
-		while (match({ token_type::COMMA })); // Do nothing
+
+		while (match({ token_type::COMMA })); // Do nothing ( consume trailing commas like {1,2,3,,,} )
 
 		consume(token_type::RIGHT_BRACE, "Initializer list must be enclosed by '}'");
+
+		return init_list_expr;
 	}
 
-	return expr();
+	return conditional();
 }
 
 std::shared_ptr<expression> parser::initializer_list_expr()

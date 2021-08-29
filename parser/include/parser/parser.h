@@ -98,7 +98,7 @@ private:
 	/// \return
 	std::shared_ptr<expression> conditional();
 
-	/// initializer -> expr
+	/// initializer -> conditional (not expr because comma expression will lead to ambiguity
 	///               | '{' initializer_list '}'
 	///			      | '{' initializer_list ',' '}'
 	/// \return
