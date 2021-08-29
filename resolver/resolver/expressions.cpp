@@ -345,4 +345,10 @@ std::shared_ptr<binding_table> resolver::bindings() const
 	return bindings_;
 }
 
+shared_ptr<lox_type>
+resolver::visit_initializer_list_expression(const std::shared_ptr< initializer_list_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}
+
 

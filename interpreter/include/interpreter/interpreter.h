@@ -114,6 +114,10 @@ public:
 
 	evaluating_result visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
 
+	evaluating_result
+	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
+
+
 public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
 

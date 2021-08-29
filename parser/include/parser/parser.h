@@ -98,6 +98,17 @@ private:
 	/// \return
 	std::shared_ptr<expression> conditional();
 
+	/// initializer -> expr
+	///               | '{' initializer_list '}'
+	///			      | '{' initializer_list ',' '}'
+	/// \return
+	std::shared_ptr<expression> initializer_expr();
+
+	/// initializer_list -> initializer (',' initializer)*
+	///
+	/// \return
+	std::shared_ptr<expression> initializer_list_expr();
+
 	/// assignment -> IDENTIFIER "=" assignment
 	///               | logical_or
 	/// \return
@@ -182,7 +193,7 @@ private:
 	scanning::token func_declaration_name(function_statement_type type);
 
 
-	/// var_decl -> "var" IDENTIFIER (":" typeExpr)? ("=" expression)? ";"
+	/// var_decl -> "var" IDENTIFIER (":" typeExpr)? ("=" initializer)? ";"
 	/// \return
 	std::shared_ptr<statement> var_declaration();
 

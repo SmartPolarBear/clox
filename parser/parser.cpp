@@ -520,7 +520,7 @@ std::shared_ptr<statement> parser::var_declaration()
 	decltype(expr()) initializer = nullptr;
 	if (match({ token_type::EQUAL }))
 	{
-		initializer = expr();
+		initializer = initializer_expr();
 	}
 
 	consume(token_type::SEMICOLON, "After variable declaration, ';' is expected.");
@@ -775,6 +775,29 @@ std::shared_ptr<type_expression> parser::variable_type()
 {
 	auto name = consume(scanning::token_type::IDENTIFIER, "Type name expected.");
 	return make_shared<variable_type_expression>(name);
+}
+
+std::shared_ptr<expression> parser::initializer_expr()
+{
+	if (match({ token_type::LEFT_BRACE }))
+	{
+		auto init_list_expr = initializer_list_expr();
+		while (match({ token_type::COMMA })); // Do nothing
+
+		consume(token_type::RIGHT_BRACE, "Initializer list must be enclosed by '}'");
+	}
+
+	return expr();
+}
+
+std::shared_ptr<expression> parser::initializer_list_expr()
+{
+	vector<shared_ptr<expression>> init_items{ initializer_expr() };
+	while (match({ token_type::COMMA }))
+	{
+		init_items.push_back(initializer_expr());
+	}
+	return make_shared<initializer_list_expression>(init_items);
 }
 
 

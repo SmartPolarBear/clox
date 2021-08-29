@@ -131,6 +131,19 @@
       ]
     },
     {
+      "name": "initializer_list_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::vector<std::shared_ptr<expression>>",
+          "name": "items_"
+        }
+      ]
+    },
+    {
       "name": "postfix_expression",
       "base": [
         1,

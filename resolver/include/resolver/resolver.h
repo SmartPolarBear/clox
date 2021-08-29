@@ -116,6 +116,9 @@ public:
 	std::shared_ptr<lox_type>
 	visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
 
+	std::shared_ptr<lox_type>
+	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
+
 	// statements
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 

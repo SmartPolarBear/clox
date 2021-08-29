@@ -831,3 +831,9 @@ bool interpreter::is_number(const evaluating_result& e)
 {
 	return holds_alternative<long double>(e) || holds_alternative<long long>(e);
 }
+
+evaluating_result
+interpreter::visit_initializer_list_expression(const std::shared_ptr<struct initializer_list_expression>& ptr)
+{
+	return clox::interpreting::evaluating_result();
+}
