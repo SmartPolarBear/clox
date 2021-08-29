@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/27/2021.
+// Created by cleve on 8/29/2021.
 //
 
 #pragma once
@@ -35,20 +35,26 @@
 namespace clox::resolving
 {
 
-class lox_array_type final
-		: public lox_object_type
+class initializer_list_type
+		: public lox_type
 {
 public:
-	explicit lox_array_type(const std::shared_ptr<lox_type>& elem);
+	explicit initializer_list_type(std::vector<std::shared_ptr<lox_type>> items);
 
-	std::shared_ptr<lox_type> element_type() const
-	{
-		return element_type_;
-	}
+	std::string printable_string() override;
+
+	uint64_t flags() const override;
+
+	type_id id() const override;
+
+	bool operator<(const lox_type& target) const override;
+
+	bool operator==(const lox_type& lox_type) const override;
+
+	bool operator!=(const lox_type& lox_type) const override;
 
 private:
-	std::shared_ptr<lox_type> element_type_{ nullptr };
-	size_t size_{ 0 };
+	std::vector<std::shared_ptr<lox_type>> items_{};
 };
 
 }

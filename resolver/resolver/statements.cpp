@@ -445,3 +445,8 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 	}
 }
 
+
+void resolver::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+{
+
+}

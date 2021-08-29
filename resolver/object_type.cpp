@@ -25,6 +25,7 @@
 
 #include <resolver/object_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/initializer_list_type.h>
 
 #include <tuple>
 #include <utility>
@@ -247,6 +248,16 @@ bool lox_type::unify(const lox_type& base, const lox_type& derived)
 	if (derived.id() == PRIMITIVE_TYPE_ID_VOID || base.id() == PRIMITIVE_TYPE_ID_VOID)
 	{
 		return false;
+	}
+
+	if (base.id() == TYPE_ID_INITIALIZER_LIST)
+	{
+		return false;
+	}
+
+	if (derived.id() == TYPE_ID_INITIALIZER_LIST)
+	{
+		return dynamic_cast<const initializer_list_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 	}
 
 	return dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);

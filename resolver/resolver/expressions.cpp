@@ -28,6 +28,7 @@
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/initializer_list_type.h>
 
 #include <logger/logger.h>
 
@@ -340,20 +341,15 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	return return_type;
 }
 
-std::shared_ptr<binding_table> resolver::bindings() const
-{
-	return bindings_;
-}
-
 shared_ptr<lox_type>
-resolver::visit_initializer_list_expression(const std::shared_ptr< initializer_list_expression>& ptr)
+resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
 {
-	return std::shared_ptr<lox_type>();
-}
-
-void resolver::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
-{
-
+	vector<shared_ptr<lox_type>> items{};
+	for (const auto& item: ile->get_items())
+	{
+		items.push_back(resolve(item));
+	}
+	return make_shared<initializer_list_type>(items);
 }
 
 

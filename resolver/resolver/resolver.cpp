@@ -268,3 +268,11 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 
 	return callable;
 }
+
+std::shared_ptr<binding_table> resolver::bindings() const
+{
+	return bindings_;
+}
+
+
+

@@ -13,6 +13,7 @@ target_sources(clox
         PRIVATE instance_type.cpp
         PRIVATE union_type.cpp
         PRIVATE array_type.cpp
+        PRIVATE initializer_list_type.cpp
         PRIVATE binding.cpp)
 
 
@@ -26,6 +27,7 @@ target_sources(clox_test
         PRIVATE instance_type.cpp
         PRIVATE union_type.cpp
         PRIVATE array_type.cpp
+        PRIVATE initializer_list_type.cpp
         PRIVATE binding.cpp)
 
 
