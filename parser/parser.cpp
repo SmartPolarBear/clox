@@ -626,7 +626,8 @@ std::shared_ptr<statement> parser::for_stmt()
 		return plain_for_finish_parse(initializer, lparen);
 	}
 
-	throw logic_error{ "Should not reach here" };
+	auto token = tokens_[cur_];
+	throw error(token, std::format("Wrong token \"{}\" appeared in for statement.", token));
 }
 
 

@@ -1,4 +1,4 @@
 var ints:integer[]={1,5,4,3,2};
-for(var data:ints){
+for(var data in ints){
  print data;
 }

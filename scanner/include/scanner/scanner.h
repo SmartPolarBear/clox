@@ -28,7 +28,7 @@
 
 #include <helper/printable.h>
 
-
+#include <format>
 #include <variant>
 #include "nil_value.h"
 
@@ -233,5 +233,18 @@ private:
 	std::string src_;
 	std::vector<token> tokens_{};
 	size_t start_{ 0 }, cur_{ 0 }, line_{ 1 };
+};
+}
+
+namespace std
+{
+template<>
+struct std::formatter<clox::scanning::token> : std::formatter<std::string>
+{
+	auto format(const clox::scanning::token& p, format_context& ctx)
+	{
+		return formatter<string>::format(
+				std::format("{}", p.lexeme()), ctx);
+	}
 };
 }
