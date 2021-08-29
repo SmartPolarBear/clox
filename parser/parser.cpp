@@ -637,7 +637,9 @@ parser::foreach_finish_parse(const shared_ptr<statement>& initializer, const tok
 	auto iterable = expr();
 	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after for clauses.");
 
-	return make_shared<foreach_statement>(lparen, initializer, in_keyword, iterable, stmt());
+	auto ret = make_shared<foreach_statement>(lparen, initializer, in_keyword, iterable, stmt());
+
+	return ret;
 }
 
 std::shared_ptr<statement>

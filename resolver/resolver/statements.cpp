@@ -28,6 +28,7 @@
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/array_type.h>
 
 #include <logger/logger.h>
 
@@ -446,7 +447,36 @@ void resolver::visit_return_statement(const std::shared_ptr<parsing::return_stat
 }
 
 
-void resolver::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+void resolver::visit_foreach_statement(const std::shared_ptr<foreach_statement>& fes)
 {
+	scope_begin();
+	auto _ = finally([this]
+	{
+		this->scope_end();
+	});
 
+	resolve(fes->get_var_decl());
+
+	auto iterable_type = resolve(fes->get_iterable());
+	if (lox_type::is_instance(*iterable_type))
+	{
+		iterable_type = static_pointer_cast<lox_instance_type>(iterable_type)->underlying_type();
+	}
+
+	auto element_type = dynamic_pointer_cast<lox_array_type>(iterable_type)->element_type();
+
+	auto var_decl = scope_top()->name(
+			dynamic_pointer_cast<variable_statement>(fes->get_var_decl())->get_name().lexeme());
+
+
+	if (!lox_type::unify(*var_decl->type(), *element_type))
+	{
+		type_error(fes->get_in_keyword(),
+				std::format("Loop variable of type {} is not compatible with iterable of element typed {}",
+						var_decl->type()->printable_string(),
+						element_type->printable_string()));
+		return;
+	}
+
+	resolve(fes->get_body());
 }

@@ -30,6 +30,7 @@
 #include <tuple>
 #include <memory>
 #include <compare>
+#include <format>
 #include <vector>
 
 namespace clox::resolving
@@ -142,7 +143,7 @@ public:
 	bool operator!=(const lox_type& lox_type) const override;
 
 public:
-	uint64_t flags() const override;
+	[[nodiscard]] uint64_t flags() const override;
 
 	bool operator==(const lox_type& lox_type) const override;
 
@@ -159,9 +160,9 @@ class lox_void_type final
 public:
 	std::string printable_string() override;
 
-	uint64_t flags() const override;
+	[[nodiscard]] uint64_t flags() const override;
 
-	type_id id() const override;
+	[[nodiscard]] type_id id() const override;
 
 	bool operator<(const lox_type& target) const override;
 

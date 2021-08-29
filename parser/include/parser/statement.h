@@ -41,7 +41,9 @@ enum class function_statement_type
 
 class statement : public parser_class_base
 {
+public:
 };
+
 }
 
 namespace std
