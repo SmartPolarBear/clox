@@ -279,30 +279,22 @@ clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<par
 clox::interpreting::evaluating_result
 clox::interpreting::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
 {
-	if (holds_alternative<floating_literal_type>(value))
+	return std::visit([](auto&& value) -> evaluating_result
 	{
-		return get<floating_literal_type>(value);
-	}
-	else if (holds_alternative<integer_literal_type>(value))
-	{
-		return get<integer_literal_type>(value);
-	}
-	else if (holds_alternative<bool>(value))
-	{
-		return get<bool>(value);
-	}
-	else if (holds_alternative<string>(value))
-	{
-		return get<std::string>(value);
-	}
-	else if (holds_alternative<nil_value_tag_type>(value))
-	{
-		return get<scanning::nil_value_tag_type>(value);
-	}
-	else
-	{
-		throw invalid_argument("value");
-	}
+		using T = std::decay_t<decltype(value)>;
+		if constexpr (std::is_same_v<T, floating_literal_type> ||
+					  std::is_same_v<T, integer_literal_type> ||
+					  std::is_same_v<T, bool> ||
+					  std::is_same_v<T, string> ||
+					  std::is_same_v<T, nil_value_tag_type>)
+		{
+			return value;
+		}
+		else
+		{
+			throw invalid_argument("value");
+		}
+	}, value);
 }
 
 clox::interpreting::evaluating_result clox::interpreting::interpreter::evaluate(const shared_ptr<expression>& expr)
