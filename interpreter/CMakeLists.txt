@@ -4,6 +4,7 @@ add_subdirectory(native_functions)
 
 target_sources(clox
         PRIVATE interpreter.cpp
+        PRIVATE evaluating_result.cpp
         PRIVATE environment.cpp
         PRIVATE lox_function.cpp
         PRIVATE lox_class.cpp
@@ -13,6 +14,7 @@ target_include_directories(clox PRIVATE include)
 
 target_sources(clox_test
         PRIVATE interpreter.cpp
+        PRIVATE evaluating_result.cpp
         PRIVATE environment.cpp
         PRIVATE lox_function.cpp
         PRIVATE lox_class.cpp

@@ -110,30 +110,60 @@ std::shared_ptr<lox_type> resolver::visit_postfix_expression(const std::shared_p
 
 std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& le)
 {
-	if (holds_alternative<long long>(le->get_value()))
+	auto ret = std::visit([&le, this](auto&& arg)
 	{
-		return lox_object_type::integer();
-	}
-	else if (holds_alternative<long double>(le->get_value()))
-	{
-		return lox_object_type::floating();
-	}
-	else if (holds_alternative<bool>(le->get_value()))
-	{
-		return lox_object_type::boolean();
-	}
-	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
-	{
-		return lox_object_type::nil();
-	}
-	else if (holds_alternative<std::string>(le->get_value()))
-	{
-		return lox_object_type::string();
-	}
-	else
-	{
+		using T = std::decay_t<decltype(arg)>;
+
+		if constexpr(std::is_same_v<T, long long>)
+		{
+			return static_pointer_cast<lox_type>(lox_object_type::integer());
+		}
+		else if constexpr (std::is_same_v<T,long double>)
+		{
+			return static_pointer_cast<lox_type>(lox_object_type::floating());
+		}
+		else if constexpr (std::is_same_v<T,bool>)
+		{
+			return static_pointer_cast<lox_type>(lox_object_type::boolean());
+		}
+		else if constexpr (std::is_same_v<T,scanning::nil_value_tag_type>)
+		{
+			return static_pointer_cast<lox_type>(lox_object_type::nil());
+		}
+		else if constexpr (std::is_same_v<T,std::string>)
+		{
+			return static_pointer_cast<lox_type>(lox_object_type::string());
+		}
+
 		return type_error(le->get_token(), "Invalid literal value of unknown type.");
-	}
+	}, le->get_value());
+
+	return ret;
+//
+//	if (holds_alternative<long long>(le->get_value()))
+//	{
+//		return lox_object_type::integer();
+//	}
+//	else if (holds_alternative<long double>(le->get_value()))
+//	{
+//		return lox_object_type::floating();
+//	}
+//	else if (holds_alternative<bool>(le->get_value()))
+//	{
+//		return lox_object_type::boolean();
+//	}
+//	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
+//	{
+//		return lox_object_type::nil();
+//	}
+//	else if (holds_alternative<std::string>(le->get_value()))
+//	{
+//		return lox_object_type::string();
+//	}
+//	else
+//	{
+//		return type_error(le->get_token(), "Invalid literal value of unknown type.");
+//	}
 }
 
 std::shared_ptr<lox_type> resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)

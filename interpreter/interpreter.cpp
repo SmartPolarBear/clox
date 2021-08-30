@@ -263,38 +263,7 @@ std::string clox::interpreting::interpreter::result_to_string(
 		const token& error_prone,
 		const clox::interpreting::evaluating_result& res)
 {
-	if (holds_alternative<nil_value_tag_type>(res))return "nil";
-	else if (is_number(res))
-	{
-		return std::to_string(get_number(res));
-	}
-	else if (holds_alternative<bool>(res))
-	{
-		return string{ bool_to_string(get<bool>(res)) };
-	}
-	else if (holds_alternative<string>(res))
-	{
-		return get<string>(res);
-	}
-	else if (holds_alternative<shared_ptr<callable>>(res))
-	{
-		auto printable = dynamic_pointer_cast<helper::printable>(get<shared_ptr<callable>>(res));
-		if (!printable)
-		{
-			throw clox::interpreting::runtime_error{ error_prone, std::format("{} is not printable.",
-					typeid(get<shared_ptr<callable>>(res)).name()) };
-		}
-		return printable->printable_string();
-	}
-	else if (holds_alternative<shared_ptr<lox_instance>>(res))
-	{
-		auto inst = get<shared_ptr<lox_instance>>(res);
-		return inst->printable_string();
-	}
-
-
-	throw clox::interpreting::runtime_error{ error_prone, std::format("{} is not printable.",
-			typeid(res).name()) };
+	return visit(evaluating_result_stringify_visitor{ error_prone }, res);
 }
 
 void
@@ -308,7 +277,7 @@ clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<par
 			repl_ = false;
 		});
 
-		for (const auto& s:stmts)
+		for (const auto& s: stmts)
 		{
 			execute(s);
 		}
@@ -513,7 +482,7 @@ interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& st
 
 	this->environment_ = env;
 
-	for (const auto& stmt:stmts)
+	for (const auto& stmt: stmts)
 	{
 		execute(stmt);
 	}
@@ -579,7 +548,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 	auto callee = evaluate(ce->get_callee());
 
 	vector<evaluating_result> args{};
-	for (const auto& arg:ce->get_args())
+	for (const auto& arg: ce->get_args())
 	{
 		args.push_back(evaluate(arg));
 	}
@@ -730,7 +699,7 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 	auto lox_cls = make_shared<lox_class>(cls->get_name().lexeme(), base);
 
 
-	for (const auto& me:cls->get_methods())
+	for (const auto& me: cls->get_methods())
 	{
 		lox_cls->put_method(me->get_name().lexeme(), me, make_shared<lox_function>(me, environment_,
 				me->get_func_type() == parsing::function_statement_type::FST_CTOR));
@@ -805,7 +774,7 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 	}
 
 	auto bound_methods = method.value();
-	for (auto& m:bound_methods)
+	for (auto& m: bound_methods)
 	{
 		m.second = dynamic_pointer_cast<lox_function>(m.second)->bind(this_inst);
 	}
@@ -838,7 +807,7 @@ interpreter::visit_initializer_list_expression(const std::shared_ptr<struct init
 	return clox::interpreting::evaluating_result();
 }
 
-void interpreter::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statement>& ptr)
 {
 
 }

@@ -56,4 +56,41 @@ public:
 			const std::vector<evaluating_result>& args) = 0;
 };
 
+/// Use by std::visit
+class evaluating_result_stringify_visitor
+{
+public:
+	~evaluating_result_stringify_visitor() = default;
+
+	explicit evaluating_result_stringify_visitor(const scanning::token& error_token) :
+			error_token_(error_token)
+	{
+	}
+
+	std::string operator()(scanning::integer_literal_type integer);
+
+	std::string operator()(scanning::floating_literal_type floating);
+
+	std::string operator()(scanning::boolean_literal_type boolean);
+
+	std::string operator()(scanning::string_literal_type string_lit);
+
+	std::string operator()(scanning::nil_value_tag_type nil_value);
+
+	std::string operator()(const std::shared_ptr<class lox_instance>& inst);
+
+	std::string operator()(const std::shared_ptr<class callable>& callable);
+
+	std::string operator()(overloaded_functions overload_func);
+
+private:
+	static inline constexpr std::string_view bool_to_string(bool b)
+	{
+		return b ? "true" : "false";
+	}
+
+	scanning::token error_token_;
+};
+
+
 }
