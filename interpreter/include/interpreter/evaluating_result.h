@@ -60,6 +60,7 @@ public:
 class evaluating_result_stringify_visitor
 {
 public:
+
 	~evaluating_result_stringify_visitor() = default;
 
 	explicit evaluating_result_stringify_visitor(const scanning::token& error_token) :

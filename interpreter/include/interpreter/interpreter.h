@@ -139,12 +139,6 @@ private:
 
 	static std::string result_to_string(const scanning::token& error_prone, const evaluating_result& res);
 
-	static constexpr std::string_view bool_to_string(bool b);
-
-	static void check_numeric_operand(scanning::token, const evaluating_result& es);
-
-	static void check_numeric_operands(scanning::token, const evaluating_result& l, const evaluating_result& r);
-
 	// FIXME: temporarily all using long double for all numbers
 	static long double get_number(const evaluating_result& l);
 

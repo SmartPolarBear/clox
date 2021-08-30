@@ -89,20 +89,15 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	switch (be->get_op().type())
 	{
 	case scanning::token_type::GREATER:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) > get_number(right);
 	case scanning::token_type::GREATER_EQUAL:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) >= get_number(right);
 	case scanning::token_type::LESS:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) < get_number(right);
 	case scanning::token_type::LESS_EQUAL:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) <= get_number(right);
 
 	case scanning::token_type::MINUS:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) - get_number(right);
 	case scanning::token_type::PLUS:
 		if (is_number(left) && is_number(right))
@@ -116,10 +111,8 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 
 		throw clox::interpreting::runtime_error(be->get_op(), "Operands should be strings or numbers.");
 	case scanning::token_type::SLASH:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) / get_number(right);
 	case scanning::token_type::STAR:
-		check_numeric_operands(be->get_op(), left, right);
 		return get_number(left) * get_number(right);
 
 
@@ -151,7 +144,6 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	switch (op.type())
 	{
 	case scanning::token_type::MINUS:
-		check_numeric_operand(op, right);
 		return -get_number(right);
 	case scanning::token_type::BANG:
 		return !is_truthy(right);
@@ -162,7 +154,6 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 		}
 
 		{
-			check_numeric_operand(op, right);
 			auto value = get_number(right);
 			auto expr = static_pointer_cast<var_expression>(ue->get_right());
 			environment_->assign(expr->get_name(), value + 1);
@@ -178,7 +169,6 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 		}
 
 		{
-			check_numeric_operand(op, right);
 			auto value = get_number(right);
 			auto expr = static_pointer_cast<var_expression>(ue->get_right());
 			environment_->assign(expr->get_name(), value - 1);
@@ -211,7 +201,6 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 		}
 
 		{
-			check_numeric_operand(op, left);
 			auto value = get_number(left);
 			auto expr = static_pointer_cast<var_expression>(pe->get_left());
 			environment_->assign(expr->get_name(), value + 1);
@@ -227,7 +216,6 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 		}
 
 		{
-			check_numeric_operand(op, left);
 			auto value = get_number(left);
 			auto expr = static_pointer_cast<var_expression>(pe->get_left());
 			environment_->assign(expr->get_name(), value - 1);
@@ -372,29 +360,6 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 	return false;
 }
 
-void clox::interpreting::interpreter::check_numeric_operands(token op, const clox::interpreting::evaluating_result& l,
-		const clox::interpreting::evaluating_result& r)
-{
-	if (is_number(l) &&
-		is_number(r))
-		return;
-
-
-	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
-}
-
-void interpreter::check_numeric_operand(token op, const evaluating_result& es)
-{
-	if (is_number(es))return;
-
-	throw clox::interpreting::runtime_error(std::move(op), "Operands must be numbers.");
-}
-
-
-constexpr std::string_view interpreter::bool_to_string(bool b)
-{
-	return b ? "true" : "false";
-}
 
 void interpreter::visit_expression_statement(const shared_ptr<parsing::expression_statement>& es)
 {
@@ -411,7 +376,7 @@ void interpreter::visit_expression_statement(const shared_ptr<parsing::expressio
 		}
 		else if (holds_alternative<bool>(res))
 		{
-			console_->out() << string{ bool_to_string(get<bool>(res)) } << endl;
+			console_->out() << string{ get<bool>(res) ? "true" : "false" } << endl;
 		}
 		else if (holds_alternative<string>(res))
 		{
