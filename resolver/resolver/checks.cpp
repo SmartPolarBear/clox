@@ -297,6 +297,7 @@ resolver::check_type_postfix_expression(const clox::scanning::token& tk, const s
 				}
 			}
 		}
+
 	}
 
 	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} )",
@@ -399,74 +400,6 @@ resolver::check_type_call_expression(const shared_ptr<parsing::call_expression>&
 
 	return { type_error(ce->get_paren(),
 			std::format("Type {} is neither a callable nor a class", callee->printable_string())), false };
-
-//	shared_ptr<lox_callable_type> callable{ nullptr };
-//
-//	if (lox_type::is_instance(*callee))
-//	{
-//		auto underlying = static_pointer_cast<lox_instance_type>(callee)
-//				->underlying_type();
-//
-//		if (lox_type::is_callable(*underlying))
-//		{
-//			callable = static_pointer_cast<lox_callable_type>(underlying);
-//		}
-//	}
-//	else if (lox_type::is_callable(*callee))
-//	{
-//		if (callee->id() == TYPE_ID_OVERLOADED_FUNC)
-//		{
-//			auto resolve_ret = resolve_function_call(ce, dynamic_pointer_cast<lox_overloaded_metatype>(callee));
-//			if (!lox_type::is_callable(*resolve_ret))
-//			{
-//				return resolve_ret;
-//			}
-//
-//			callable = static_pointer_cast<lox_callable_type>(resolve_ret);
-//		}
-//		else
-//		{
-//			callable = static_pointer_cast<lox_callable_type>(callee);
-//		}
-//	}
-//	else if (lox_type::is_class(*callee))
-//	{
-//		auto class_t = static_pointer_cast<lox_class_type>(callee);
-//		auto metatype = class_t->methods().at(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));
-//
-//		auto resolve_ret = resolve_function_call(ce, metatype);
-//		if (!lox_type::is_callable(*resolve_ret))
-//		{
-//			return resolve_ret;
-//		}
-//
-//		callable = static_pointer_cast<lox_callable_type>(resolve_ret);
-//	}
-//
-//	if (!callable)
-//	{
-//		return type_error(ce->get_paren(),
-//				std::format("Type {} is neither a callable nor a class", callee->printable_string()));
-//	}
-//
-//	if (ce->get_args().size() != callable->param_size())
-//	{
-//		return type_error(ce->get_paren(),
-//				std::format("{} args are needed, but {} are given", callable->param_size(), ce->get_args().size()));
-//	}
-//
-//	auto size = callable->param_size();
-//	for (decltype(size) i = 0; i < size; i++)
-//	{
-//		auto arg_type = resolve(ce->get_args()[i]);
-//		auto param_type = callable->param_type(i);
-//		if (!lox_type::unify(*param_type, *arg_type))
-//		{
-//			return type_error(ce->get_paren(),
-//					std::format("{}th argument of type {} is not compatible with parameter with type {}.",
-//							i, arg_type->printable_string(), param_type->printable_string()));
-//		}
-//	}
 }
 
 
