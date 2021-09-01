@@ -739,18 +739,19 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 	return bound_methods;
 }
 
-long double interpreter::get_number(const evaluating_result& l)
+long double interpreter::get_number(const evaluating_result& num)
 {
-	if (holds_alternative<long double>(l))
+	return std::visit([](auto&& val) -> floating_literal_type
 	{
-		return get<long double>(l);
-	}
-	else if (holds_alternative<long long>(l))
-	{
-		return get<long long>(l);
-	}
+		using T = std::decay_t<decltype(val)>;
+		if constexpr(std::is_same_v<T, floating_literal_type> ||
+					 std::is_same_v<T, integer_literal_type>)
+		{
+			return val;
+		}
 
-	return NAN;
+		return NAN;
+	}, num);
 }
 
 bool interpreter::is_number(const evaluating_result& e)
@@ -759,12 +760,12 @@ bool interpreter::is_number(const evaluating_result& e)
 }
 
 evaluating_result
-interpreter::visit_initializer_list_expression(const std::shared_ptr<struct initializer_list_expression>& ptr)
+interpreter::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
 {
 	return clox::interpreting::evaluating_result();
 }
 
-void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statement>& ptr)
+void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statement>& fes)
 {
 
 }

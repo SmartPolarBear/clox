@@ -44,9 +44,10 @@ using evaluating_result = std::variant<
 		scanning::boolean_literal_type,
 		scanning::string_literal_type,
 		scanning::nil_value_tag_type,
-		std::shared_ptr<class lox_instance>,
+		overloaded_functions,
 		std::shared_ptr<class callable>,
-		overloaded_functions>;
+		std::shared_ptr<class lox_instance>,
+		std::shared_ptr<class lox_initializer_list>>;
 
 class callable
 {
@@ -81,6 +82,8 @@ public:
 	std::string operator()(const std::shared_ptr<class lox_instance>& inst);
 
 	std::string operator()(const std::shared_ptr<class callable>& callable);
+
+	std::string operator()(const std::shared_ptr<class lox_initializer_list>& lst);
 
 	std::string operator()(overloaded_functions overload_func);
 

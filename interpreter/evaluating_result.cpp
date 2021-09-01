@@ -24,6 +24,7 @@
 
 #include <interpreter/evaluating_result.h>
 #include <interpreter/lox_instance.h>
+#include <interpreter/initializer_list.h>
 
 #include <format>
 
@@ -69,7 +70,7 @@ std::string
 clox::interpreting::evaluating_result_stringify_visitor::operator()(const std::shared_ptr<callable>& cl)
 {
 	auto printable = dynamic_pointer_cast<helper::printable>(cl);
-	if(!printable)
+	if (!printable)
 	{
 		throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
 				typeid(cl).name()) };
@@ -82,4 +83,11 @@ std::string clox::interpreting::evaluating_result_stringify_visitor::operator()(
 {
 	throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
 			typeid(overload_func).name()) };
+}
+
+std::string clox::interpreting::evaluating_result_stringify_visitor::operator()(
+		const shared_ptr<lox_initializer_list>& lst)
+{
+	throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
+			typeid(lst).name()) };
 }
