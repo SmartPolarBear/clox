@@ -23,6 +23,12 @@
 //
 
 #include <interpreter/vm/chunk.h>
+#include <interpreter/vm/opcode.h>
+
+using namespace std;
+
+using namespace clox::interpreting;
+using namespace clox::interpreting::vm;
 
 void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::token> t)
 {
@@ -36,4 +42,10 @@ void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::
 	{
 		lines_.push_back(INVALID_LINE);
 	}
+}
+
+std::string clox::interpreting::vm::chunk::stringify_instruction(int64_t offset)
+{
+	auto op = static_cast<op_code>(codes_[offset]);
+	return std::format("{0:8}:	{1}", offset, op); // example: 00000001:	CONSTANT
 }

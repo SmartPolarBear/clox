@@ -60,6 +60,8 @@ public:
 		return codes_.end();
 	}
 
+	std::string stringify_instruction(int64_t offset);
+
 	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
 
 private:

@@ -37,7 +37,7 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 {
 	for (; ip_ != chunk_->end();)
 	{
-		switch (auto instruction = static_cast<op_code>(*ip_++))
+		switch (auto instruction = static_cast<op_code>(*ip_++);instruction)
 		{
 		case op_code::RETURN:
 			return virtual_machine_status::OK;
