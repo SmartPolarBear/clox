@@ -24,11 +24,28 @@
 #pragma once
 
 #include <interpreter/vm/opcode.h>
+#include <interpreter/vm/chunk.h>
+
+#include <memory>
 
 namespace clox::interpreting::vm
 {
+
+enum class virtual_machine_status
+{
+	OK,
+	RUNTIME_ERROR,
+};
+
 class virtual_machine final
 {
+public:
+	virtual_machine() = default;
 
+private:
+	virtual_machine_status run();
+
+	std::shared_ptr<chunk> chunk_{};
+	chunk::iterator_type ip_{};
 };
 }

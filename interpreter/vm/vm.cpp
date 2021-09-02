@@ -23,3 +23,27 @@
 //
 
 #include <interpreter/vm/vm.h>
+#include <interpreter/vm/opcode.h>
+
+#include <gsl/gsl>
+
+using namespace std;
+using namespace gsl;
+
+using namespace clox::interpreting;
+using namespace clox::interpreting::vm;
+
+clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
+{
+	for (; ip_ != chunk_->end();)
+	{
+		switch (auto instruction = static_cast<op_code>(*ip_++))
+		{
+		case op_code::RETURN:
+			return virtual_machine_status::OK;
+		}
+	}
+
+	// should not reach here
+	return virtual_machine_status::RUNTIME_ERROR;
+}

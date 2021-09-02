@@ -37,6 +37,8 @@ class chunk final
 {
 public:
 	static inline constexpr int64_t INVALID_LINE = -1;
+
+	using iterator_type = std::vector<uint16_t>::iterator;
 public:
 	chunk() = default;
 
@@ -47,6 +49,16 @@ public:
 	chunk(chunk&&) = default;
 
 	chunk& operator=(const chunk&) = default;
+
+	auto begin()
+	{
+		return codes_.begin();
+	}
+
+	auto end()
+	{
+		return codes_.end();
+	}
 
 	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
 
