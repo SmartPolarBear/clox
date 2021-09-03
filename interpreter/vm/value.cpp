@@ -19,27 +19,23 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/2/2021.
+// Created by cleve on 9/4/2021.
 //
 
-#pragma once
+#include <interpreter/vm/value.h>
 
-#include <stdexcept>
-#include <format>
-
-namespace clox::interpreting::vm
+clox::interpreting::vm::value_stringify_visitor::value_stringify_visitor(bool show_type)
+		: show_type_(show_type)
 {
-class invalid_opcode final
-		: public std::invalid_argument
-{
-public:
-	explicit invalid_opcode(uint16_t opcode)
-			: opcode_(opcode),
-			  std::invalid_argument(std::format("Invalid opcode {}", opcode))
-	{
-	}
-
-private:
-	uint16_t opcode_{};
-};
 }
+
+std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::integer_literal_type val)
+{
+	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+}
+
+std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::floating_literal_type val)
+{
+	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+}
+

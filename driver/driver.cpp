@@ -10,6 +10,7 @@
 #include <logger/logger.h>
 
 #include <interpreter/interpreter.h>
+#include <interpreter/vm/chunk.h>
 
 #include <resolver/resolver.h>
 
@@ -79,7 +80,17 @@ int clox::driver::run_repl(helper::console& cons)
 	resolver rsv{};
 	interpreter the_interpreter{ cons, rsv.bindings() };
 
+	auto ck = make_shared<vm::chunk>("test");
+	auto idx = ck->add_constant(125);
+	ck->add_op((uint16_t)vm::op_code::CONSTANT, 123);
+	ck->add_op(idx, 123);
+	ck->add_op((uint16_t)vm::op_code::RETURN, 123);
+	ck->disassemble(cons);
+
+	while (true);
+
 	cons.out() << ">>>";
+
 
 	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{

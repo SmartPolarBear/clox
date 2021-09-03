@@ -39,22 +39,28 @@ chunk::chunk(std::string name)
 
 void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::token> t)
 {
-	codes_.push_back(op);
-
 	if (t.has_value())
 	{
-		lines_.push_back(t->line());
+		add_op(op, t->line());
 	}
 	else
 	{
-		lines_.push_back(INVALID_LINE);
+		add_op(op, INVALID_LINE);
 	}
 }
+
+
+void chunk::add_op(uint16_t op, int64_t line)
+{
+	codes_.push_back(op);
+	lines_.push_back(line);
+}
+
 
 uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console& out, uint64_t offset)
 {
 	auto op = static_cast<op_code>(codes_[offset]);
-	out.out() << std::format("{0:8}:	{1}", offset, op); // example: 00000001:	CONSTANT
+	out.out() << std::format("{0:8}", offset); // example: 00000001:	CONSTANT
 
 	if (offset > 0 && lines_[offset] == lines_[offset - 1])
 	{
@@ -62,13 +68,22 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	}
 	else
 	{
-		out.out() << std::format("{0:4} ", lines_[offset]);
+		out.out() << std::format("{0:4}  ", lines_[offset]);
+	}
+
+	try
+	{
+		out.out() << std::format("{}", op);
+	}
+	catch (const invalid_opcode&)
+	{
+		out.out() << "<INVALID>";
 	}
 
 	switch (op)
 	{
 	case op_code::CONSTANT:
-		out.out() << std::format(" {} '{}'", codes_[offset + 1],lines_[codes_[offset + 1]]);
+		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 	default:
 		out.out() << endl;

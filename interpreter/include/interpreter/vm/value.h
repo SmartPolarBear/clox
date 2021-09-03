@@ -36,11 +36,78 @@ namespace clox::interpreting::vm
 {
 using value = std::variant<
 		scanning::integer_literal_type,
-		scanning::floating_literal_type,
-		scanning::boolean_literal_type,
-		scanning::string_literal_type,
-		scanning::nil_value_tag_type,
-		std::shared_ptr<class callable>,
-		std::shared_ptr<class lox_instance>,
-		std::shared_ptr<class lox_initializer_list>>;
+		scanning::floating_literal_type>;
+
+class value_stringify_visitor
+{
+public:
+	value_stringify_visitor() = default;
+
+	explicit value_stringify_visitor(bool show_type);
+
+	std::string operator()(scanning::integer_literal_type);
+
+	std::string operator()(scanning::floating_literal_type);
+
+private:
+	struct type_names
+	{
+		template<typename T>
+		struct type_name
+		{
+			static constexpr std::string_view value{ "<Unknown>" };
+		};
+
+		template<>
+		struct type_name<scanning::integer_literal_type>
+		{
+			static constexpr std::string_view value{ "<integer>" };
+		};
+
+		template<>
+		struct type_name<scanning::floating_literal_type>
+		{
+			static constexpr std::string_view value{ "<floating>" };
+		};
+	};
+
+	template<typename T>
+	std::string type_name_of()
+	{
+		if (!show_type_)
+		{
+			return "";
+		}
+
+		return std::string{ type_names::type_name<T>::value };
+	}
+
+	bool show_type_{ false };
+};
+
+//using value = std::variant<
+//		scanning::integer_literal_type,
+//		scanning::floating_literal_type,
+//		scanning::boolean_literal_type,
+//		scanning::string_literal_type,
+//		scanning::nil_value_tag_type,
+//		std::shared_ptr<class callable>,
+//		std::shared_ptr<class lox_instance>,
+//		std::shared_ptr<class lox_initializer_list>>;
+}
+
+#include <string>
+#include <format>
+
+namespace std
+{
+template<>
+struct std::formatter<clox::interpreting::vm::value> : std::formatter<std::string>
+{
+	auto format(const clox::interpreting::vm::value& val, format_context& ctx)
+	{
+		return formatter<string>::format(
+				std::visit(clox::interpreting::vm::value_stringify_visitor{ true }, val), ctx);
+	}
+};
 }

@@ -69,6 +69,8 @@ public:
 
 	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
 
+	void add_op(uint16_t op, int64_t line);
+
 	uint16_t add_constant(const value& val);
 
 private:
