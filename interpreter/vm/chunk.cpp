@@ -54,8 +54,26 @@ void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::
 uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console& out, uint64_t offset)
 {
 	auto op = static_cast<op_code>(codes_[offset]);
-	out.out() << std::format("{0:8}:	{1}", offset, op) << endl; // example: 00000001:	CONSTANT
-	return offset + 1;
+	out.out() << std::format("{0:8}:	{1}", offset, op); // example: 00000001:	CONSTANT
+
+	if (offset > 0 && lines_[offset] == lines_[offset - 1])
+	{
+		out.out() << "    | ";
+	}
+	else
+	{
+		out.out() << std::format("{0:4} ", lines_[offset]);
+	}
+
+	switch (op)
+	{
+	case op_code::CONSTANT:
+		out.out() << std::format(" {} '{}'", codes_[offset + 1],lines_[codes_[offset + 1]]);
+		return offset + 2;
+	default:
+		out.out() << endl;
+		return offset + 1;
+	}
 }
 
 void chunk::disassemble(helper::console& out)
@@ -64,4 +82,10 @@ void chunk::disassemble(helper::console& out)
 	{
 		offset = disassemble_instruction(out, offset);
 	}
+}
+
+uint16_t chunk::add_constant(const value& val)
+{
+	constants_.push_back(val);
+	return constants_.size() - 1;
 }
