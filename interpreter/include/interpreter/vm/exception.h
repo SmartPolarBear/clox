@@ -19,49 +19,26 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/1/2021.
+// Created by cleve on 9/2/2021.
 //
 
-#include <interpreter/vm/chunk.h>
-#include <interpreter/vm/opcode.h>
+#pragma once
 
-using namespace std;
+#include <stdexcept>
 
-using namespace clox::interpreting;
-using namespace clox::interpreting::vm;
-
-
-chunk::chunk(std::string name)
-		: name_(std::move(name))
+namespace clox::interpreting::vm
 {
-
-}
-
-void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::token> t)
+class invalid_opcode final
+		: public std::invalid_argument
 {
-	codes_.push_back(op);
-
-	if (t.has_value())
+public:
+	explicit invalid_opcode(uint16_t opcode)
+			: opcode_(opcode),
+			  std::invalid_argument(std::format("Invalid opcode {}", opcode))
 	{
-		lines_.push_back(t->line());
 	}
-	else
-	{
-		lines_.push_back(INVALID_LINE);
-	}
-}
 
-uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console& out, uint64_t offset)
-{
-	auto op = static_cast<op_code>(codes_[offset]);
-	out.out() << std::format("{0:8}:	{1}", offset, op) << endl; // example: 00000001:	CONSTANT
-	return offset + 1;
-}
-
-void chunk::disassemble(helper::console& out)
-{
-	for (uint64_t offset = 0; offset < codes_.size();)
-	{
-		offset = disassemble_instruction(out, offset);
-	}
+private:
+	uint16_t opcode_{};
+};
 }

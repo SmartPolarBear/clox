@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <helper/console.h>
+
 #include <interpreter/vm/opcode.h>
 
 #include <scanner/scanner.h>
@@ -41,6 +43,8 @@ public:
 	using iterator_type = std::vector<uint16_t>::iterator;
 public:
 	chunk() = default;
+
+	explicit chunk(std::string name);
 
 	~chunk() = default;
 
@@ -60,11 +64,17 @@ public:
 		return codes_.end();
 	}
 
-	std::string stringify_instruction(int64_t offset);
+	void disassemble(helper::console &out);
 
 	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
 
 private:
+
+	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);
+
+
+	std::string name_{};
+
 	std::vector<uint16_t> codes_{};
 	std::vector<int64_t> lines_{};
 };

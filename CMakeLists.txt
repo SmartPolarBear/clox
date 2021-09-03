@@ -33,7 +33,6 @@ add_subdirectory(parser)
 add_subdirectory(helper)
 add_subdirectory(interpreter)
 add_subdirectory(resolver)
-add_subdirectory(codegen)
 
 
 target_link_libraries(clox

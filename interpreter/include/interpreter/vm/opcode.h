@@ -87,6 +87,8 @@ enum class op_code : uint16_t
 };
 }
 
+#include <interpreter/vm/exception.h>
+
 #include <string>
 #include <format>
 
@@ -241,7 +243,7 @@ struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::str
 			op_str = "CONTAINER_ITERATE";
 			break;
 		default:
-			op_str = "<bad instruction>";
+			throw clox::interpreting::vm::invalid_opcode{ static_cast<uint16_t>(op) };
 			break;
 		}
 

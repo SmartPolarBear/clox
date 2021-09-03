@@ -23,6 +23,7 @@
 //
 
 #include <interpreter/vm/vm.h>
+#include <interpreter/vm/exception.h>
 #include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
@@ -37,10 +38,12 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 {
 	for (; ip_ != chunk_->end();)
 	{
-		switch (auto instruction = static_cast<op_code>(*ip_++);instruction)
+		switch (auto instruction = *ip_++;static_cast<op_code>(instruction))
 		{
 		case op_code::RETURN:
 			return virtual_machine_status::OK;
+		default:
+			throw invalid_opcode { instruction };
 		}
 	}
 
