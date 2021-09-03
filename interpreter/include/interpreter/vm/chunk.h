@@ -24,7 +24,10 @@
 
 #pragma once
 
+#include <helper/console.h>
+
 #include <interpreter/vm/opcode.h>
+#include <interpreter/vm/value.h>
 
 #include <scanner/scanner.h>
 
@@ -37,8 +40,12 @@ class chunk final
 {
 public:
 	static inline constexpr int64_t INVALID_LINE = -1;
+
+	using iterator_type = std::vector<uint16_t>::iterator;
 public:
 	chunk() = default;
+
+	explicit chunk(std::string name);
 
 	~chunk() = default;
 
@@ -48,9 +55,33 @@ public:
 
 	chunk& operator=(const chunk&) = default;
 
+	auto begin()
+	{
+		return codes_.begin();
+	}
+
+	auto end()
+	{
+		return codes_.end();
+	}
+
+	void disassemble(helper::console& out);
+
 	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
 
+	void add_op(uint16_t op, int64_t line);
+
+	uint16_t add_constant(const value& val);
+
 private:
+
+	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);
+
+
+	std::string name_{};
+
+	std::vector<value> constants_{};
+
 	std::vector<uint16_t> codes_{};
 	std::vector<int64_t> lines_{};
 };

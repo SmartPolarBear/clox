@@ -24,7 +24,17 @@
 
 #pragma once
 
+#include <helper/enum.h>
+
 #include <cstdint>
+
+#ifdef TRUE
+#undef TRUE
+#endif
+
+#ifdef FALSE
+#undef FALSE
+#endif
 
 namespace clox::interpreting::vm
 {
@@ -77,4 +87,178 @@ enum class op_code : uint16_t
 	CONTAINER_GET_RANGE,
 	CONTAINER_ITERATE,
 };
+
+static inline constexpr auto op_code_value(op_code code)
+{
+	return helper::enum_cast(code);
+}
+
+}
+
+#include <interpreter/vm/exception.h>
+
+#include <string>
+#include <format>
+
+namespace std
+{
+template<>
+struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::string>
+{
+	auto format(clox::interpreting::vm::op_code op, format_context& ctx)
+	{
+		std::string op_str{};
+
+		switch (op)
+		{
+
+		case clox::interpreting::vm::op_code::CONSTANT:
+			op_str = "CONSTANT";
+			break;
+		case clox::interpreting::vm::op_code::NIL:
+			op_str = "NIL";
+			break;
+		case clox::interpreting::vm::op_code::TRUE:
+			op_str = "TRUE";
+			break;
+		case clox::interpreting::vm::op_code::FALSE:
+			op_str = "FALSE";
+			break;
+		case clox::interpreting::vm::op_code::POP:
+			op_str = "POP";
+			break;
+		case clox::interpreting::vm::op_code::GET_LOCAL:
+			op_str = "OP_GET_LOCAL";
+			break;
+		case clox::interpreting::vm::op_code::SET_LOCAL:
+			op_str = "SET_LOCAL";
+			break;
+		case clox::interpreting::vm::op_code::GET_GLOBAL:
+			op_str = "GET_GLOBAL";
+			break;
+		case clox::interpreting::vm::op_code::DEFINE_GLOBAL:
+			op_str = "DEFINE_GLOBAL";
+			break;
+		case clox::interpreting::vm::op_code::SET_GLOBAL:
+			op_str = "SET_GLOBAL";
+			break;
+		case clox::interpreting::vm::op_code::GET_UPVALUE:
+			op_str = "GET_UPVALUE";
+			break;
+		case clox::interpreting::vm::op_code::SET_UPVALUE:
+			op_str = "SET_UPVALUE";
+			break;
+		case clox::interpreting::vm::op_code::GET_PROPERTY:
+			op_str = "GET_PROPERTY";
+			break;
+		case clox::interpreting::vm::op_code::SET_PROPERTY:
+			op_str = "SET_PROPERTY";
+			break;
+		case clox::interpreting::vm::op_code::GET_SUPER:
+			op_str = "GET_SUPER";
+			break;
+		case clox::interpreting::vm::op_code::EQUAL:
+			op_str = "EQUAL";
+			break;
+		case clox::interpreting::vm::op_code::GREATER:
+			op_str = "GREATER";
+			break;
+		case clox::interpreting::vm::op_code::LESS:
+			op_str = "LESS";
+			break;
+		case clox::interpreting::vm::op_code::ADD:
+			op_str = "ADD";
+			break;
+		case clox::interpreting::vm::op_code::SUBTRACT:
+			op_str = "SUBTRACT";
+			break;
+		case clox::interpreting::vm::op_code::MULTIPLY:
+			op_str = "MULTIPLY";
+			break;
+		case clox::interpreting::vm::op_code::DIVIDE:
+			op_str = "DIVIDE";
+			break;
+		case clox::interpreting::vm::op_code::POW:
+			op_str = "POW";
+			break;
+		case clox::interpreting::vm::op_code::MOD:
+			op_str = "MOD";
+			break;
+		case clox::interpreting::vm::op_code::NOT:
+			op_str = "NOT";
+			break;
+		case clox::interpreting::vm::op_code::NEGATE:
+			op_str = "NEGATE";
+			break;
+		case clox::interpreting::vm::op_code::PRINT:
+			op_str = "PRINT";
+			break;
+		case clox::interpreting::vm::op_code::JUMP:
+			op_str = "JUMP";
+			break;
+		case clox::interpreting::vm::op_code::JUMP_IF_FALSE:
+			op_str = "JUMP_IF_FALSE";
+			break;
+		case clox::interpreting::vm::op_code::LOOP:
+			op_str = "LOOP";
+			break;
+		case clox::interpreting::vm::op_code::CALL:
+			op_str = "CALL";
+			break;
+		case clox::interpreting::vm::op_code::INVOKE:
+			op_str = "INVOKE";
+			break;
+		case clox::interpreting::vm::op_code::SUPER_INVOKE:
+			op_str = "SUPER_INVOKE";
+			break;
+		case clox::interpreting::vm::op_code::CLOSURE:
+			op_str = "CLOSURE";
+			break;
+		case clox::interpreting::vm::op_code::CLOSE_UPVALUE:
+			op_str = "CLOSE_UPVALUE";
+			break;
+		case clox::interpreting::vm::op_code::RETURN:
+			op_str = "RETURN";
+			break;
+		case clox::interpreting::vm::op_code::CLASS:
+			op_str = "CLASS";
+			break;
+		case clox::interpreting::vm::op_code::INHERIT:
+			op_str = "INHERIT";
+			break;
+		case clox::interpreting::vm::op_code::METHOD:
+			op_str = "METHOD";
+			break;
+		case clox::interpreting::vm::op_code::LIST_INIT:
+			op_str = "LIST_INIT";
+			break;
+		case clox::interpreting::vm::op_code::LIST_INIT_RANGE:
+			op_str = "LIST_INIT_RANGE";
+			break;
+		case clox::interpreting::vm::op_code::MAP_INIT:
+			op_str = "MAP_INIT";
+			break;
+		case clox::interpreting::vm::op_code::CONTAINER_GET:
+			op_str = "CONTAINER_GET";
+			break;
+		case clox::interpreting::vm::op_code::CONTAINER_SET:
+			op_str = "CONTAINER_SET";
+			break;
+		case clox::interpreting::vm::op_code::CONTAINER_GET_RANGE:
+			op_str = "CONTAINER_GET_RANGE";
+			break;
+		case clox::interpreting::vm::op_code::CONTAINER_ITERATE:
+			op_str = "CONTAINER_ITERATE";
+			break;
+		default:
+			throw clox::interpreting::vm::invalid_opcode{ static_cast<uint16_t>(op) };
+			break;
+		}
+
+		return formatter<string>::format(
+				op_str, ctx);
+	}
+};
+
+
 }

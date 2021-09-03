@@ -19,34 +19,23 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/1/2021.
+// Created by cleve on 9/4/2021.
 //
 
-#include <interpreter/vm/vm.h>
-#include <interpreter/vm/exception.h>
-#include <interpreter/vm/opcode.h>
+#include <interpreter/vm/value.h>
 
-#include <gsl/gsl>
-
-using namespace std;
-using namespace gsl;
-
-using namespace clox::interpreting;
-using namespace clox::interpreting::vm;
-
-clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
+clox::interpreting::vm::value_stringify_visitor::value_stringify_visitor(bool show_type)
+		: show_type_(show_type)
 {
-	for (; ip_ != chunk_->end();)
-	{
-		switch (auto instruction = *ip_++;static_cast<op_code>(instruction))
-		{
-		case op_code::RETURN:
-			return virtual_machine_status::OK;
-		default:
-			throw invalid_opcode { instruction };
-		}
-	}
-
-	// should not reach here
-	return virtual_machine_status::RUNTIME_ERROR;
 }
+
+std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::integer_literal_type val)
+{
+	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+}
+
+std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::floating_literal_type val)
+{
+	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+}
+
