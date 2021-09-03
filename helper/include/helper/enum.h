@@ -36,7 +36,7 @@ concept Enum=std::is_enum_v<E>;
 }
 
 template<_internals::Enum E>
-auto enum_cast(E val) -> std::underlying_type_t<E>
+static inline constexpr auto enum_cast(E val) -> std::underlying_type_t<E>
 {
 	return static_cast<std::underlying_type_t<E>>(val);
 }

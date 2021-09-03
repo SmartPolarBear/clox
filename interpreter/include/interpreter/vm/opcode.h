@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <helper/enum.h>
+
 #include <cstdint>
 
 #ifdef TRUE
@@ -85,6 +87,12 @@ enum class op_code : uint16_t
 	CONTAINER_GET_RANGE,
 	CONTAINER_ITERATE,
 };
+
+static inline constexpr auto op_code_value(op_code code)
+{
+	return helper::enum_cast(code);
+}
+
 }
 
 #include <interpreter/vm/exception.h>
@@ -251,4 +259,6 @@ struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::str
 				op_str, ctx);
 	}
 };
+
+
 }
