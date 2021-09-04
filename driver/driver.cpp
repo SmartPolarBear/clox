@@ -81,7 +81,7 @@ int clox::driver::run_repl(helper::console& cons)
 	interpreter the_interpreter{ cons, rsv.bindings() };
 
 	auto ck = make_shared<vm::chunk>("test");
-	auto idx = ck->add_constant(125);
+	auto idx = ck->add_constant(244.0f);
 	ck->add_op(vm::op_code_value(vm::op_code::CONSTANT), 123);
 	ck->add_op(idx, 123);
 	ck->add_op(vm::op_code_value(vm::op_code::RETURN), 123);

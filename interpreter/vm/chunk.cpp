@@ -60,15 +60,15 @@ void chunk::add_op(uint16_t op, int64_t line)
 uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console& out, uint64_t offset)
 {
 	auto op = static_cast<op_code>(codes_[offset]);
-	out.out() << std::format("{0:8}", offset); // example: 00000001:	CONSTANT
+	out.out() << std::format("{0:0>8}", offset); // example: 00000001:	CONSTANT
 
 	if (offset > 0 && lines_[offset] == lines_[offset - 1])
 	{
-		out.out() << "    | ";
+		out.out() << "        | ";
 	}
 	else
 	{
-		out.out() << std::format("{0:4}  ", lines_[offset]);
+		out.out() << std::format("{0:8}  ", lines_[offset]);
 	}
 
 	try

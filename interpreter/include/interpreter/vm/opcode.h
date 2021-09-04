@@ -252,7 +252,6 @@ struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::str
 			break;
 		default:
 			throw clox::interpreting::vm::invalid_opcode{ static_cast<uint16_t>(op) };
-			break;
 		}
 
 		return formatter<string>::format(
