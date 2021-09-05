@@ -27,6 +27,10 @@
 #include <parser/gen/parser_classes.inc>
 #include <parser/gen/parser_base.inc>
 
+#include <interpreter/vm/chunk.h>
+
+#include <concepts>
+
 namespace clox::interpreting::compiling
 {
 class codegen final
@@ -34,7 +38,9 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
-private:
+	codegen() = default;
+
+
 	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
 
 	void visit_binary_expression(const std::shared_ptr<parsing::binary_expression>& ptr) override;
@@ -84,5 +90,27 @@ private:
 	void visit_return_statement(const std::shared_ptr<parsing::return_statement>& ptr) override;
 
 	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
+
+public:
+	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
+
+
+private:
+
+	void generate(const std::shared_ptr<parsing::statement>& s);
+
+	void generate(const std::shared_ptr<parsing::expression>& s);
+
+	std::shared_ptr<vm::chunk> current();
+
+	void emit_byte(uint16_t byte);
+
+	template<std::convertible_to<uint16_t> ...Args>
+	void emit_bytes(const Args& ...arg)
+	{
+		(emit_byte((uint16_t)arg), ...);
+	}
+
+	void emit_return();
 };
 }

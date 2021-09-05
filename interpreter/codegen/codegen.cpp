@@ -23,6 +23,7 @@
 //
 
 #include <interpreter/codegen.h>
+#include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
 
@@ -34,140 +35,177 @@ using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
+using namespace clox::interpreting::vm;
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
-		const std::shared_ptr< assignment_expression>& ptr)
+		const std::shared_ptr<assignment_expression>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr< binary_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_unary_expression(const std::shared_ptr< unary_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_unary_expression(const std::shared_ptr<unary_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr< this_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr< base_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& ptr)
 {
 
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
-		const std::shared_ptr< initializer_list_expression>& ptr)
+		const std::shared_ptr<initializer_list_expression>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr< postfix_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr<postfix_expression>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_literal_expression(const std::shared_ptr< literal_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_literal_expression(const std::shared_ptr<literal_expression>& le)
 {
-
+	auto val = le->get_value();
 }
 
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
-		const std::shared_ptr< grouping_expression>& ptr)
+		const std::shared_ptr<grouping_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr< var_expression>& ptr)
-{
-
-}
-
-void
-clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr< ternary_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr< logical_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr<ternary_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr< call_expression>& ptr)
+void
+clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr<logical_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr< get_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr< set_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
+{
+
+}
+
+void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& ptr)
 {
 
 }
 
 void clox::interpreting::compiling::codegen::visit_expression_statement(
-		const std::shared_ptr< expression_statement>& ptr)
+		const std::shared_ptr<expression_statement>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr< print_statement>& ptr)
-{
-
-}
-
-void
-clox::interpreting::compiling::codegen::visit_variable_statement(const std::shared_ptr< variable_statement>& ptr)
-{
-
-}
-
-void clox::interpreting::compiling::codegen::visit_block_statement(const std::shared_ptr< block_statement>& ptr)
-{
-
-}
-
-void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr< while_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_foreach_statement(const std::shared_ptr< foreach_statement>& ptr)
+clox::interpreting::compiling::codegen::visit_variable_statement(const std::shared_ptr<variable_statement>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_if_statement(const std::shared_ptr< if_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_block_statement(const std::shared_ptr<block_statement>& ptr)
+{
+
+}
+
+void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr<while_statement>& ptr)
 {
 
 }
 
 void
-clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr< function_statement>& ptr)
+clox::interpreting::compiling::codegen::visit_foreach_statement(const std::shared_ptr<foreach_statement>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr< return_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_if_statement(const std::shared_ptr<if_statement>& ptr)
 {
 
 }
 
-void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr< class_statement>& ptr)
+void
+clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& ptr)
 {
 
+}
+
+void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& ptr)
+{
+
+}
+
+void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
+{
+
+}
+
+std::shared_ptr<vm::chunk> codegen::current()
+{
+	return std::shared_ptr<vm::chunk>();
+}
+
+void codegen::emit_byte(uint16_t byte)
+{
+	current()->write(byte);
+}
+
+
+void codegen::emit_return()
+{
+	emit_byte(op_code_value(op_code::RETURN));
+}
+
+void codegen::generate(const std::shared_ptr<parsing::statement>& s)
+{
+	accept(*s, *dynamic_cast<statement_visitor<void>*>(this));
+}
+
+void codegen::generate(const shared_ptr<parsing::expression>& e)
+{
+	accept(*e, *dynamic_cast<expression_visitor<void>*>(this));
+}
+
+void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
+{
+	for (const auto& stmt: stmts)
+	{
+		generate(stmt);
+	}
+
+	emit_return();
 }

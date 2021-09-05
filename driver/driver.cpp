@@ -82,9 +82,9 @@ int clox::driver::run_repl(helper::console& cons)
 
 	auto ck = make_shared<vm::chunk>("test");
 	auto idx = ck->add_constant(244.0f);
-	ck->add_op(vm::op_code_value(vm::op_code::CONSTANT), 123);
-	ck->add_op(idx, 123);
-	ck->add_op(vm::op_code_value(vm::op_code::RETURN), 123);
+	ck->write(vm::op_code_value(vm::op_code::CONSTANT), 123);
+	ck->write(idx, 123);
+	ck->write(vm::op_code_value(vm::op_code::RETURN), 123);
 	ck->disassemble(cons);
 
 	while (true);

@@ -37,20 +37,20 @@ chunk::chunk(std::string name)
 
 }
 
-void clox::interpreting::vm::chunk::add_op(uint16_t op, std::optional<scanning::token> t)
+void clox::interpreting::vm::chunk::write(uint16_t op, std::optional<scanning::token> t)
 {
 	if (t.has_value())
 	{
-		add_op(op, t->line());
+		write(op, t->line());
 	}
 	else
 	{
-		add_op(op, INVALID_LINE);
+		write(op, INVALID_LINE);
 	}
 }
 
 
-void chunk::add_op(uint16_t op, int64_t line)
+void chunk::write(uint16_t op, int64_t line)
 {
 	codes_.push_back(op);
 	lines_.push_back(line);
@@ -68,7 +68,14 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	}
 	else
 	{
-		out.out() << std::format("{0:8}  ", lines_[offset]);
+		if (lines_[offset] == INVALID_LINE)
+		{
+			out.out() << std::format("{0:8}  ", "<invalid>");
+		}
+		else
+		{
+			out.out() << std::format("{0:8}  ", lines_[offset]);
+		}
 	}
 
 	try
