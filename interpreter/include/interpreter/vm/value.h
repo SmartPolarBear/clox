@@ -34,9 +34,11 @@
 
 namespace clox::interpreting::vm
 {
-using value = std::variant<
-		scanning::integer_literal_type,
-		scanning::floating_literal_type>;
+using value = std::variant<scanning::integer_literal_type,
+		scanning::floating_literal_type,
+		scanning::string_literal_type,
+		scanning::boolean_literal_type,
+		scanning::nil_value_tag_type>;
 
 class value_stringify_visitor
 {
@@ -45,9 +47,22 @@ public:
 
 	explicit value_stringify_visitor(bool show_type);
 
-	std::string operator()(scanning::integer_literal_type);
+	template<typename T>
+	std::string operator()(T val)
+	{
+		if constexpr(std::is_same_v<std::string, std::decay_t<T>>) // To avoid copying strings
+		{
+			return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), val);
+		}
+		else
+		{
+			return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+		}
+	}
 
-	std::string operator()(scanning::floating_literal_type);
+	template<>
+	std::string operator()(scanning::nil_value_tag_type val);
+
 
 private:
 	struct type_names
@@ -68,6 +83,24 @@ private:
 		struct type_name<scanning::floating_literal_type>
 		{
 			static constexpr std::string_view value{ "<floating>" };
+		};
+
+		template<>
+		struct type_name<scanning::string_literal_type>
+		{
+			static constexpr std::string_view value{ "<string>" };
+		};
+
+		template<>
+		struct type_name<scanning::boolean_literal_type>
+		{
+			static constexpr std::string_view value{ "<boolean>" };
+		};
+
+		template<>
+		struct type_name<scanning::nil_value_tag_type>
+		{
+			static constexpr std::string_view value{ "<nil type>" };
 		};
 	};
 

@@ -29,13 +29,11 @@ clox::interpreting::vm::value_stringify_visitor::value_stringify_visitor(bool sh
 {
 }
 
-std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::integer_literal_type val)
+
+template<>
+std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::nil_value_tag_type val)
 {
-	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), "nil");
 }
 
-std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::floating_literal_type val)
-{
-	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
-}
 
