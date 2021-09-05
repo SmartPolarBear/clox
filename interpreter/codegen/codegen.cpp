@@ -27,6 +27,16 @@
 
 #include <gsl/gsl>
 
+#ifdef UNREACHABLE_EXCEPTION
+#warning "UNREACHABLE_EXCEPTION is already defined"
+#undef UNREACHABLE_EXCEPTION
+#endif
+
+#ifdef V
+#warning "V is already defined"
+#undef V
+#endif
+
 using namespace std;
 using namespace gsl;
 
@@ -37,6 +47,8 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
+#define UNREACHABLE_EXCEPTION throw logic_error{ "Should not reach here" }
+#define V(op) op_code_value(op)
 
 void codegen::generate(const std::shared_ptr<parsing::statement>& s)
 {
@@ -65,14 +77,46 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 }
 
 void
-clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
+	generate(be->get_left());
 
+	generate(be->get_right());
+
+	switch (be->get_op().type())
+	{
+	case scanning::token_type::PLUS:
+		emit_byte(V(vm::op_code::ADD));
+		break;
+	case scanning::token_type::MINUS:
+		emit_byte(V(vm::op_code::SUBTRACT));
+		break;
+	case scanning::token_type::SLASH:
+		emit_byte(V(vm::op_code::DIVIDE));
+		break;
+	case scanning::token_type::STAR:
+		emit_byte(V(vm::op_code::MULTIPLY));
+		break;
+	case scanning::token_type::STAR_STAR:
+		emit_byte(V(vm::op_code::POW));
+		break;
+	default:
+		UNREACHABLE_EXCEPTION;
+	}
 }
 
-void clox::interpreting::compiling::codegen::visit_unary_expression(const std::shared_ptr<unary_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
+	generate(ue);
 
+	switch (ue->get_op().type())
+	{
+	case scanning::token_type::MINUS:
+		emit_byte(V(vm::op_code::NEGATE));
+		break;
+	default:
+		UNREACHABLE_EXCEPTION;
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& ptr)
@@ -112,9 +156,9 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 }
 
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
-		const std::shared_ptr<grouping_expression>& ptr)
+		const std::shared_ptr<grouping_expression>& ge)
 {
-
+	generate(ge);
 }
 
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ptr)
@@ -205,7 +249,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 std::shared_ptr<vm::chunk> codegen::current()
 {
-	return std::shared_ptr<vm::chunk>();
+	return current_chunk_;
 }
 
 void codegen::emit_byte(uint16_t byte)
@@ -216,12 +260,12 @@ void codegen::emit_byte(uint16_t byte)
 
 void codegen::emit_return()
 {
-	emit_byte(op_code_value(op_code::RETURN));
+	emit_byte(V(op_code::RETURN));
 }
 
 void codegen::emit_constant(const value& val)
 {
-	emit_bytes(op_code_value(op_code::CONSTANT), make_constant(val));
+	emit_bytes(V(op_code::CONSTANT), make_constant(val));
 }
 
 uint16_t codegen::make_constant(const value& val)

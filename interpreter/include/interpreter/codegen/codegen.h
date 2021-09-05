@@ -118,5 +118,7 @@ private:
 	void emit_constant(const vm::value &val);
 
 	uint16_t make_constant(const vm::value &val);
+
+	std::shared_ptr<vm::chunk> current_chunk_{};
 };
 }
