@@ -42,4 +42,14 @@ public:
 private:
 	uint16_t opcode_{};
 };
+
+class too_many_constants final
+		: public std::runtime_error
+{
+public:
+	too_many_constants() : std::runtime_error("Too many constants")
+	{
+	}
+};
+
 }

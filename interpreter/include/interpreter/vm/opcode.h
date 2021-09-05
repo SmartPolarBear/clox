@@ -95,7 +95,7 @@ static inline constexpr auto op_code_value(op_code code)
 
 }
 
-#include <interpreter/vm/exception.h>
+#include <interpreter/vm/exceptions.h>
 
 #include <string>
 #include <format>

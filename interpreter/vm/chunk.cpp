@@ -37,7 +37,7 @@ chunk::chunk(std::string name)
 
 }
 
-void clox::interpreting::vm::chunk::write(uint16_t op, std::optional<scanning::token> t)
+void clox::interpreting::vm::chunk::write(code_type op, std::optional<scanning::token> t)
 {
 	if (t.has_value())
 	{
@@ -50,7 +50,7 @@ void clox::interpreting::vm::chunk::write(uint16_t op, std::optional<scanning::t
 }
 
 
-void chunk::write(uint16_t op, int64_t line)
+void chunk::write(code_type op, int64_t line)
 {
 	codes_.push_back(op);
 	lines_.push_back(line);
@@ -106,8 +106,13 @@ void chunk::disassemble(helper::console& out)
 	}
 }
 
-uint16_t chunk::add_constant(const value& val)
+chunk::code_type chunk::add_constant(const value& val)
 {
 	constants_.push_back(val);
+	if (constants_.size() > UINT16_MAX)
+	{
+		throw too_many_constants{};
+	}
+
 	return constants_.size() - 1;
 }

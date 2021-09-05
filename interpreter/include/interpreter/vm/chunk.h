@@ -41,6 +41,8 @@ class chunk final
 public:
 	static inline constexpr int64_t INVALID_LINE = -1;
 
+	using code_type = uint16_t;
+
 	using iterator_type = std::vector<uint16_t>::iterator;
 public:
 	chunk() = default;
@@ -67,11 +69,11 @@ public:
 
 	void disassemble(helper::console& out);
 
-	void write(uint16_t op, std::optional<scanning::token> t = std::nullopt);
+	void write(code_type op, std::optional<scanning::token> t = std::nullopt);
 
-	void write(uint16_t op, int64_t line);
+	void write(code_type op, int64_t line);
 
-	uint16_t add_constant(const value& val);
+	code_type add_constant(const value& val);
 
 private:
 
@@ -82,7 +84,7 @@ private:
 
 	std::vector<value> constants_{};
 
-	std::vector<uint16_t> codes_{};
+	std::vector<code_type> codes_{};
 	std::vector<int64_t> lines_{};
 };
 }

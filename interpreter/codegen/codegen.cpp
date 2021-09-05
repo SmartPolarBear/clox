@@ -22,7 +22,7 @@
 // Created by cleve on 9/4/2021.
 //
 
-#include <interpreter/codegen.h>
+#include <interpreter/codegen/codegen.h>
 #include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
@@ -36,6 +36,27 @@ using namespace clox::parsing;
 using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
+
+
+void codegen::generate(const std::shared_ptr<parsing::statement>& s)
+{
+	accept(*s, *dynamic_cast<statement_visitor<void>*>(this));
+}
+
+void codegen::generate(const shared_ptr<parsing::expression>& e)
+{
+	accept(*e, *dynamic_cast<expression_visitor<void>*>(this));
+}
+
+void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
+{
+	for (const auto& stmt: stmts)
+	{
+		generate(stmt);
+	}
+
+	emit_return();
+}
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		const std::shared_ptr<assignment_expression>& ptr)
@@ -80,7 +101,14 @@ void
 clox::interpreting::compiling::codegen::visit_literal_expression(const std::shared_ptr<literal_expression>& le)
 {
 	auto val = le->get_value();
-
+	std::visit([this](auto&& arg)
+	{
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
+		{
+			emit_constant(arg);
+		}
+	}, val);
 }
 
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
@@ -191,22 +219,14 @@ void codegen::emit_return()
 	emit_byte(op_code_value(op_code::RETURN));
 }
 
-void codegen::generate(const std::shared_ptr<parsing::statement>& s)
+void codegen::emit_constant(const value& val)
 {
-	accept(*s, *dynamic_cast<statement_visitor<void>*>(this));
+	emit_bytes(op_code_value(op_code::CONSTANT), make_constant(val));
 }
 
-void codegen::generate(const shared_ptr<parsing::expression>& e)
+uint16_t codegen::make_constant(const value& val)
 {
-	accept(*e, *dynamic_cast<expression_visitor<void>*>(this));
+	auto idx = current()->add_constant(val);
+	return idx;
 }
 
-void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
-{
-	for (const auto& stmt: stmts)
-	{
-		generate(stmt);
-	}
-
-	emit_return();
-}

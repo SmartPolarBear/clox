@@ -29,6 +29,8 @@
 
 #include <interpreter/vm/chunk.h>
 
+#include <interpreter/codegen/exceptions.h>
+
 #include <concepts>
 
 namespace clox::interpreting::compiling
@@ -112,5 +114,9 @@ private:
 	}
 
 	void emit_return();
+
+	void emit_constant(const vm::value &val);
+
+	uint16_t make_constant(const vm::value &val);
 };
 }

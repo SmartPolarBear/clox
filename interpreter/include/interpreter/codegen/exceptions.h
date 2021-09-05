@@ -19,34 +19,16 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/1/2021.
+// Created by cleve on 9/5/2021.
 //
 
-#include <interpreter/vm/vm.h>
-#include <interpreter/vm/exceptions.h>
-#include <interpreter/vm/opcode.h>
+#pragma once
 
-#include <gsl/gsl>
+#include <stdexcept>
 
-using namespace std;
-using namespace gsl;
-
-using namespace clox::interpreting;
-using namespace clox::interpreting::vm;
-
-clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
+namespace clox::interpreting::compiling
 {
-	for (; ip_ != chunk_->end();)
-	{
-		switch (auto instruction = *ip_++;static_cast<op_code>(instruction))
-		{
-		case op_code::RETURN:
-			return virtual_machine_status::OK;
-		default:
-			throw invalid_opcode { instruction };
-		}
-	}
 
-	// should not reach here
-	return virtual_machine_status::RUNTIME_ERROR;
+
+
 }
