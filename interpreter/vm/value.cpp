@@ -50,7 +50,8 @@ clox::interpreting::vm::get_number_promoted(const clox::interpreting::vm::value&
 	{
 		using T = std::decay_t<decltype(v)>;
 		if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
-					 std::is_same_v<T, scanning::integer_literal_type>)
+					 std::is_same_v<T, scanning::integer_literal_type> ||
+					 std::is_same_v<T, scanning::boolean_literal_type>)
 		{
 			return static_cast<scanning::floating_literal_type>(v);
 		}

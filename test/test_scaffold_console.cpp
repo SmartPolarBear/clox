@@ -82,3 +82,8 @@ std::optional<std::string> test_scaffold_console::read_line()
 	}
 }
 
+ostream& test_scaffold_console::error()
+{
+	return error_ss_;
+}
+

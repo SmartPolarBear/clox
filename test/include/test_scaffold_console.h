@@ -41,6 +41,8 @@ public:
 
 	[[nodiscard]] std::string get_written_text() const;
 
+	std::ostream& error() override;
+
 	std::string read() override;
 
 	std::optional<std::string> read_line() override;
@@ -54,5 +56,6 @@ public:
 private:
 	std::stringstream out_ss_{};
 	std::stringstream in_ss_{};
+	std::stringstream error_ss_{};
 
 };

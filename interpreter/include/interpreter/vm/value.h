@@ -36,15 +36,15 @@ namespace clox::interpreting::vm
 {
 using value = std::variant<scanning::integer_literal_type,
 		scanning::floating_literal_type,
-		scanning::string_literal_type,
 		scanning::boolean_literal_type,
+		scanning::string_literal_type,
 		scanning::nil_value_tag_type>;
 
 /// Get number from value, promoting to floating type
 /// \param val the value variant
 /// \return numeric value promoted to floating type
 /// \throws invalid_value
-static inline scanning::floating_literal_type get_number_promoted(const value& val);
+scanning::floating_literal_type get_number_promoted(const value& val);
 
 class value_stringify_visitor
 {

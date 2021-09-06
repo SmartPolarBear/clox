@@ -57,48 +57,100 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 
 	for (; ip_ != chunk_->end();)
 	{
-		switch (chunk::code_type instruction = *ip_++;
-				instruction)
+		try
 		{
-		case V(op_code::RETURN):
-		{
-			pop();
-			return virtual_machine_status::OK;
+			chunk::code_type instruction = *ip_++;
+			run_code(instruction);
 		}
-		case V(op_code::CONSTANT):
+		catch (const vm_return& vr)
 		{
-			auto constant = next_constant();
-			push(constant);
-			break;
+			return vr.status();
 		}
-		case V(op_code::NEGATE):
+		catch (const exception& e)
 		{
-			push(std::visit([](auto&& val) -> value
+			runtime_error("{}", e.what());
+			return virtual_machine_status::RUNTIME_ERROR;
+		}
+	}
+
+	UNREACHABLE_EXCEPTION;
+}
+
+
+bool virtual_machine::run_code(chunk::code_type instruction)
+{
+	switch (instruction)
+	{
+	case V(op_code::RETURN):
+	{
+		pop();
+		throw vm_return{ virtual_machine_status::OK };
+	}
+	case V(op_code::CONSTANT):
+	{
+		auto constant = next_constant();
+		push(constant);
+		break;
+	}
+	case V(op_code::NEGATE):
+	{
+		push(std::visit([](auto&& val) -> value
+		{
+			using T = std::decay_t<decltype(val)>;
+			if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
+						 std::is_same_v<T, scanning::integer_literal_type>)
 			{
-				using T = std::decay_t<decltype(val)>;
-				if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
-							 std::is_same_v<T, scanning::integer_literal_type>)
-				{
-					return -val;
-				}
+				return -val;
+			}
 
-				throw invalid_value{ val };
-			}, pop()));
-			break;
-		}
+			throw invalid_value{ val };
+		}, pop()));
+		break;
+	}
 
-		case V(op_code::ADD):
+	case V(op_code::ADD):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
-			auto left = pop();
-			auto right = pop();
+			return l + r;
+		});
+		break;
+	}
+	case V(op_code::SUBTRACT):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l - r;
+		});
+		break;
+	}
+	case V(op_code::MULTIPLY):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l * r;
+		});
+		break;
+	}
+	case V(op_code::DIVIDE):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l / r;
+		});
+		break;
+	}
+	case V(op_code::POW):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return std::pow(l, r);
+		});
+		break;
+	}
 
-
-			break;
-		}
-
-		default:
-			throw invalid_opcode{ instruction };
-		}
+	default:
+		throw invalid_opcode{ instruction };
 	}
 
 	UNREACHABLE_EXCEPTION;
@@ -126,8 +178,17 @@ void virtual_machine::push(const value& val)
 	stack_.push_back(val);
 }
 
-value virtual_machine::peek()
+value virtual_machine::peek(size_t offset)
 {
-	return stack_.back();
+	return *(stack_.rbegin() + offset);
 }
+
+inline void virtual_machine::pop_two_and_push(const value& val)
+{
+	pop();
+	pop();
+
+	push(val);
+}
+
 

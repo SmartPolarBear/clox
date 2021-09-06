@@ -25,6 +25,7 @@
 
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
+#include <interpreter/vm/value.h>
 
 #include <memory>
 
@@ -36,6 +37,24 @@ enum class virtual_machine_status
 	OK,
 	RUNTIME_ERROR,
 };
+
+class vm_return final
+{
+public:
+	explicit vm_return(virtual_machine_status st)
+			: status_(st)
+	{
+	}
+
+	[[nodiscard]] virtual_machine_status status() const
+	{
+		return status_;
+	}
+
+private:
+	virtual_machine_status status_{};
+};
+
 
 class virtual_machine final
 {
@@ -49,28 +68,52 @@ public:
 private:
 	virtual_machine_status run();
 
+	bool run_code(chunk::code_type instruction);
+
 	template<class ...TArgs>
-	void runtime_error(std::string_view fmt, TArgs...args)
+	void runtime_error(std::string_view fmt, const TArgs& ...args)
 	{
-		cons_->out() << std::format(fmt, std::forward(args)...);
+		cons_->error() << std::format("[Line {}] in file {}:",
+				chunk_->line_of(ip_),
+				chunk_->filename()) << std::endl;
+
+		cons_->error() << std::format(fmt, args...);
 
 		reset_stack();
 	}
 
+	template<typename TOp>
+	requires std::invocable<TOp, scanning::floating_literal_type, scanning::floating_literal_type>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_number_promoted(peek(0));
+			auto left = get_number_promoted(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+		}
+	}
+
 	void reset_stack();
 
-	value peek();
+	value peek(size_t offset = 0);
 
 	value pop();
 
 	void push(const value& val);
 
+	inline void pop_two_and_push(const value& val);
+
 	value next_constant();
 
 	chunk::code_type next_byte();
 
-	std::shared_ptr<chunk> chunk_{};
-	chunk::iterator_type ip_{};
+	std::shared_ptr<chunk> chunk_{};	chunk::iterator_type ip_{};
 
 	std::vector<value> stack_{};
 

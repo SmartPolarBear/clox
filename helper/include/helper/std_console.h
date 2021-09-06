@@ -54,6 +54,8 @@ public:
 
 	std::istream& in() override;
 
+	std::ostream& error() override;
+
 private:
 	mutable std::ostream* out_stream_{ &std::cout };
 };

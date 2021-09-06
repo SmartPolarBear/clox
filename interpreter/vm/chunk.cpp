@@ -121,3 +121,13 @@ value chunk::constant_at(chunk::code_type pos)
 {
 	return constants_.at(pos);
 }
+
+int64_t chunk::line_of(chunk::code_list_type::iterator ip)
+{
+	return lines_.at(ip - begin() - 1);
+}
+
+std::string chunk::filename()
+{
+	return std::string();
+}

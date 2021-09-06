@@ -30,12 +30,6 @@
 #include <gsl/gsl>
 
 
-
-#ifdef V
-#warning "V is already defined"
-#undef V
-#endif
-
 using namespace std;
 using namespace gsl;
 
@@ -46,7 +40,6 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
-#define V(op) op_code_value(op)
 
 void codegen::generate(const std::shared_ptr<parsing::statement>& s)
 {

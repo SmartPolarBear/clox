@@ -42,6 +42,7 @@ public:
 	static inline constexpr int64_t INVALID_LINE = -1;
 
 	using code_type = uint16_t;
+	using code_list_type = std::vector<code_type>;
 
 	using iterator_type = std::vector<uint16_t>::iterator;
 public:
@@ -77,6 +78,10 @@ public:
 
 	value constant_at(code_type pos);
 
+	int64_t line_of(code_list_type::iterator ip);
+
+	std::string filename();
+
 private:
 
 	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);
@@ -86,7 +91,7 @@ private:
 
 	std::vector<value> constants_{};
 
-	std::vector<code_type> codes_{};
+	code_list_type  codes_{};
 	std::vector<int64_t> lines_{};
 };
 }
