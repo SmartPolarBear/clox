@@ -99,6 +99,14 @@ private:
 		}
 	}
 
+	bool is_false(const value& val);
+
+	bool is_true(const value& val)
+	{
+		return !is_false(val);
+	}
+
+	// stack modification
 	void reset_stack();
 
 	value peek(size_t offset = 0);
@@ -108,12 +116,16 @@ private:
 	void push(const value& val);
 
 	inline void pop_two_and_push(const value& val);
+	//
 
+	// instruction reading
 	value next_constant();
 
 	chunk::code_type next_byte();
+	//
 
-	std::shared_ptr<chunk> chunk_{};	chunk::iterator_type ip_{};
+	std::shared_ptr<chunk> chunk_{};
+	chunk::iterator_type ip_{};
 
 	std::vector<value> stack_{};
 

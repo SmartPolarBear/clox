@@ -40,6 +40,33 @@ using value = std::variant<scanning::integer_literal_type,
 		scanning::string_literal_type,
 		scanning::nil_value_tag_type>;
 
+static inline bool operator==(const value& lhs, const value& rhs)
+{
+	return std::visit([&rhs](auto&& lhs_val) -> bool
+	{
+		using TLeft = std::decay_t<decltype(lhs_val)>;
+		if constexpr(std::is_same_v<TLeft, scanning::nil_value_tag_type>)
+		{
+			return std::holds_alternative<scanning::nil_value_tag_type>(rhs);
+		}
+		else
+		{
+			return std::visit([&rhs, &lhs_val](auto&& rhs_val) -> bool
+			{
+				using TRight = std::decay_t<decltype(rhs_val)>;
+				if constexpr(!std::is_same_v<TLeft, TRight>)
+				{
+					return false;
+				}
+				else
+				{
+					return lhs_val == rhs_val;
+				}
+			}, rhs);
+		}
+	}, lhs);
+}
+
 /// Get number from value, promoting to floating type
 /// \param val the value variant
 /// \return numeric value promoted to floating type

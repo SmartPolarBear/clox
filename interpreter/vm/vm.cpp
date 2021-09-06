@@ -126,6 +126,12 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::NOT):
+	{
+		push(is_false(pop()));
+		break;
+	}
+
 	case V(op_code::ADD):
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
@@ -164,6 +170,32 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		{
 			return std::pow(l, r);
 		});
+		break;
+	}
+
+	case V(op_code::LESS):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l < r;
+		});
+		break;
+	}
+	case V(op_code::GREATER):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l > r;
+		});
+		break;
+	}
+	case V(op_code::EQUAL):
+	{
+		auto right = peek(0);
+		auto left = peek(1);
+
+		pop_two_and_push(left == right);
+
 		break;
 	}
 
@@ -207,6 +239,26 @@ inline void virtual_machine::pop_two_and_push(const value& val)
 	pop();
 
 	push(val);
+}
+
+bool virtual_machine::is_false(const value& val)
+{
+	return std::visit([this](auto&& val) -> bool
+	{
+		using T = std::decay_t<decltype(val)>;
+		if constexpr(is_same_v<T, bool>)
+		{
+			return !static_cast<scanning::boolean_literal_type>(val);
+		}
+		else if constexpr(is_same_v<T, scanning::nil_value_tag_type>)
+		{
+			return false;
+		}
+		else
+		{
+			return false;
+		}
+	}, val);
 }
 
 
