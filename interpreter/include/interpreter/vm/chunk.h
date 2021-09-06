@@ -75,6 +75,8 @@ public:
 
 	code_type add_constant(const value& val);
 
+	value constant_at(code_type pos);
+
 private:
 
 	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);

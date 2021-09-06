@@ -116,3 +116,8 @@ chunk::code_type chunk::add_constant(const value& val)
 
 	return constants_.size() - 1;
 }
+
+value chunk::constant_at(chunk::code_type pos)
+{
+	return constants_.at(pos);
+}

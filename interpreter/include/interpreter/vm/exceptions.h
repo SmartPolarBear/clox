@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <interpreter/vm/value.h>
+
 #include <stdexcept>
 #include <format>
 
@@ -43,6 +45,20 @@ private:
 	uint16_t opcode_{};
 };
 
+class invalid_value final
+		: public std::invalid_argument
+{
+public:
+	explicit invalid_value(const value& val)
+			: value_(val),
+			  std::invalid_argument(std::format("invalid value {}", val))
+	{
+	}
+
+private:
+	value value_;
+};
+
 class too_many_constants final
 		: public std::runtime_error
 {
@@ -51,5 +67,22 @@ public:
 	{
 	}
 };
+
+class runtime_error
+		: public std::runtime_error
+{
+public:
+
+	runtime_error(int64_t line, const std::string& msg)
+			: line_(line), std::runtime_error(msg)
+	{
+	}
+
+	~runtime_error() override = default;
+
+private:
+	int64_t line_;
+};
+
 
 }

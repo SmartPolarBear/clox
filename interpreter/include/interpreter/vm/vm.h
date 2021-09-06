@@ -45,7 +45,19 @@ public:
 private:
 	virtual_machine_status run();
 
+	value peek();
+
+	value pop();
+
+	void push(const value& val);
+
+	value next_constant();
+
+	chunk::code_type next_byte();
+
 	std::shared_ptr<chunk> chunk_{};
 	chunk::iterator_type ip_{};
+
+	std::vector<value> stack_{};
 };
 }

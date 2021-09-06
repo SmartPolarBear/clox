@@ -65,6 +65,7 @@ enum class op_code : uint16_t
 	POW,
 	MOD,
 	NOT,
+	COMMA,
 	NEGATE,
 	PRINT,
 	JUMP,
