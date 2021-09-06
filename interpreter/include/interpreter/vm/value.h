@@ -47,20 +47,20 @@ static inline bool operator==(const value& lhs, const value& rhs)
 		using TLeft = std::decay_t<decltype(lhs_val)>;
 		if constexpr(std::is_same_v<TLeft, scanning::nil_value_tag_type>)
 		{
-			return std::holds_alternative<scanning::nil_value_tag_type>(rhs);
+			return std::holds_alternative<scanning::nil_value_tag_type>(rhs); // nil values always equal
 		}
 		else
 		{
-			return std::visit([&rhs, &lhs_val](auto&& rhs_val) -> bool
+			return std::visit([&lhs_val](auto&& rhs_val) -> bool
 			{
 				using TRight = std::decay_t<decltype(rhs_val)>;
 				if constexpr(!std::is_same_v<TLeft, TRight>)
 				{
-					return false;
+					return false; // not of the same type, they can't be equal
 				}
 				else
 				{
-					return lhs_val == rhs_val;
+					return lhs_val == rhs_val; // compare value of same type
 				}
 			}, rhs);
 		}
