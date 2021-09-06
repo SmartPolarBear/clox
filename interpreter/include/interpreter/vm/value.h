@@ -25,11 +25,14 @@
 
 #include <scanner/scanner.h>
 
+#include <interpreter/vm/object.h>
+
 #include <variant>
 #include <string>
 
 #include <memory>
 #include <map>
+#include "string_object.h"
 
 
 namespace clox::interpreting::vm
@@ -37,8 +40,25 @@ namespace clox::interpreting::vm
 using value = std::variant<scanning::integer_literal_type,
 		scanning::floating_literal_type,
 		scanning::boolean_literal_type,
-		scanning::string_literal_type,
-		scanning::nil_value_tag_type>;
+		scanning::nil_value_tag_type,
+		object_raw_pointer>;
+
+static inline bool is_string_value(const value& val)
+{
+	return std::visit([](auto&& val) -> bool
+	{
+		using T = std::decay_t<decltype(val)>;
+
+		if constexpr(std::is_same_v<T, object_raw_pointer>)
+		{
+			return object::is_string(*val);
+		}
+		else
+		{
+			return false;
+		}
+	}, val);
+}
 
 static inline bool operator==(const value& lhs, const value& rhs)
 {
@@ -73,6 +93,8 @@ static inline bool operator==(const value& lhs, const value& rhs)
 /// \throws invalid_value
 scanning::floating_literal_type get_number_promoted(const value& val);
 
+string_object_raw_pointer get_string(const value& val);
+
 class value_stringify_visitor
 {
 public:
@@ -83,9 +105,9 @@ public:
 	template<typename T>
 	std::string operator()(T val)
 	{
-		if constexpr(std::is_same_v<std::string, std::decay_t<T>>) // To avoid copying strings
+		if constexpr(std::is_same_v<object_raw_pointer, std::decay_t<T>>) // To avoid copying strings
 		{
-			return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), val);
+			return std::format("{0} {#x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
 		}
 		else
 		{
@@ -119,9 +141,9 @@ private:
 		};
 
 		template<>
-		struct type_name<scanning::string_literal_type>
+		struct type_name<object_raw_pointer>
 		{
-			static constexpr std::string_view value{ "<string>" };
+			static constexpr std::string_view value{ "<object>" };
 		};
 
 		template<>

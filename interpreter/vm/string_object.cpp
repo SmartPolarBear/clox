@@ -28,3 +28,14 @@ clox::interpreting::vm::object_type clox::interpreting::vm::string_object::type(
 {
 	return object_type::STRING;
 }
+
+std::string clox::interpreting::vm::string_object::string() const
+{
+	return data_;
+}
+
+clox::interpreting::vm::string_object::string_object(std::string value)
+		: data_(std::move(value))
+{
+
+}

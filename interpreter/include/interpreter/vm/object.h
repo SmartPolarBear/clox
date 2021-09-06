@@ -22,7 +22,7 @@
 // Created by cleve on 9/6/2021.
 //
 
-#pragma
+#pragma once
 
 #include <scanner/scanner.h>
 
@@ -43,8 +43,29 @@ enum class object_type
 class object
 {
 public:
+	template<std::derived_from<object> T, class ...Args>
+	static T* allocate(Args&& ...args)
+	{
+		return new T(std::forward<Args>(args)...);
+	}
+
+	template<std::derived_from<object> T>
+	static void deallocate(T* val)
+	{
+		delete val;
+	}
+
+public:
+	static inline bool is_string(const object& obj)
+	{
+		return obj.type() == object_type::STRING;
+	}
+
+public:
 	[[nodiscard]]virtual object_type type() const noexcept = 0;
 };
 
+/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
+using object_raw_pointer = object*;
 
 }

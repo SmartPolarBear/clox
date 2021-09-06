@@ -28,6 +28,7 @@
 #include <interpreter/vm/value.h>
 
 #include <memory>
+#include "string_object.h"
 
 namespace clox::interpreting::vm
 {
@@ -90,6 +91,23 @@ private:
 		{
 			auto right = get_number_promoted(peek(0));
 			auto left = get_number_promoted(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+		}
+	}
+
+	template<typename TOp>
+	requires std::invocable<TOp, string_object_raw_pointer, string_object_raw_pointer>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_string(peek(0));
+			auto left = get_string(peek(1));
 
 			pop_two_and_push(op(left, right));
 		}

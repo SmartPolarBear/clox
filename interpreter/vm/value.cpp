@@ -24,9 +24,12 @@
 
 #include <interpreter/vm/value.h>
 #include <interpreter/vm/exceptions.h>
+#include <interpreter/vm/string_object.h>
 
 using namespace std;
 
+using namespace clox;
+using namespace clox::scanning;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
@@ -54,6 +57,28 @@ clox::interpreting::vm::get_number_promoted(const clox::interpreting::vm::value&
 					 std::is_same_v<T, scanning::boolean_literal_type>)
 		{
 			return static_cast<scanning::floating_literal_type>(v);
+		}
+		else
+		{
+			throw invalid_value{ val };
+		}
+
+	}, val);
+}
+
+string_object_raw_pointer clox::interpreting::vm::get_string(const value& val)
+{
+	return std::visit([&val](auto&& v) -> string_object_raw_pointer
+	{
+		using T = std::decay_t<decltype(v)>;
+		if constexpr(std::is_same_v<T, object_raw_pointer>)
+		{
+			if (!object::is_string(*v))
+			{
+				throw invalid_value{ val };
+			}
+
+			return dynamic_cast<string_object_raw_pointer>(v);
 		}
 		else
 		{

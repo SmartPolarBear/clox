@@ -30,6 +30,7 @@
 #include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
+#include <interpreter/vm/string_object.h>
 
 using namespace std;
 using namespace gsl;
@@ -134,10 +135,20 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 
 	case V(op_code::ADD):
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		if (is_string_value(peek(1)))
 		{
-			return l + r;
-		});
+			binary_op([](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
+			{
+				return object::allocate<string_object>(lp->string() + rp->string());
+			});
+		}
+		else
+		{
+			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+			{
+				return l + r;
+			});
+		}
 		break;
 	}
 	case V(op_code::SUBTRACT):

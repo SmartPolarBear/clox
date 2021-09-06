@@ -27,6 +27,9 @@
 #include <interpreter/codegen/codegen.h>
 #include <interpreter/vm/opcode.h>
 
+#include <interpreter/vm/object.h>
+#include <interpreter/vm/string_object.h>
+
 #include <gsl/gsl>
 
 
@@ -143,9 +146,13 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 		{
 			emit_byte(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
 		}
-		if constexpr(std::is_same_v<T, nil_value_tag_type>)
+		else if constexpr(std::is_same_v<T, nil_value_tag_type>)
 		{
 			emit_byte(V(vm::op_code::CONSTANT_NIL));
+		}
+		else if constexpr(std::is_same_v<T, string_literal_type>)
+		{
+			emit_constant(object::allocate<string_object>(arg));
 		}
 		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{

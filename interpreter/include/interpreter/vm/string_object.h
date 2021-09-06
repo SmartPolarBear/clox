@@ -42,6 +42,17 @@ class string_object :
 		public object
 {
 public:
+	string_object() = default;
+
+	explicit string_object(std::string value);
+
 	[[nodiscard]] object_type type() const noexcept override;
+
+	[[nodiscard]] std::string string() const;
+
+private:
+	std::string data_;
 };
+
+using string_object_raw_pointer = string_object*;
 }
