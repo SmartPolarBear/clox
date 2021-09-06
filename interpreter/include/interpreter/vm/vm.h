@@ -40,10 +40,24 @@ enum class virtual_machine_status
 class virtual_machine final
 {
 public:
-	virtual_machine() = default;
+	static inline constexpr size_t STACK_RESERVED_SIZE = 64;
+public:
+	virtual_machine() = delete;
+
+	explicit virtual_machine(helper::console& cons);
 
 private:
 	virtual_machine_status run();
+
+	template<class ...TArgs>
+	void runtime_error(std::string_view fmt, TArgs...args)
+	{
+		cons_->out() << std::format(fmt, std::forward(args)...);
+
+		reset_stack();
+	}
+
+	void reset_stack();
 
 	value peek();
 
@@ -59,5 +73,7 @@ private:
 	chunk::iterator_type ip_{};
 
 	std::vector<value> stack_{};
+
+	mutable helper::console* cons_{ nullptr };
 };
 }

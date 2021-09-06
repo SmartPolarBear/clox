@@ -22,16 +22,14 @@
 // Created by cleve on 9/1/2021.
 //
 
+#include <helper/exceptions.h>
+
+
 #include <interpreter/vm/vm.h>
 #include <interpreter/vm/exceptions.h>
 #include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
-
-#ifdef V
-#warning "V is already defined"
-#undef V
-#endif
 
 using namespace std;
 using namespace gsl;
@@ -39,13 +37,28 @@ using namespace gsl;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
-#define V(op) op_code_value(op)
+
+virtual_machine::virtual_machine(clox::helper::console& cons)
+		: cons_(&cons)
+{
+	stack_.reserve(STACK_RESERVED_SIZE);
+}
+
+void virtual_machine::reset_stack()
+{
+	stack_.clear();
+	stack_.shrink_to_fit();
+
+	stack_.reserve(STACK_RESERVED_SIZE);
+}
 
 clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
 {
+
 	for (; ip_ != chunk_->end();)
 	{
-		switch (chunk::code_type instruction = *ip_++;instruction)
+		switch (chunk::code_type instruction = *ip_++;
+				instruction)
 		{
 		case V(op_code::RETURN):
 		{
@@ -74,13 +87,21 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 			break;
 		}
 
+		case V(op_code::ADD):
+		{
+			auto left = pop();
+			auto right = pop();
+
+
+			break;
+		}
+
 		default:
 			throw invalid_opcode{ instruction };
 		}
 	}
 
-	// should not reach here
-	return virtual_machine_status::RUNTIME_ERROR;
+	UNREACHABLE_EXCEPTION;
 }
 
 value virtual_machine::next_constant()
@@ -109,3 +130,4 @@ value virtual_machine::peek()
 {
 	return stack_.back();
 }
+

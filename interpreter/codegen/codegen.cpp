@@ -22,15 +22,14 @@
 // Created by cleve on 9/4/2021.
 //
 
+#include <helper/exceptions.h>
+
 #include <interpreter/codegen/codegen.h>
 #include <interpreter/vm/opcode.h>
 
 #include <gsl/gsl>
 
-#ifdef UNREACHABLE_EXCEPTION
-#warning "UNREACHABLE_EXCEPTION is already defined"
-#undef UNREACHABLE_EXCEPTION
-#endif
+
 
 #ifdef V
 #warning "V is already defined"
@@ -47,7 +46,6 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
-#define UNREACHABLE_EXCEPTION throw logic_error{ "Should not reach here" }
 #define V(op) op_code_value(op)
 
 void codegen::generate(const std::shared_ptr<parsing::statement>& s)

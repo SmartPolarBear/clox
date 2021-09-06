@@ -19,45 +19,17 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/4/2021.
+// Created by cleve on 9/6/2021.
 //
 
-#include <interpreter/vm/value.h>
-#include <interpreter/vm/exceptions.h>
+#pragma once
 
-using namespace std;
+#include <stdexcept>
 
-using namespace clox::interpreting;
-using namespace clox::interpreting::vm;
+#ifdef UNREACHABLE_EXCEPTION
+#warning "UNREACHABLE_EXCEPTION is already defined"
+#undef UNREACHABLE_EXCEPTION
+#else
+#define UNREACHABLE_EXCEPTION throw std::logic_error{ "Should not reach here" }
+#endif
 
-clox::interpreting::vm::value_stringify_visitor::value_stringify_visitor(bool show_type)
-		: show_type_(show_type)
-{
-}
-
-
-template<>
-std::string clox::interpreting::vm::value_stringify_visitor::operator()(clox::scanning::nil_value_tag_type val)
-{
-	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), "nil");
-}
-
-
-clox::scanning::floating_literal_type
-clox::interpreting::vm::get_number_promoted(const clox::interpreting::vm::value& val)
-{
-	return std::visit([&val](auto&& v) -> scanning::floating_literal_type
-	{
-		using T = std::decay_t<decltype(v)>;
-		if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
-					 std::is_same_v<T, scanning::integer_literal_type>)
-		{
-			return static_cast<scanning::floating_literal_type>(v);
-		}
-		else
-		{
-			throw invalid_value{ val };
-		}
-
-	}, val);
-}
