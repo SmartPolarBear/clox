@@ -155,6 +155,6 @@ struct std::formatter<clox::interpreting::vm::value> : std::formatter<std::strin
 #error "V is already defined"
 #undef V
 #else
-#define V(op) op_code_value(op)
+#define V(op) op_code_value((op))
 #endif
 

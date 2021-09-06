@@ -86,12 +86,30 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		pop();
 		throw vm_return{ virtual_machine_status::OK };
 	}
+
 	case V(op_code::CONSTANT):
 	{
 		auto constant = next_constant();
 		push(constant);
 		break;
 	}
+	case V(op_code::CONSTANT_NIL):
+	{
+		push(scanning::nil_value_tag);
+		break;
+	}
+	case V(op_code::CONSTANT_TRUE):
+	{
+		push(true);
+		break;
+	}
+	case V(op_code::CONSTANT_FALSE):
+	{
+		push(false);
+		break;
+	}
+
+
 	case V(op_code::NEGATE):
 	{
 		push(std::visit([](auto&& val) -> value

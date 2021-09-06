@@ -136,12 +136,24 @@ void
 clox::interpreting::compiling::codegen::visit_literal_expression(const std::shared_ptr<literal_expression>& le)
 {
 	auto val = le->get_value();
-	std::visit([this](auto&& arg)
+	std::visit([this, &val](auto&& arg)
 	{
 		using T = std::decay_t<decltype(arg)>;
-		if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
+		if constexpr(std::is_same_v<T, boolean_literal_type>)
+		{
+			emit_byte(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
+		}
+		if constexpr(std::is_same_v<T, nil_value_tag_type>)
+		{
+			emit_byte(V(vm::op_code::CONSTANT_NIL));
+		}
+		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{
 			emit_constant(arg);
+		}
+		else
+		{
+			// do nothing for empty literal
 		}
 	}, val);
 }

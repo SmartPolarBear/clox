@@ -129,5 +129,5 @@ int64_t chunk::line_of(chunk::code_list_type::iterator ip)
 
 std::string chunk::filename()
 {
-	return std::string();
+	return "";
 }
