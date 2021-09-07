@@ -51,6 +51,8 @@ enum class op_code : uint16_t
 	//
 
 	POP,
+	POP_N,
+
 	GET_LOCAL,
 	SET_LOCAL,
 	GET_GLOBAL,

@@ -99,6 +99,16 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::POP_N):
+	{
+		const auto count = static_cast<size_t>(next_byte());
+		for (size_t i = 0; i < count; i++)
+		{
+			pop();
+		}
+		break;
+	}
+
 	case V(op_code::CONSTANT):
 	{
 		auto constant = next_constant();

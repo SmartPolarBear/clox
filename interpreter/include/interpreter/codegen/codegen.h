@@ -35,6 +35,7 @@
 #include <resolver/binding.h>
 
 #include <concepts>
+#include <string>
 
 namespace clox::interpreting::compiling
 {
@@ -106,8 +107,39 @@ private:
 
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
-	std::shared_ptr<vm::chunk> current();
+	void scope_begin();
 
+	void scope_end();
+
+	void define_global_variable([[maybe_unused]]const std::string& name, vm::chunk::code_type global);
+
+	void declare_local_variable(const std::string& name, size_t depth = 0);
+
+	///
+	/// \param name
+	/// \return {optional<slot>, is global}
+	std::tuple<std::optional<vm::chunk::code_type>, bool> variable_lookup(const std::string& name);
+
+	static inline bool is_variable_lookup_failure(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
+	{
+		const auto&[slot, global]=rets;
+		return !slot && !global;
+	}
+
+	static inline vm::chunk::code_type variable_slot(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
+	{
+		const auto&[slot, global]=rets;
+		return slot.value();
+	}
+
+	static inline vm::chunk::code_type
+	is_global_variable(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
+	{
+		const auto&[slot, global]=rets;
+		return global;
+	}
+
+	std::shared_ptr<vm::chunk> current();
 
 	void emit_byte(uint16_t byte);
 
@@ -121,7 +153,48 @@ private:
 
 	void emit_constant(const vm::value& val);
 
+	uint16_t identifier_constant(const scanning::token& identifier);
+
 	uint16_t make_constant(const vm::value& val);
+
+	class local_scope
+	{
+	public:
+		using slot_type = int64_t;
+		static inline constexpr slot_type GLOBAL_SLOT = -1;
+	public:
+		local_scope() = default;
+
+		[[nodiscard]] size_t count() const
+		{
+			return count_;
+		}
+
+		void declare(const std::string& name, slot_type slot)
+		{
+			locals_.insert_or_assign(name, slot);
+		}
+
+		[[nodiscard]] std::optional<slot_type> find(const std::string& name)
+		{
+			if (!locals_.contains(name))
+			{
+				return std::nullopt;
+			}
+
+			return locals_.at(name);
+		}
+
+	private:
+		std::unordered_map<std::string, slot_type> locals_{};
+		size_t count_{ 0 };
+	};
+
+	int64_t current_scope_depth_{ 0 };
+
+	int64_t local_totals_{ 0 };
+
+	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 
 	std::shared_ptr<vm::chunk> current_chunk_{};
 
@@ -129,4 +202,5 @@ private:
 
 	std::shared_ptr<resolving::binding_table> bindings_{};
 };
+
 }

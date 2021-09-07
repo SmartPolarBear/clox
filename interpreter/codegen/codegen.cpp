@@ -31,9 +31,9 @@
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/string_object.h>
 
+#include <ranges>
 
 #include <gsl/gsl>
-
 
 using namespace std;
 using namespace gsl;
@@ -49,6 +49,7 @@ using namespace clox::interpreting::vm;
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
+	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
 }
 
 
@@ -251,10 +252,27 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 	{
 		emit_byte(V(op_code::CONSTANT_NIL));
 	}
+
+	if (current_scope_depth_ == 0)
+	{
+		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()));
+	}
+	else
+	{
+		declare_local_variable(vs->get_name().lexeme());
+	}
 }
 
-void clox::interpreting::compiling::codegen::visit_block_statement(const std::shared_ptr<block_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_block_statement(const std::shared_ptr<block_statement>& bs)
 {
+	scope_begin();
+
+	auto _ = finally([this]
+	{
+		scope_end();
+	});
+
+	generate(bs->get_stmts());
 
 }
 
@@ -315,5 +333,56 @@ uint16_t codegen::make_constant(const value& val)
 {
 	auto idx = current()->add_constant(val);
 	return idx;
+}
+
+void codegen::scope_begin()
+{
+	current_scope_depth_++;
+	local_scopes_.push_back(make_unique<local_scope>());
+}
+
+void codegen::scope_end()
+{
+	emit_bytes(
+			V(op_code::POP_N),
+			static_cast<chunk::code_type>(local_scopes_.back()->count())
+	);
+
+	local_scopes_.pop_back();
+	current_scope_depth_--;
+}
+
+void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
+{
+	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
+	emit_bytes(V(op_code::DEFINE_GLOBAL), global);
+}
+
+void codegen::declare_local_variable(const string& name, size_t depth)
+{
+	(*(local_scopes_.rbegin() + depth))->declare(name, local_totals_);
+	local_totals_++;
+}
+
+uint16_t codegen::identifier_constant(const token& identifier)
+{
+	return 0;
+}
+
+std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(const string& name)
+{
+	for (const auto& scope: local_scopes_ | ranges::views::reverse)
+	{
+		if (auto find_ret = scope->find(name);find_ret)
+		{
+			auto slot = find_ret.value();
+			if (slot == local_scope::GLOBAL_SLOT)
+			{
+				return make_tuple(nullopt, true);
+			}
+			return make_tuple(slot, false);
+		}
+	}
+	return make_tuple(nullopt, false);
 }
 
