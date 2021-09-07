@@ -31,6 +31,17 @@
 
 namespace clox::interpreting::vm
 {
+
+class insufficient_heap_memory final
+		: public std::runtime_error
+{
+public:
+	insufficient_heap_memory()
+			: std::runtime_error("Insufficient heap memory.")
+	{
+	}
+};
+
 class invalid_opcode final
 		: public std::invalid_argument
 {

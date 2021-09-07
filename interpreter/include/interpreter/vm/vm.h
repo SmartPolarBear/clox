@@ -26,6 +26,7 @@
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
+#include <interpreter/vm/heap.h>
 
 #include <memory>
 #include "string_object.h"
@@ -61,10 +62,15 @@ class virtual_machine final
 {
 public:
 	static inline constexpr size_t STACK_RESERVED_SIZE = 64;
+
+	using value_list_type = std::vector<value>;
 public:
 	virtual_machine() = delete;
 
-	explicit virtual_machine(helper::console& cons);
+	~virtual_machine();
+
+	explicit virtual_machine(helper::console& cons,
+			std::shared_ptr<object_heap> heap);
 
 private:
 	virtual_machine_status run();
@@ -142,10 +148,13 @@ private:
 	chunk::code_type next_byte();
 	//
 
+	std::shared_ptr<object_heap> heap_{};
+
 	std::shared_ptr<chunk> chunk_{};
+
 	chunk::iterator_type ip_{};
 
-	std::vector<value> stack_{};
+	value_list_type stack_{};
 
 	mutable helper::console* cons_{ nullptr };
 };

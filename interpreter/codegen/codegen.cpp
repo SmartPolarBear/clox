@@ -152,7 +152,7 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
-			emit_constant(object::allocate<string_object>(arg));
+			emit_constant(heap_->allocate<string_object>(arg));
 		}
 		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{
@@ -282,5 +282,11 @@ uint16_t codegen::make_constant(const value& val)
 {
 	auto idx = current()->add_constant(val);
 	return idx;
+}
+
+codegen::codegen(std::shared_ptr<vm::object_heap> heap)
+		: heap_(std::move(heap))
+{
+
 }
 

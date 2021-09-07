@@ -30,6 +30,7 @@
 #include <interpreter/vm/chunk.h>
 
 #include <interpreter/codegen/exceptions.h>
+#include <interpreter/vm/heap.h>
 
 #include <concepts>
 
@@ -40,7 +41,7 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
-	codegen() = default;
+ explicit 	codegen(std::shared_ptr<vm::object_heap> heap);
 
 
 	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
@@ -72,7 +73,7 @@ public:
 	void visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
 
 	void visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
-
+ 
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
@@ -120,5 +121,7 @@ private:
 	uint16_t make_constant(const vm::value &val);
 
 	std::shared_ptr<vm::chunk> current_chunk_{};
+
+	std::shared_ptr<vm::object_heap> heap_{};
 };
 }

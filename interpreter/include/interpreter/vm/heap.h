@@ -19,12 +19,14 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/7/2021.
 //
 
 #pragma once
 
 #include <scanner/scanner.h>
+
+#include <interpreter/vm/object.h>
 
 #include <variant>
 #include <string>
@@ -35,25 +37,42 @@
 
 namespace clox::interpreting::vm
 {
-enum class object_type
-{
-	STRING,
-};
 
-class object
+class object_heap
 {
-
 public:
-	static inline bool is_string(const object& obj)
+	using object_list_type = std::list<object_raw_pointer>;
+
+	using raw_pointer = void*;
+public:
+	object_heap() = default;
+
+	~object_heap();
+
+	template<std::derived_from<object> T, class ...Args>
+	T* allocate(Args&& ...args)
 	{
-		return obj.type() == object_type::STRING;
+		using TRaw = std::decay_t<T>;
+		raw_pointer mem = allocate_raw(sizeof(TRaw));
+
+		auto ret = new(mem) T(std::forward<Args>(args)...); // placement new
+		objects_.push_back(ret);
+		return ret;
 	}
 
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
-};
+	template<std::derived_from<object> T>
+	void deallocate(T* val)
+	{
+		delete val;
+	}
 
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
+
+private:
+	raw_pointer allocate_raw(size_t size);
+
+	void deallocate_raw(raw_pointer raw);
+
+	object_list_type objects_{};
+};
 
 }

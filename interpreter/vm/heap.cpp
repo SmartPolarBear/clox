@@ -19,41 +19,42 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/7/2021.
 //
 
-#pragma once
 
-#include <scanner/scanner.h>
+#include <interpreter/vm/heap.h>
+#include <interpreter/vm/exceptions.h>
 
-#include <variant>
-#include <string>
+using namespace clox;
+using namespace clox::interpreting;
+using namespace clox::interpreting::vm;
 
-#include <memory>
-#include <map>
-
-
-namespace clox::interpreting::vm
+object_heap::~object_heap()
 {
-enum class object_type
-{
-	STRING,
-};
-
-class object
-{
-
-public:
-	static inline bool is_string(const object& obj)
+	while (!objects_.empty())
 	{
-		return obj.type() == object_type::STRING;
+		auto back = objects_.back();
+		objects_.pop_back();
+		deallocate(back);
+	}
+}
+
+clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_heap::allocate_raw(size_t size)
+{
+	auto ret = reinterpret_cast<void*>(malloc(size));
+
+	if (!ret)
+	{
+		throw insufficient_heap_memory{};
 	}
 
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
-};
-
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
-
+	return ret;
 }
+
+void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointer p)
+{
+	free(p);
+}
+
+

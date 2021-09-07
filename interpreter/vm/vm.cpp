@@ -39,10 +39,15 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
 
-virtual_machine::virtual_machine(clox::helper::console& cons)
-		: cons_(&cons)
+virtual_machine::virtual_machine(clox::helper::console& cons,
+		std::shared_ptr<object_heap> heap)
+		: heap_(std::move(heap)), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
+}
+
+virtual_machine::~virtual_machine()
+{
 }
 
 void virtual_machine::reset_stack()
@@ -137,9 +142,9 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 	{
 		if (is_string_value(peek(1)))
 		{
-			binary_op([](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
+			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
 			{
-				return object::allocate<string_object>(lp->string() + rp->string());
+				return heap_->allocate<string_object>(lp->string() + rp->string());
 			});
 		}
 		else
@@ -271,5 +276,6 @@ bool virtual_machine::is_false(const value& val)
 		}
 	}, val);
 }
+
 
 
