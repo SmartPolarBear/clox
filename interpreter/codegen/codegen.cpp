@@ -380,7 +380,7 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 			{
 				return make_tuple(nullopt, true);
 			}
-			return make_tuple(slot, false);
+			return make_tuple(static_cast<chunk::code_type>(slot), false);
 		}
 	}
 	return make_tuple(nullopt, false);
