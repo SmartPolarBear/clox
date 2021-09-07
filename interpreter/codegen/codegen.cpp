@@ -25,10 +25,12 @@
 #include <helper/exceptions.h>
 
 #include <interpreter/codegen/codegen.h>
-#include <interpreter/vm/opcode.h>
+#include <interpreter/codegen/exceptions.h>
 
+#include <interpreter/vm/opcode.h>
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/string_object.h>
+
 
 #include <gsl/gsl>
 
@@ -39,9 +41,15 @@ using namespace gsl;
 using namespace clox;
 using namespace clox::scanning;
 using namespace clox::parsing;
+using namespace clox::resolving;
 using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
+
+codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
+		: heap_(std::move(heap)), bindings_(std::move(table))
+{
+}
 
 
 void codegen::generate(const std::shared_ptr<parsing::statement>& s)
@@ -73,6 +81,20 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
+	if (bindings_->contains(be))
+	{
+		if (auto binding_ret = bindings_->get(be);binding_ret && binding_ret.value()->type() ==
+																 resolving::binding_type::BINDING_OPERATOR)
+		{
+			generate(static_pointer_cast<operator_binding>(binding_ret.value())->operator_implementation_call());
+			return;
+		}
+		else
+		{
+			throw internal_codegen_error{ "Invalid binding type" };
+		}
+	}
+
 	generate(be->get_left());
 
 	generate(be->get_right());
@@ -139,9 +161,11 @@ void
 clox::interpreting::compiling::codegen::visit_literal_expression(const std::shared_ptr<literal_expression>& le)
 {
 	auto val = le->get_value();
-	std::visit([this, &val](auto&& arg)
+
+	std::visit([this](auto&& arg)
 	{
 		using T = std::decay_t<decltype(arg)>;
+
 		if constexpr(std::is_same_v<T, boolean_literal_type>)
 		{
 			emit_byte(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
@@ -160,7 +184,7 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 		}
 		else
 		{
-			// do nothing for empty literal
+			return; // do nothing for empty literal
 		}
 	}, val);
 }
@@ -171,9 +195,9 @@ void clox::interpreting::compiling::codegen::visit_grouping_expression(
 	generate(ge);
 }
 
-void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
 {
-
+	auto name = ve->get_name();
 }
 
 void
@@ -204,20 +228,29 @@ void clox::interpreting::compiling::codegen::visit_set_expression(const std::sha
 }
 
 void clox::interpreting::compiling::codegen::visit_expression_statement(
-		const std::shared_ptr<expression_statement>& ptr)
+		const std::shared_ptr<expression_statement>& es)
 {
-
+	generate(es->get_expr());
+	emit_byte(V(op_code::POP));
 }
 
-void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& pe)
 {
-
+	generate(pe->get_expr());
+	emit_byte(V(op_code::PRINT));
 }
 
 void
-clox::interpreting::compiling::codegen::visit_variable_statement(const std::shared_ptr<variable_statement>& ptr)
+clox::interpreting::compiling::codegen::visit_variable_statement(const std::shared_ptr<variable_statement>& vs)
 {
-
+	if (vs->get_initializer())
+	{
+		generate(vs->get_initializer());
+	}
+	else
+	{
+		emit_byte(V(op_code::CONSTANT_NIL));
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_block_statement(const std::shared_ptr<block_statement>& ptr)
@@ -282,11 +315,5 @@ uint16_t codegen::make_constant(const value& val)
 {
 	auto idx = current()->add_constant(val);
 	return idx;
-}
-
-codegen::codegen(std::shared_ptr<vm::object_heap> heap)
-		: heap_(std::move(heap))
-{
-
 }
 

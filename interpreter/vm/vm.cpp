@@ -93,6 +93,12 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		throw vm_return{ virtual_machine_status::OK };
 	}
 
+	case V(op_code::POP):
+	{
+		pop();
+		break;
+	}
+
 	case V(op_code::CONSTANT):
 	{
 		auto constant = next_constant();
@@ -212,6 +218,12 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 
 		pop_two_and_push(left == right);
 
+		break;
+	}
+
+	case V(op_code::PRINT):
+	{
+		cons_->out() << std::format("{}", pop()) << endl;
 		break;
 	}
 

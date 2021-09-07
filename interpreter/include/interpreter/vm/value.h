@@ -37,11 +37,20 @@
 
 namespace clox::interpreting::vm
 {
-using value = std::variant<scanning::integer_literal_type,
-		scanning::floating_literal_type,
-		scanning::boolean_literal_type,
-		scanning::nil_value_tag_type,
-		object_raw_pointer>;
+
+using integer_value_type = scanning::integer_literal_type;
+using floating_value_type = scanning::floating_literal_type;
+using boolean_value_type = scanning::boolean_literal_type;
+using nil_value_type = scanning::nil_value_tag_type;
+using object_value_type = object_raw_pointer;
+using variable_name_type = std::string;
+
+using value = std::variant<integer_value_type,
+		floating_value_type,
+		boolean_value_type,
+		nil_value_type,
+		variable_name_type, // only for variable names
+		object_value_type>;
 
 static inline bool is_string_value(const value& val)
 {
@@ -65,7 +74,7 @@ static inline bool operator==(const value& lhs, const value& rhs)
 	return std::visit([&rhs](auto&& lhs_val) -> bool
 	{
 		using TLeft = std::decay_t<decltype(lhs_val)>;
-		if constexpr(std::is_same_v<TLeft, scanning::nil_value_tag_type>)
+		if constexpr(std::is_same_v<TLeft, nil_value_type>)
 		{
 			return std::holds_alternative<scanning::nil_value_tag_type>(rhs); // nil values always equal
 		}
@@ -91,7 +100,7 @@ static inline bool operator==(const value& lhs, const value& rhs)
 /// \param val the value variant
 /// \return numeric value promoted to floating type
 /// \throws invalid_value
-scanning::floating_literal_type get_number_promoted(const value& val);
+floating_value_type get_number_promoted(const value& val);
 
 string_object_raw_pointer get_string(const value& val);
 
@@ -105,9 +114,13 @@ public:
 	template<typename T>
 	std::string operator()(T val)
 	{
-		if constexpr(std::is_same_v<object_raw_pointer, std::decay_t<T>>) // To avoid copying strings
+		if constexpr(std::is_same_v<object_value_type, std::decay_t<T>>)
 		{
 			return std::format("{0} {#x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
+		}
+		else if constexpr(std::is_same_v<variable_name_type, std::decay_t<T>>)
+		{
+			return std::format("{} name: {}", type_name_of<std::decay_t<decltype(val)>>(), val);
 		}
 		else
 		{
@@ -116,7 +129,7 @@ public:
 	}
 
 	template<>
-	std::string operator()(scanning::nil_value_tag_type val);
+	std::string operator()(nil_value_type val);
 
 
 private:
@@ -129,33 +142,39 @@ private:
 		};
 
 		template<>
-		struct type_name<scanning::integer_literal_type>
+		struct type_name<integer_value_type>
 		{
 			static constexpr std::string_view value{ "<integer>" };
 		};
 
 		template<>
-		struct type_name<scanning::floating_literal_type>
+		struct type_name<floating_value_type>
 		{
 			static constexpr std::string_view value{ "<floating>" };
 		};
 
 		template<>
-		struct type_name<object_raw_pointer>
+		struct type_name<object_value_type>
 		{
 			static constexpr std::string_view value{ "<object>" };
 		};
 
 		template<>
-		struct type_name<scanning::boolean_literal_type>
+		struct type_name<boolean_value_type>
 		{
 			static constexpr std::string_view value{ "<boolean>" };
 		};
 
 		template<>
-		struct type_name<scanning::nil_value_tag_type>
+		struct type_name<nil_value_type>
 		{
 			static constexpr std::string_view value{ "<nil type>" };
+		};
+
+		template<>
+		struct type_name<variable_name_type>
+		{
+			static constexpr std::string_view value{ "<variable name>" };
 		};
 	};
 

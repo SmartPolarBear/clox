@@ -32,6 +32,8 @@
 #include <interpreter/codegen/exceptions.h>
 #include <interpreter/vm/heap.h>
 
+#include <resolver/binding.h>
+
 #include <concepts>
 
 namespace clox::interpreting::compiling
@@ -41,7 +43,7 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
- explicit 	codegen(std::shared_ptr<vm::object_heap> heap);
+	explicit codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table);
 
 
 	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
@@ -73,7 +75,7 @@ public:
 	void visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
 
 	void visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
- 
+
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
@@ -106,6 +108,7 @@ private:
 
 	std::shared_ptr<vm::chunk> current();
 
+
 	void emit_byte(uint16_t byte);
 
 	template<std::convertible_to<uint16_t> ...Args>
@@ -116,12 +119,14 @@ private:
 
 	void emit_return();
 
-	void emit_constant(const vm::value &val);
+	void emit_constant(const vm::value& val);
 
-	uint16_t make_constant(const vm::value &val);
+	uint16_t make_constant(const vm::value& val);
 
 	std::shared_ptr<vm::chunk> current_chunk_{};
 
 	std::shared_ptr<vm::object_heap> heap_{};
+
+	std::shared_ptr<resolving::binding_table> bindings_{};
 };
 }

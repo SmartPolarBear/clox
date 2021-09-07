@@ -29,6 +29,13 @@
 namespace clox::interpreting::compiling
 {
 
-
+class internal_codegen_error
+		: std::runtime_error
+{
+public:
+	explicit internal_codegen_error(const std::string& msg) : std::runtime_error(msg)
+	{
+	}
+};
 
 }
