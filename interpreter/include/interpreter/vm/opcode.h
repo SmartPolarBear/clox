@@ -53,11 +53,17 @@ enum class op_code : uint16_t
 	POP,
 	POP_N,
 
+	// when codegen for locals and globals,
+	// we cannot make sure whether it's assignment or get.
+	// so we emit GET_LOCAL/GLOBAL first, and change it to SET_LOCAL/GLOBAL
+	// the instance we can make it sure.
 	GET_LOCAL,
 	SET_LOCAL,
-	GET_GLOBAL,
+
 	DEFINE_GLOBAL,
+	GET_GLOBAL,
 	SET_GLOBAL,
+
 	GET_UPVALUE,
 	SET_UPVALUE,
 	GET_PROPERTY,
@@ -99,9 +105,16 @@ enum class op_code : uint16_t
 	OPCODE_ENUM_MAX,
 };
 
+
 static inline constexpr auto op_code_value(op_code code)
 {
 	return helper::enum_cast(code);
+}
+
+static inline constexpr bool is_patchable(uint16_t code)
+{
+	return code == op_code_value(op_code::GET_LOCAL) ||
+		   code == op_code_value(op_code::GET_GLOBAL);
 }
 
 }

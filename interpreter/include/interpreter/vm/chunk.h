@@ -74,6 +74,10 @@ public:
 
 	void write(code_type op, int64_t line);
 
+	void patch(code_type new_op,int64_t offset);
+
+	code_type peek(int64_t offset);
+
 	code_type add_constant(const value& val);
 
 	value constant_at(code_type pos);
@@ -91,7 +95,7 @@ private:
 
 	std::vector<value> constants_{};
 
-	code_list_type  codes_{};
+	code_list_type codes_{};
 	std::vector<int64_t> lines_{};
 };
 }

@@ -140,3 +140,13 @@ std::string chunk::filename()
 {
 	return "<filename placeholder>";
 }
+
+void chunk::patch(chunk::code_type new_op, int64_t offset)
+{
+	*(codes_.rbegin() + offset) = new_op;
+}
+
+chunk::code_type chunk::peek(int64_t offset)
+{
+	return *(codes_.rbegin() + offset) ;
+}

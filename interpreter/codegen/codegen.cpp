@@ -74,9 +74,28 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
-		const std::shared_ptr<assignment_expression>& ptr)
+		const std::shared_ptr<assignment_expression>& ae)
 {
+	if (!is_patchable(current()->peek(1)))
+	{
+		throw invalid_opcode(current()->peek(1));
+	}
 
+	auto unpatched = current()->peek(1);
+	if (unpatched == V(vm::op_code::GET_LOCAL))
+	{
+		current()->patch(V(op_code::SET_LOCAL), 1);
+	}
+	else if (unpatched == V(vm::op_code::GET_GLOBAL))
+	{
+		current()->patch(V(op_code::SET_GLOBAL), 1);
+	}
+	else
+	{
+		UNREACHABLE_EXCEPTION;
+	}
+
+	generate(ae->get_value());
 }
 
 void
@@ -199,6 +218,22 @@ void clox::interpreting::compiling::codegen::visit_grouping_expression(
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
 {
 	auto name = ve->get_name();
+	auto lookup_ret = variable_lookup(name.lexeme());
+
+	if (is_variable_lookup_failure(lookup_ret))
+	{
+		throw internal_codegen_error{ "Name lookup failure" };
+	}
+
+	// See opcode.h for the design here in details
+	if (is_global_variable(lookup_ret))
+	{
+		emit_bytes(V(op_code::GET_GLOBAL), identifier_constant(name));
+	}
+	else
+	{
+		emit_bytes(V(vm::op_code::GET_LOCAL), variable_slot(lookup_ret));
+	}
 }
 
 void
@@ -218,7 +253,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 }
 
-void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
 {
 
 }
@@ -373,7 +408,8 @@ uint16_t codegen::identifier_constant(const token& identifier)
 
 std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(const string& name)
 {
-	for (const auto& scope: local_scopes_ | ranges::views::reverse)
+	for (const auto& scope: local_scopes_
+							| ranges::views::reverse)
 	{
 		if (auto find_ret = scope->find(name);find_ret)
 		{
