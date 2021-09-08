@@ -96,6 +96,12 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 
+	case op_code::INC:
+	case op_code::DEC:
+		out.out() << std::format(" {}", codes_[offset + 1]) << endl;
+		return offset + 2;
+
+
 	case op_code::GET_LOCAL:
 	case op_code::SET_LOCAL:
 		out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
@@ -148,5 +154,5 @@ void chunk::patch(chunk::code_type new_op, int64_t offset)
 
 chunk::code_type chunk::peek(int64_t offset)
 {
-	return *(codes_.rbegin() + offset) ;
+	return *(codes_.rbegin() + offset);
 }

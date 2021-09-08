@@ -92,7 +92,7 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 	}
 	else
 	{
-		UNREACHABLE_EXCEPTION;
+		throw invalid_opcode(current()->peek(1));
 	}
 
 	generate(ae->get_value());
@@ -136,6 +136,26 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 	case scanning::token_type::STAR_STAR:
 		emit_byte(V(vm::op_code::POW));
 		break;
+
+	case scanning::token_type::EQUAL_EQUAL:
+		emit_byte(V(vm::op_code::EQUAL));
+		break;
+	case scanning::token_type::BANG_EQUAL:
+		emit_byte(V(vm::op_code::EQUAL));
+		emit_byte(V(vm::op_code::NOT));
+		break;
+	case scanning::token_type::GREATER:
+		emit_byte(V(vm::op_code::GREATER));
+		break;
+	case scanning::token_type::GREATER_EQUAL:
+		emit_byte(V(vm::op_code::GREATER_EQUAL));
+		break;
+	case scanning::token_type::LESS:
+		emit_byte(V(vm::op_code::LESS));
+		break;
+	case scanning::token_type::LESS_EQUAL:
+		emit_byte(V(vm::op_code::LESS_EQUAL));
+		break;
 	default:
 		UNREACHABLE_EXCEPTION;
 	}
@@ -143,12 +163,22 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 
 void clox::interpreting::compiling::codegen::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
-	generate(ue);
+	generate(ue->get_right());
 
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
 		emit_byte(V(vm::op_code::NEGATE));
+		break;
+	case scanning::token_type::BANG:
+		emit_byte(V(vm::op_code::NOT));
+		break;
+
+	case scanning::token_type::PLUS_PLUS:
+		emit_bytes(V(vm::op_code::INC), V(inc_dec_secondary_op_code::PREFIX));
+		break;
+	case scanning::token_type::MINUS_MINUS:
+		emit_bytes(V(vm::op_code::DEC), V(inc_dec_secondary_op_code::PREFIX));
 		break;
 	default:
 		UNREACHABLE_EXCEPTION;
@@ -172,9 +202,21 @@ void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
 }
 
 void
-clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr<postfix_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr<postfix_expression>& pfe)
 {
-
+	// TODO: may needs more check about if it is legal
+	generate(pfe->get_left());
+	switch (pfe->get_op().type())
+	{
+	case scanning::token_type::PLUS_PLUS:
+		emit_bytes(V(vm::op_code::INC), V(inc_dec_secondary_op_code::POSTFIX));
+		break;
+	case scanning::token_type::MINUS_MINUS:
+		emit_bytes(V(vm::op_code::DEC), V(inc_dec_secondary_op_code::POSTFIX));
+		break;
+	default:
+		UNREACHABLE_EXCEPTION;
+	}
 }
 
 void

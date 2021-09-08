@@ -213,11 +213,27 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		});
 		break;
 	}
+	case V(op_code::LESS_EQUAL):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l <= r;
+		});
+		break;
+	}
 	case V(op_code::GREATER):
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
 			return l > r;
+		});
+		break;
+	}
+	case V(op_code::GREATER_EQUAL):
+	{
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l >= r;
 		});
 		break;
 	}

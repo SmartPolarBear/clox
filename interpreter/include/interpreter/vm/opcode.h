@@ -38,6 +38,8 @@
 
 namespace clox::interpreting::vm
 {
+
+
 enum class op_code : uint16_t
 {
 	OPCODE_ENUM_MIN,
@@ -72,8 +74,12 @@ enum class op_code : uint16_t
 	EQUAL,
 	GREATER,
 	LESS,
+	GREATER_EQUAL,
+	LESS_EQUAL,
 	ADD,
+	INC, // Add 1
 	SUBTRACT,
+	DEC, // Subtract 1
 	MULTIPLY,
 	DIVIDE,
 	POW,
@@ -105,11 +111,27 @@ enum class op_code : uint16_t
 	OPCODE_ENUM_MAX,
 };
 
+// secondary opcode for inc/dec
+enum class inc_dec_secondary_op_code : uint16_t
+{
+	INC_DEC_OPCODE_ENUM_MIN,
+
+	PREFIX, POSTFIX,
+
+	INC_DEC_OPCODE_ENUM_MAX,
+};
 
 static inline constexpr auto op_code_value(op_code code)
 {
 	return helper::enum_cast(code);
 }
+
+
+static inline constexpr auto op_code_value(inc_dec_secondary_op_code code)
+{
+	return helper::enum_cast(code);
+}
+
 
 static inline constexpr bool is_patchable(uint16_t code)
 {
@@ -128,6 +150,16 @@ struct customize::enum_range<clox::interpreting::vm::op_code>
 {
 	static constexpr int min = (int)clox::interpreting::vm::op_code::OPCODE_ENUM_MIN;
 	static constexpr int max = (int)clox::interpreting::vm::op_code::OPCODE_ENUM_MAX;
+};
+}
+
+namespace magic_enum
+{
+template<>
+struct customize::enum_range<clox::interpreting::vm::inc_dec_secondary_op_code>
+{
+	static constexpr int min = (int)clox::interpreting::vm::inc_dec_secondary_op_code::INC_DEC_OPCODE_ENUM_MIN;
+	static constexpr int max = (int)clox::interpreting::vm::inc_dec_secondary_op_code::INC_DEC_OPCODE_ENUM_MAX;
 };
 }
 
@@ -295,5 +327,17 @@ struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::str
 	}
 };
 
+
+template<>
+struct std::formatter<clox::interpreting::vm::inc_dec_secondary_op_code> : std::formatter<std::string>
+{
+	auto format(clox::interpreting::vm::inc_dec_secondary_op_code sop, format_context& ctx)
+	{
+		std::string op_str{ magic_enum::enum_name(sop) };
+
+		return formatter<string>::format(
+				op_str, ctx);
+	}
+};
 
 }
