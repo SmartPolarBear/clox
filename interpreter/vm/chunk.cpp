@@ -89,9 +89,18 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 
 	switch (op)
 	{
+	case op_code::SET_GLOBAL:
+	case op_code::GET_GLOBAL:
+	case op_code::DEFINE_GLOBAL:
 	case op_code::CONSTANT:
 		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
+
+	case op_code::GET_LOCAL:
+	case op_code::SET_LOCAL:
+		out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	default:
 		out.out() << endl;
 		return offset + 1;
@@ -129,5 +138,5 @@ int64_t chunk::line_of(chunk::code_list_type::iterator ip)
 
 std::string chunk::filename()
 {
-	return "";
+	return "<filename placeholder>";
 }

@@ -343,11 +343,13 @@ void codegen::scope_begin()
 
 void codegen::scope_end()
 {
+	auto count = local_scopes_.back()->count();
 	emit_bytes(
 			V(op_code::POP_N),
-			static_cast<chunk::code_type>(local_scopes_.back()->count())
+			static_cast<chunk::code_type>(count)
 	);
 
+	local_totals_ -= count;
 	local_scopes_.pop_back();
 	current_scope_depth_--;
 }
@@ -366,7 +368,7 @@ void codegen::declare_local_variable(const string& name, size_t depth)
 
 uint16_t codegen::identifier_constant(const token& identifier)
 {
-	return 0;
+	return make_constant(identifier.lexeme());
 }
 
 std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(const string& name)
