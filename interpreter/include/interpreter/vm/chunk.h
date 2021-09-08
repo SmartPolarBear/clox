@@ -41,10 +41,10 @@ class chunk final
 public:
 	static inline constexpr int64_t INVALID_LINE = -1;
 
-	using code_type = uint16_t;
+	using code_type = full_opcode_type;
 	using code_list_type = std::vector<code_type>;
 
-	using iterator_type = std::vector<uint16_t>::iterator;
+	using iterator_type = std::vector<full_opcode_type>::iterator;
 public:
 	chunk() = default;
 

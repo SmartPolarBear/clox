@@ -26,6 +26,8 @@
 
 #include <interpreter/vm/value.h>
 
+#include <interpreter/vm/opcode.h>
+
 #include <stdexcept>
 #include <format>
 
@@ -46,14 +48,14 @@ class invalid_opcode final
 		: public std::invalid_argument
 {
 public:
-	explicit invalid_opcode(uint16_t opcode)
+	explicit invalid_opcode(full_opcode_type opcode)
 			: opcode_(opcode),
 			  std::invalid_argument(std::format("Invalid opcode {}", opcode))
 	{
 	}
 
 private:
-	uint16_t opcode_{};
+	full_opcode_type opcode_{};
 };
 
 class invalid_value final

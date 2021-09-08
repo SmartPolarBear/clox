@@ -132,7 +132,7 @@ void chunk::disassemble(helper::console& out)
 chunk::code_type chunk::add_constant(const value& val)
 {
 	constants_.push_back(val);
-	if (constants_.size() > UINT16_MAX)
+	if (constants_.size() > numeric_limits<full_opcode_type>::max())
 	{
 		throw too_many_constants{};
 	}

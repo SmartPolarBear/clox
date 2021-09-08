@@ -334,6 +334,10 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 				{
 					return val - 1;
 				}
+				else
+				{
+					throw invalid_opcode(instruction);
+				}
 			}
 			else if constexpr(std::is_same_v<T, floating_value_type>)
 			{
@@ -344,6 +348,10 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 				else if (main_op_code_of(instruction) == op_code::DEC)
 				{
 					return val - 1.0;
+				}
+				else
+				{
+					throw invalid_opcode(instruction);
 				}
 			}
 			else

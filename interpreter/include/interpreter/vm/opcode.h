@@ -39,7 +39,13 @@
 namespace clox::interpreting::vm
 {
 
-enum class op_code : uint16_t
+using full_opcode_type = uint32_t;
+using main_opcode_base_type = uint16_t;
+using secondary_opcode_base_type = uint16_t;
+
+static inline constexpr size_t SECONDARY_LSHIFT = 16;
+
+enum class op_code : main_opcode_base_type
 {
 	OPCODE_ENUM_MIN,
 
@@ -109,7 +115,7 @@ enum class op_code : uint16_t
 
 
 // secondary opcode for inc/dec
-enum secondary_op_code : uint8_t
+enum secondary_op_code : secondary_opcode_base_type
 {
 	SEC_OPCODE_ENUM_MIN,
 
@@ -122,33 +128,33 @@ enum secondary_op_code : uint8_t
 	SEC_OPCODE_ENUM_MAX,
 };
 
-static inline constexpr uint16_t compose_opcode(uint8_t sec, op_code main)
+static inline constexpr full_opcode_type compose_opcode(secondary_opcode_base_type sec, op_code main)
 {
-	return sec << 8 | helper::enum_cast(main);
+	return sec << SECONDARY_LSHIFT | helper::enum_cast(main);
 }
 
-static inline constexpr uint16_t patch_main(uint16_t op, op_code main)
+static inline constexpr full_opcode_type patch_main(full_opcode_type op, op_code main)
 {
-	op &= 0xFF00;
+	op &= 0xFFFF0000;
 	op |= helper::enum_cast(main);
 	return op;
 }
 
-static inline constexpr uint16_t patch_secondary(uint16_t op, uint8_t sec)
+static inline constexpr full_opcode_type patch_secondary(full_opcode_type op, secondary_opcode_base_type sec)
 {
-	op &= 0xFF;
-	op |= (sec << 8);
+	op &= 0xFFFF;
+	op |= (sec << SECONDARY_LSHIFT);
 	return op;
 }
 
-static inline constexpr op_code main_op_code_of(uint16_t code)
+static inline constexpr op_code main_op_code_of(full_opcode_type code)
 {
-	return static_cast<op_code>(code & 0xFF);
+	return static_cast<op_code>(code & 0xFFFF);
 }
 
-static inline constexpr secondary_op_code secondary_op_code_of(uint16_t code)
+static inline constexpr secondary_opcode_base_type secondary_op_code_of(full_opcode_type code)
 {
-	return static_cast<secondary_op_code>(code >> 8);
+	return static_cast<secondary_opcode_base_type>(code >> SECONDARY_LSHIFT);
 }
 
 static inline constexpr auto op_code_value(op_code code)
@@ -163,7 +169,7 @@ static inline constexpr auto op_code_value(secondary_op_code code)
 }
 
 
-static inline constexpr bool is_patchable(uint16_t code)
+static inline constexpr bool is_patchable(full_opcode_type code)
 {
 	return main_op_code_of(code) == op_code::GET;
 }
