@@ -224,5 +224,7 @@ struct std::formatter<clox::interpreting::vm::value> : std::formatter<std::strin
 #undef V
 #else
 #define V(op) (op_code_value((op)))
+#define VC(sec, main) (compose_opcode((sec),(main)))
+
 #endif
 

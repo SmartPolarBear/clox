@@ -59,52 +59,60 @@ void chunk::write(code_type op, int64_t line)
 
 uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console& out, uint64_t offset)
 {
-	auto op = static_cast<op_code>(codes_[offset]);
+	auto op = main_op_code_of(codes_[offset]);
+	auto secondary = secondary_op_code_of(codes_[offset]);
+
 	out.out() << std::format("{0:0>8}", offset); // example: 00000001:	CONSTANT
 
 	if (offset > 0 && lines_[offset] == lines_[offset - 1])
 	{
-		out.out() << "        | ";
+		out.out() << std::format("{0:>8}  ", "|");
 	}
 	else
 	{
 		if (lines_[offset] == INVALID_LINE)
 		{
-			out.out() << std::format("{0:8}  ", "<invalid>");
+			out.out() << std::format("{0:>8}  ", "<invalid>");
 		}
 		else
 		{
-			out.out() << std::format("{0:8}  ", lines_[offset]);
+			out.out() << std::format("{0:>8}  ", lines_[offset]);
 		}
 	}
 
 	try
 	{
-		out.out() << std::format("{}", op);
+		out.out() << std::format("[{0:0>8} <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
+				secondary,
+				op,
+				helper::enum_cast(op));
 	}
 	catch (const invalid_opcode&)
 	{
-		out.out() << "<INVALID>";
+		out.out() << std::format("{0:>27}", "<INVALID>");
 	}
+
 
 	switch (op)
 	{
-	case op_code::SET_GLOBAL:
-	case op_code::GET_GLOBAL:
-	case op_code::DEFINE_GLOBAL:
 	case op_code::CONSTANT:
 		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 
 	case op_code::INC:
 	case op_code::DEC:
-		out.out() << std::format(" {}", codes_[offset + 1]) << endl;
-		return offset + 2;
+	case op_code::SET:
+	case op_code::GET:
+	case op_code::DEFINE:
+		if(secondary&SEC_OP_GLOBAL)
+		{
+			out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
+		}
+		else if(secondary&SEC_OP_LOCAL)
+		{
+			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
+		}
 
-
-	case op_code::GET_LOCAL:
-	case op_code::SET_LOCAL:
-		out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	default:

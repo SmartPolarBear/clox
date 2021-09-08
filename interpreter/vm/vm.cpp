@@ -85,7 +85,7 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 
 bool virtual_machine::run_code(chunk::code_type instruction)
 {
-	switch (instruction)
+	switch (V(main_op_code_of(instruction)))
 	{
 	case V(op_code::RETURN):
 	{
@@ -253,36 +253,142 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
-	case V(op_code::GET_GLOBAL):
+	case V(op_code::GET):
 	{
-		auto name = next_variable_name();
-		push(globals_.at(name));
-		break;
-	}
-	case V(op_code::SET_GLOBAL):
-	{
-		auto name = next_variable_name();
-		globals_.at(name) = peek(0);
-		break;
-	}
-	case V(op_code::DEFINE_GLOBAL):
-	{
-		auto name = next_variable_name();
-		globals_.insert_or_assign(name, peek(0));
-		pop();
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary & SEC_OP_GLOBAL)
+		{
+			auto name = next_variable_name();
+			push(globals_.at(name));
+		}
+		else if (secondary & SEC_OP_LOCAL)
+		{
+			auto slot = next_byte();
+			stack_[slot] = peek(0);
+		}
+		else
+		{
+			throw invalid_opcode{ instruction };
+		}
+
 		break;
 	}
 
-	case V(op_code::GET_LOCAL):
+
+	case V(op_code::SET):
 	{
-		auto slot = next_byte();
-		stack_[slot] = peek(0);
+
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary & SEC_OP_GLOBAL)
+		{
+			auto name = next_variable_name();
+			globals_.at(name) = peek(0);
+		}
+		else if (secondary & SEC_OP_LOCAL)
+		{
+			auto slot = next_byte();
+			push(stack_[slot]); // assignment expression should create a value
+		}
+		else
+		{
+			throw invalid_opcode{ instruction };
+		}
+
 		break;
 	}
-	case V(op_code::SET_LOCAL):
+
+
+	case V(op_code::DEFINE):
 	{
-		auto slot = next_byte();
-		push(stack_[slot]); // assignment expression should create a value
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary & SEC_OP_GLOBAL)
+		{
+			auto name = next_variable_name();
+			globals_.insert_or_assign(name, peek(0));
+			pop();
+		}
+		else // one can only define global
+		{
+			throw invalid_opcode{ instruction };
+		}
+
+		break;
+	}
+
+
+	case V(op_code::INC):
+	case V(op_code::DEC):
+	{
+		auto secondary = secondary_op_code_of(instruction);
+
+		static const auto inc_dec_visitor = [&](auto&& val) -> value
+		{
+			using T = std::decay_t<decltype(val)>;
+			if constexpr(std::is_same_v<T, integer_value_type>)
+			{
+				if (main_op_code_of(instruction) == op_code::INC)
+				{
+					return val + 1;
+				}
+				else if (main_op_code_of(instruction) == op_code::DEC)
+				{
+					return val - 1;
+				}
+			}
+			else if constexpr(std::is_same_v<T, floating_value_type>)
+			{
+				if (main_op_code_of(instruction) == op_code::INC)
+				{
+					return val + 1.0;
+				}
+				else if (main_op_code_of(instruction) == op_code::DEC)
+				{
+					return val - 1.0;
+				}
+			}
+			else
+			{
+				throw invalid_value{ val };
+			}
+		};
+
+		if (secondary & SEC_OP_GLOBAL)
+		{
+			auto name = next_variable_name();
+			auto prev_val = globals_.at(name);
+			globals_.at(name) = std::visit(inc_dec_visitor, prev_val);
+
+			if (secondary & SEC_OP_POSTFIX)
+			{
+				push(prev_val);
+			}
+			else
+			{
+				push(globals_.at(name));
+			}
+		}
+		else if (secondary & SEC_OP_LOCAL)
+		{
+			auto slot = next_byte();
+			auto prev_val = stack_[slot];
+
+			stack_[slot] = std::visit(inc_dec_visitor, prev_val);
+
+			if (secondary & SEC_OP_POSTFIX)
+			{
+				push(prev_val);
+			}
+			else
+			{
+				push(stack_[slot]);
+			}
+
+		}
+		else
+		{
+			throw invalid_opcode{ instruction };
+		}
+
 		break;
 	}
 

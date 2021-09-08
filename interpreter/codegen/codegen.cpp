@@ -82,18 +82,7 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 	}
 
 	auto unpatched = current()->peek(1);
-	if (unpatched == V(vm::op_code::GET_LOCAL))
-	{
-		current()->patch(V(op_code::SET_LOCAL), 1);
-	}
-	else if (unpatched == V(vm::op_code::GET_GLOBAL))
-	{
-		current()->patch(V(op_code::SET_GLOBAL), 1);
-	}
-	else
-	{
-		throw invalid_opcode(current()->peek(1));
-	}
+	current()->patch(patch_main(unpatched, op_code::SET), 1);
 
 	generate(ae->get_value());
 }
@@ -165,6 +154,7 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 {
 	generate(ue->get_right());
 
+
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
@@ -175,11 +165,35 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 		break;
 
 	case scanning::token_type::PLUS_PLUS:
-		emit_bytes(V(vm::op_code::INC), V(inc_dec_secondary_op_code::PREFIX));
-		break;
 	case scanning::token_type::MINUS_MINUS:
-		emit_bytes(V(vm::op_code::DEC), V(inc_dec_secondary_op_code::PREFIX));
+	{
+		if (!is_patchable(current()->peek(1)))
+		{
+			throw invalid_opcode(current()->peek(1));
+		}
+
+		op_code op = op_code::INC;
+		if (auto tt = ue->get_op().type();tt == scanning::token_type::PLUS_PLUS)
+		{
+			op = op_code::INC;
+		}
+		else if (tt == scanning::token_type::MINUS_MINUS)
+		{
+			op = vm::op_code::DEC;
+		}
+
+		if (!is_patchable(current()->peek(1)))
+		{
+			throw invalid_opcode(current()->peek(1));
+		}
+
+		auto unpatched = current()->peek(1);
+		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
+
+
 		break;
+	}
+
 	default:
 		UNREACHABLE_EXCEPTION;
 	}
@@ -206,14 +220,36 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 {
 	// TODO: may needs more check about if it is legal
 	generate(pfe->get_left());
+
 	switch (pfe->get_op().type())
 	{
 	case scanning::token_type::PLUS_PLUS:
-		emit_bytes(V(vm::op_code::INC), V(inc_dec_secondary_op_code::POSTFIX));
-		break;
 	case scanning::token_type::MINUS_MINUS:
-		emit_bytes(V(vm::op_code::DEC), V(inc_dec_secondary_op_code::POSTFIX));
+	{
+		if (!is_patchable(current()->peek(1)))
+		{
+			throw invalid_opcode(current()->peek(1));
+		}
+
+		op_code op = op_code::INC;
+		if (auto tt = pfe->get_op().type();tt == scanning::token_type::PLUS_PLUS)
+		{
+			op = op_code::INC;
+		}
+		else if (tt == scanning::token_type::MINUS_MINUS)
+		{
+			op = vm::op_code::DEC;
+		}
+
+		if (!is_patchable(current()->peek(1)))
+		{
+			throw invalid_opcode(current()->peek(1));
+		}
+
+		auto unpatched = current()->peek(1);
+		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
 		break;
+	}
 	default:
 		UNREACHABLE_EXCEPTION;
 	}
@@ -270,11 +306,11 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	// See opcode.h for the design here in details
 	if (is_global_variable(lookup_ret))
 	{
-		emit_bytes(V(op_code::GET_GLOBAL), identifier_constant(name));
+		emit_bytes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 	}
 	else
 	{
-		emit_bytes(V(vm::op_code::GET_LOCAL), variable_slot(lookup_ret));
+		emit_bytes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
 	}
 }
 
@@ -434,7 +470,7 @@ void codegen::scope_end()
 void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
 {
 	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
-	emit_bytes(V(op_code::DEFINE_GLOBAL), global);
+	emit_bytes(VC(SEC_OP_GLOBAL,op_code::DEFINE), global);
 }
 
 void codegen::declare_local_variable(const string& name, size_t depth)

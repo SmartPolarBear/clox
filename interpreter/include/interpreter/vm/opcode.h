@@ -39,7 +39,6 @@
 namespace clox::interpreting::vm
 {
 
-
 enum class op_code : uint16_t
 {
 	OPCODE_ENUM_MIN,
@@ -59,12 +58,9 @@ enum class op_code : uint16_t
 	// we cannot make sure whether it's assignment or get.
 	// so we emit GET_LOCAL/GLOBAL first, and change it to SET_LOCAL/GLOBAL
 	// the instance we can make it sure.
-	GET_LOCAL,
-	SET_LOCAL,
-
-	DEFINE_GLOBAL,
-	GET_GLOBAL,
-	SET_GLOBAL,
+	GET,
+	SET,
+	DEFINE,
 
 	GET_UPVALUE,
 	SET_UPVALUE,
@@ -111,15 +107,49 @@ enum class op_code : uint16_t
 	OPCODE_ENUM_MAX,
 };
 
+
 // secondary opcode for inc/dec
-enum class inc_dec_secondary_op_code : uint16_t
+enum secondary_op_code : uint8_t
 {
-	INC_DEC_OPCODE_ENUM_MIN,
+	SEC_OPCODE_ENUM_MIN,
 
-	PREFIX, POSTFIX,
+	SEC_OP_PREFIX = 1 << 0,
+	SEC_OP_POSTFIX = 1 << 1,
+	SEC_OP_GLOBAL = 1 << 2,
+	SEC_OP_LOCAL = 1 << 3,
+	SEC_OP_PROPERTY = 1 << 4,
 
-	INC_DEC_OPCODE_ENUM_MAX,
+	SEC_OPCODE_ENUM_MAX,
 };
+
+static inline constexpr uint16_t compose_opcode(uint8_t sec, op_code main)
+{
+	return sec << 8 | helper::enum_cast(main);
+}
+
+static inline constexpr uint16_t patch_main(uint16_t op, op_code main)
+{
+	op &= 0xFF00;
+	op |= helper::enum_cast(main);
+	return op;
+}
+
+static inline constexpr uint16_t patch_secondary(uint16_t op, uint8_t sec)
+{
+	op &= 0xFF;
+	op |= (sec << 8);
+	return op;
+}
+
+static inline constexpr op_code main_op_code_of(uint16_t code)
+{
+	return static_cast<op_code>(code & 0xFF);
+}
+
+static inline constexpr secondary_op_code secondary_op_code_of(uint16_t code)
+{
+	return static_cast<secondary_op_code>(code >> 8);
+}
 
 static inline constexpr auto op_code_value(op_code code)
 {
@@ -127,7 +157,7 @@ static inline constexpr auto op_code_value(op_code code)
 }
 
 
-static inline constexpr auto op_code_value(inc_dec_secondary_op_code code)
+static inline constexpr auto op_code_value(secondary_op_code code)
 {
 	return helper::enum_cast(code);
 }
@@ -135,8 +165,7 @@ static inline constexpr auto op_code_value(inc_dec_secondary_op_code code)
 
 static inline constexpr bool is_patchable(uint16_t code)
 {
-	return code == op_code_value(op_code::GET_LOCAL) ||
-		   code == op_code_value(op_code::GET_GLOBAL);
+	return main_op_code_of(code) == op_code::GET;
 }
 
 }
@@ -153,15 +182,6 @@ struct customize::enum_range<clox::interpreting::vm::op_code>
 };
 }
 
-namespace magic_enum
-{
-template<>
-struct customize::enum_range<clox::interpreting::vm::inc_dec_secondary_op_code>
-{
-	static constexpr int min = (int)clox::interpreting::vm::inc_dec_secondary_op_code::INC_DEC_OPCODE_ENUM_MIN;
-	static constexpr int max = (int)clox::interpreting::vm::inc_dec_secondary_op_code::INC_DEC_OPCODE_ENUM_MAX;
-};
-}
 
 #include <interpreter/vm/exceptions.h>
 
@@ -329,14 +349,12 @@ struct std::formatter<clox::interpreting::vm::op_code> : std::formatter<std::str
 
 
 template<>
-struct std::formatter<clox::interpreting::vm::inc_dec_secondary_op_code> : std::formatter<std::string>
+struct std::formatter<clox::interpreting::vm::secondary_op_code> : std::formatter<std::string>
 {
-	auto format(clox::interpreting::vm::inc_dec_secondary_op_code sop, format_context& ctx)
+	auto format(clox::interpreting::vm::secondary_op_code sop, format_context& ctx)
 	{
-		std::string op_str{ magic_enum::enum_name(sop) };
-
 		return formatter<string>::format(
-				op_str, ctx);
+				to_string(clox::helper::enum_cast(sop)), ctx);
 	}
 };
 
