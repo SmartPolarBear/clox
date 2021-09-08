@@ -237,6 +237,39 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::GET_GLOBAL):
+	{
+		auto name = next_variable_name();
+		push(globals_.at(name));
+		break;
+	}
+	case V(op_code::SET_GLOBAL):
+	{
+		auto name = next_variable_name();
+		globals_.at(name) = peek(0);
+		break;
+	}
+	case V(op_code::DEFINE_GLOBAL):
+	{
+		auto name = next_variable_name();
+		globals_.insert_or_assign(name, peek(0));
+		pop();
+		break;
+	}
+
+	case V(op_code::GET_LOCAL):
+	{
+		auto slot = next_byte();
+		stack_[slot] = peek(0);
+		break;
+	}
+	case V(op_code::SET_LOCAL):
+	{
+		auto slot = next_byte();
+		push(stack_[slot]); // assignment expression should create a value
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
@@ -248,6 +281,7 @@ value virtual_machine::next_constant()
 {
 	return chunk_->constant_at(next_byte());
 }
+
 
 chunk::code_type virtual_machine::next_byte()
 {
@@ -297,6 +331,11 @@ bool virtual_machine::is_false(const value& val)
 			return false;
 		}
 	}, val);
+}
+
+std::string virtual_machine::next_variable_name()
+{
+	return get<std::string>(next_constant());
 }
 
 

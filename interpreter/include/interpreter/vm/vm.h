@@ -64,6 +64,7 @@ public:
 	static inline constexpr size_t STACK_RESERVED_SIZE = 64;
 
 	using value_list_type = std::vector<value>;
+	using global_table_type = std::unordered_map<std::string, value>;
 public:
 	virtual_machine() = delete;
 
@@ -145,6 +146,8 @@ private:
 	// instruction reading
 	value next_constant();
 
+	std::string next_variable_name();
+
 	chunk::code_type next_byte();
 	//
 
@@ -155,6 +158,8 @@ private:
 	chunk::iterator_type ip_{};
 
 	value_list_type stack_{};
+
+	global_table_type globals_{};
 
 	mutable helper::console* cons_{ nullptr };
 };
