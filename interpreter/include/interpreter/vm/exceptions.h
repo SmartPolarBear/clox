@@ -24,9 +24,10 @@
 
 #pragma once
 
+#include <interpreter/vm/opcode.h>
+
 #include <interpreter/vm/value.h>
 
-#include <interpreter/vm/opcode.h>
 
 #include <stdexcept>
 #include <format>

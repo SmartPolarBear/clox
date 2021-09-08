@@ -40,7 +40,7 @@ namespace clox::interpreting::vm
 {
 
 using full_opcode_type = uint32_t;
-using main_opcode_base_type = uint16_t;
+using main_opcode_base_type [[maybe_unused]] = uint16_t;
 using secondary_opcode_base_type = uint16_t;
 
 static inline constexpr size_t SECONDARY_LSHIFT = 16;
@@ -189,7 +189,6 @@ struct customize::enum_range<clox::interpreting::vm::op_code>
 }
 
 
-#include <interpreter/vm/exceptions.h>
 
 #include <string>
 #include <format>

@@ -26,10 +26,12 @@
 
 #include <interpreter/codegen/codegen.h>
 #include <interpreter/codegen/exceptions.h>
+#include <interpreter/codegen/exceptions.h>
 
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/string_object.h>
+#include <interpreter/vm/exceptions.h>
 
 #include <ranges>
 

@@ -24,6 +24,7 @@
 
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/opcode.h>
+#include <interpreter/vm/exceptions.h>
 
 using namespace std;
 
