@@ -25,6 +25,7 @@ target_include_directories(clox_test
 target_link_libraries(clox_test
         PUBLIC gtest
         PUBLIC gtest_main
-        PUBLIC GSL)
+        PUBLIC GSL
+        PUBLIC magic_enum)
 
 gtest_discover_tests(clox_test)
