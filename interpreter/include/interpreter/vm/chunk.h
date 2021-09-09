@@ -46,7 +46,8 @@ public:
 
 	using code_list_type = std::vector<code_type>;
 
-	using iterator_type = std::vector<full_opcode_type>::iterator;
+	using iterator_type = code_list_type::iterator;
+	using difference_type = int64_t;
 public:
 	chunk() = default;
 
@@ -68,6 +69,11 @@ public:
 	auto end()
 	{
 		return codes_.end();
+	}
+
+	auto count()
+	{
+		return codes_.size();
 	}
 
 	void disassemble(helper::console& out);

@@ -156,9 +156,11 @@ private:
 
 	void emit_constant(const vm::value& val);
 
-	vm::chunk::iterator_type emit_jump(vm::full_opcode_type jmp);
+	vm::chunk::difference_type emit_jump(vm::full_opcode_type jmp);
 
-	void patch_jump(vm::chunk::iterator_type pos);
+	void patch_jump(vm::chunk::difference_type pos);
+
+	void emit_loop(vm::chunk::difference_type pos);
 
 	uint16_t identifier_constant(const scanning::token& identifier);
 

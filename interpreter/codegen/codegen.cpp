@@ -456,9 +456,23 @@ void clox::interpreting::compiling::codegen::visit_block_statement(const std::sh
 
 }
 
-void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr<while_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr<while_statement>& ws)
 {
+	auto last_op = current()->count(); // it will be the index of first instruction for cond. Prepared for LOOP instruction
 
+	generate(ws->get_cond());
+
+	auto exit_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+
+	emit_code(V(vm::op_code::POP)); // pop the cond value
+
+	generate(ws->get_body());
+
+	emit_loop(last_op);
+
+	patch_jump(exit_jmp);
+
+	emit_code(V(vm::op_code::POP)); // pop the cond value, even we do not run the last loop
 }
 
 void
@@ -586,23 +600,35 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 	return make_tuple(nullopt, false);
 }
 
-vm::chunk::iterator_type codegen::emit_jump(vm::full_opcode_type jmp)
+vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 {
 	emit_code(jmp);
 	emit_code(PATCHABLE_PLACEHOLDER);
 
-	return current()->end() - 1;
+	return current()->count() - 1;
 }
 
-void codegen::patch_jump(vm::chunk::iterator_type pos)
+void codegen::patch_jump(vm::chunk::difference_type pos)
 {
-	auto dist = current()->end() - 1 - pos;
+	auto dist = current()->count() - 1 - pos;
 	if (dist > numeric_limits<full_opcode_type>::max())
 	{
 		throw jump_too_long{ static_cast<size_t>(dist) };
 	}
 
-	*pos = dist;
+	current()->patch(dist, pos);
+}
+
+void codegen::emit_loop(vm::chunk::difference_type pos)
+{
+	auto dist = current()->count() - 1 - pos;
+	if (dist > numeric_limits<full_opcode_type>::max())
+	{
+		throw jump_too_long{ static_cast<size_t>(dist) };
+	}
+
+	emit_code(V(op_code::LOOP));
+	emit_code(dist);
 }
 
 
