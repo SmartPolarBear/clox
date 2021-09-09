@@ -7,3 +7,6 @@
 [submodule "test/gtest"]
 	path = test/gtest
 	url = https://github.com/google/googletest.git
+[submodule "libs/magic_enum"]
+	path = libs/magic_enum
+	url = https://github.com/Neargye/magic_enum.git

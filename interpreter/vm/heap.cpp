@@ -19,44 +19,42 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/11/2021.
+// Created by cleve on 9/7/2021.
 //
 
-#pragma once
 
-#include <base.h>
-#include <helper/console.h>
+#include <interpreter/vm/heap.h>
+#include <interpreter/vm/exceptions.h>
 
-#include <iostream>
+using namespace clox;
+using namespace clox::interpreting;
+using namespace clox::interpreting::vm;
 
-namespace clox::helper
+object_heap::~object_heap()
 {
-class std_console final
-		: public console,
-		  public base::singleton<std_console>
-{
-public:
-	std_console() = default;
-
-	void write(const std::string& str) override;
-
-	void write(std::string_view sv) override;
-
-	std::ostream& out() override;
-
-	std::string read() override;
-
-	std::optional<std::string> read_line() override;
-
-	void write_line(const std::string& str) override;
-
-	void write_line(std::string_view sv) override;
-
-	std::istream& in() override;
-
-	std::ostream& error() override;
-
-private:
-	mutable std::ostream* out_stream_{ &std::cout };
-};
+	while (!objects_.empty())
+	{
+		auto back = objects_.back();
+		objects_.pop_back();
+		deallocate(back);
+	}
 }
+
+clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_heap::allocate_raw(size_t size)
+{
+	auto ret = reinterpret_cast<void*>(malloc(size));
+
+	if (!ret)
+	{
+		throw insufficient_heap_memory{};
+	}
+
+	return ret;
+}
+
+void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointer p)
+{
+	free(p);
+}
+
+

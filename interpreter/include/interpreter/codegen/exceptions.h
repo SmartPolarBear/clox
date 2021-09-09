@@ -19,44 +19,38 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/11/2021.
+// Created by cleve on 9/5/2021.
 //
 
 #pragma once
 
-#include <base.h>
-#include <helper/console.h>
+#include <format>
+#include <stdexcept>
 
-#include <iostream>
-
-namespace clox::helper
+namespace clox::interpreting::compiling
 {
-class std_console final
-		: public console,
-		  public base::singleton<std_console>
+
+class internal_codegen_error
+		: std::runtime_error
 {
 public:
-	std_console() = default;
+	explicit internal_codegen_error(const std::string& msg) : std::runtime_error(msg)
+	{
+	}
+};
 
-	void write(const std::string& str) override;
-
-	void write(std::string_view sv) override;
-
-	std::ostream& out() override;
-
-	std::string read() override;
-
-	std::optional<std::string> read_line() override;
-
-	void write_line(const std::string& str) override;
-
-	void write_line(std::string_view sv) override;
-
-	std::istream& in() override;
-
-	std::ostream& error() override;
+class jump_too_long :
+		std::runtime_error
+{
+public:
+	explicit jump_too_long(size_t len)
+			: len_(len),
+			  std::runtime_error(std::format("{} is too long to jump", len))
+	{
+	}
 
 private:
-	mutable std::ostream* out_stream_{ &std::cout };
+	size_t len_{};
 };
+
 }

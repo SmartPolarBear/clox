@@ -37,7 +37,8 @@ add_subdirectory(resolver)
 
 target_link_libraries(clox
         PUBLIC GSL
-        PUBLIC argparse)
+        PUBLIC argparse
+        PUBLIC magic_enum)
 
 if (${ENABLE_ASAN})
     message(STATUS "Use address sanitizer.")

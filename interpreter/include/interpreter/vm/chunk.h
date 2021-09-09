@@ -41,7 +41,13 @@ class chunk final
 public:
 	static inline constexpr int64_t INVALID_LINE = -1;
 
-	using iterator_type = std::vector<uint16_t>::iterator;
+	using code_type = full_opcode_type;
+	static_assert(sizeof(code_type) >= sizeof(uint32_t));
+
+	using code_list_type = std::vector<code_type>;
+
+	using iterator_type = code_list_type::iterator;
+	using difference_type = int64_t;
 public:
 	chunk() = default;
 
@@ -65,13 +71,28 @@ public:
 		return codes_.end();
 	}
 
+	auto count()
+	{
+		return codes_.size();
+	}
+
 	void disassemble(helper::console& out);
 
-	void add_op(uint16_t op, std::optional<scanning::token> t = std::nullopt);
+	void write(code_type op, std::optional<scanning::token> t = std::nullopt);
 
-	void add_op(uint16_t op, int64_t line);
+	void write(code_type op, int64_t line);
 
-	uint16_t add_constant(const value& val);
+	void patch(code_type new_op, int64_t offset);
+
+	code_type peek(int64_t offset);
+
+	code_type add_constant(const value& val);
+
+	value constant_at(code_type pos);
+
+	int64_t line_of(code_list_type::iterator ip);
+
+	std::string filename();
 
 private:
 
@@ -82,7 +103,7 @@ private:
 
 	std::vector<value> constants_{};
 
-	std::vector<uint16_t> codes_{};
+	code_list_type codes_{};
 	std::vector<int64_t> lines_{};
 };
 }

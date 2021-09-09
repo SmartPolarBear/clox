@@ -77,3 +77,8 @@ std::istream& clox::helper::std_console::in()
 {
 	return std::cin;
 }
+
+ostream& clox::helper::std_console::error()
+{
+	return std::cerr;
+}

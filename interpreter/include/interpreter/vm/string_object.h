@@ -19,44 +19,40 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/11/2021.
+// Created by cleve on 9/6/2021.
 //
 
 #pragma once
 
-#include <base.h>
-#include <helper/console.h>
 
-#include <iostream>
+#include <scanner/scanner.h>
 
-namespace clox::helper
+#include <interpreter/vm/object.h>
+
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
+
+namespace clox::interpreting::vm
 {
-class std_console final
-		: public console,
-		  public base::singleton<std_console>
+class string_object :
+		public object
 {
 public:
-	std_console() = default;
+	string_object() = default;
 
-	void write(const std::string& str) override;
+	explicit string_object(std::string value);
 
-	void write(std::string_view sv) override;
+	[[nodiscard]] object_type type() const noexcept override;
 
-	std::ostream& out() override;
-
-	std::string read() override;
-
-	std::optional<std::string> read_line() override;
-
-	void write_line(const std::string& str) override;
-
-	void write_line(std::string_view sv) override;
-
-	std::istream& in() override;
-
-	std::ostream& error() override;
+	[[nodiscard]] std::string string() const;
 
 private:
-	mutable std::ostream* out_stream_{ &std::cout };
+	std::string data_;
 };
+
+using string_object_raw_pointer = string_object*;
 }

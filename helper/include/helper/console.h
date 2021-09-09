@@ -62,6 +62,8 @@ public:
 	virtual std::istream& in() = 0;
 
 	virtual std::ostream& out() = 0;
+
+	virtual std::ostream& error() = 0;
 };
 
 }

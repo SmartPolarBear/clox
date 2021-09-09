@@ -19,27 +19,41 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/2/2021.
+// Created by cleve on 9/6/2021.
 //
 
 #pragma once
 
-#include <stdexcept>
-#include <format>
+#include <scanner/scanner.h>
+
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
 
 namespace clox::interpreting::vm
 {
-class invalid_opcode final
-		: public std::invalid_argument
+enum class object_type
 {
+	STRING,
+};
+
+class object
+{
+
 public:
-	explicit invalid_opcode(uint16_t opcode)
-			: opcode_(opcode),
-			  std::invalid_argument(std::format("Invalid opcode {}", opcode))
+	static inline bool is_string(const object& obj)
 	{
+		return obj.type() == object_type::STRING;
 	}
 
-private:
-	uint16_t opcode_{};
+public:
+	[[nodiscard]]virtual object_type type() const noexcept = 0;
 };
+
+/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
+using object_raw_pointer = object*;
+
 }

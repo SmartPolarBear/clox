@@ -19,44 +19,60 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/11/2021.
+// Created by cleve on 9/7/2021.
 //
 
 #pragma once
 
-#include <base.h>
-#include <helper/console.h>
+#include <scanner/scanner.h>
 
-#include <iostream>
+#include <interpreter/vm/object.h>
 
-namespace clox::helper
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
+
+namespace clox::interpreting::vm
 {
-class std_console final
-		: public console,
-		  public base::singleton<std_console>
+
+class object_heap
 {
 public:
-	std_console() = default;
+	using object_list_type = std::list<object_raw_pointer>;
 
-	void write(const std::string& str) override;
+	using raw_pointer = void*;
+public:
+	object_heap() = default;
 
-	void write(std::string_view sv) override;
+	~object_heap();
 
-	std::ostream& out() override;
+	template<std::derived_from<object> T, class ...Args>
+	T* allocate(Args&& ...args)
+	{
+		using TRaw = std::decay_t<T>;
+		raw_pointer mem = allocate_raw(sizeof(TRaw));
 
-	std::string read() override;
+		auto ret = new(mem) T(std::forward<Args>(args)...); // placement new
+		objects_.push_back(ret);
+		return ret;
+	}
 
-	std::optional<std::string> read_line() override;
+	template<std::derived_from<object> T>
+	void deallocate(T* val)
+	{
+		delete val;
+	}
 
-	void write_line(const std::string& str) override;
-
-	void write_line(std::string_view sv) override;
-
-	std::istream& in() override;
-
-	std::ostream& error() override;
 
 private:
-	mutable std::ostream* out_stream_{ &std::cout };
+	raw_pointer allocate_raw(size_t size);
+
+	void deallocate_raw(raw_pointer raw);
+
+	object_list_type objects_{};
 };
+
 }

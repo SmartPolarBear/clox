@@ -22,7 +22,8 @@ This project is built with
 #### Third-party Libraries
 - [microsoft/GSL](https://github.com/microsoft/GSL)  
 - [p-ranav/argparse](https://github.com/p-ranav/argparse)  
-- [google/googletest](https://github.com/google/googletest)  
+- [Neargye/magic_enum](https://github.com/Neargye/magic_enum)  
+- [google/googletest](https://github.com/google/googletest)    
 
 ## Usage  
 `clox` to enter REPL mode.    
