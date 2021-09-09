@@ -19,25 +19,35 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/30/2021.
+// Created by cleve on 7/6/2021.
 //
+#pragma once
 
-#include <cstddef>
-#include <chrono>
+#include <interpreter/classic/lox_class.h>
 
-#include <interpreter/interpreter.h>
-#include <interpreter/evaluating_result.h>
-#include <interpreter/native_functions.h>
+#include <memory>
+#include <utility>
+#include <unordered_map>
 
-using namespace clox::interpreting;
-
-using namespace std::chrono;
-
-
-evaluating_result
-clox::interpreting::clock_func::call(struct interpreter* the_interpreter,
-		const std::shared_ptr<parsing::expression>& caller,
-		const std::vector<evaluating_result>& args)
+namespace clox::interpreting::classic
 {
-	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+class lox_instance final
+		: public helper::printable,
+		  public std::enable_shared_from_this<lox_instance>
+{
+public:
+	explicit lox_instance(std::shared_ptr<class lox_class> cls) : class_(std::move(cls))
+	{
+	}
+
+	std::string printable_string() override;
+
+	evaluating_result get(const scanning::token& tk) const;
+
+	void set(const scanning::token& tk, evaluating_result val);
+
+private:
+	std::shared_ptr<class lox_class> class_{ nullptr };
+	std::unordered_map<std::string, evaluating_result> fields_{};
+};
 }

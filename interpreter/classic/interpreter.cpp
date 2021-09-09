@@ -24,13 +24,14 @@
 
 #include <scanner/scanner.h>
 
-#include <interpreter/interpreter.h>
-#include <interpreter/runtime_error.h>
-#include <interpreter/native_functions.h>
-#include <interpreter/lox_function.h>
-#include <interpreter/lox_class.h>
-#include <interpreter/lox_instance.h>
-#include <interpreter/return.h>
+#include <interpreter/classic/interpreter.h>
+#include <interpreter/classic/runtime_error.h>
+#include <interpreter/classic/native_functions.h>
+#include <interpreter/classic/lox_function.h>
+#include <interpreter/classic/lox_class.h>
+#include <interpreter/classic/lox_instance.h>
+#include <interpreter/classic/return.h>
+#include <interpreter/classic/environment.h>
 
 #include <logger/logger.h>
 
@@ -45,12 +46,13 @@ using namespace clox::resolving;
 using namespace clox::scanning;
 using namespace clox::parsing;
 using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
 
 interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
 		: expression_visitor<evaluating_result>(),
 		  statement_visitor<void>(),
-		  globals_(std::make_shared<environment>()),
+		  globals_(std::make_shared<classic::environment>()),
 		  console_(&cons),
 		  locals_(std::move(table))
 {
@@ -59,8 +61,8 @@ interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
 }
 
 
-clox::interpreting::evaluating_result
-clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
 	if (locals_->contains(be))
 	{
@@ -70,7 +72,7 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 			if (auto op_binding = op_binding_ret.value();op_binding->type() !=
 														 resolving::binding_type::BINDING_OPERATOR)
 			{
-				throw clox::interpreting::runtime_error(be->get_op(),
+				throw clox::interpreting::classic::runtime_error(be->get_op(),
 						std::format("Internal compiler error: wrong binding type."));
 			}
 			else
@@ -79,7 +81,7 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 				return evaluate(binding->operator_implementation_call());
 			}
 		}
-		throw clox::interpreting::runtime_error(be->get_op(),
+		throw clox::interpreting::classic::runtime_error(be->get_op(),
 				std::format("Internal compiler error: wrong binding."));
 	}
 
@@ -109,7 +111,7 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 			return get<string>(left) + get<string>(right);
 		}
 
-		throw clox::interpreting::runtime_error(be->get_op(), "Operands should be strings or numbers.");
+		throw clox::interpreting::classic::runtime_error(be->get_op(), "Operands should be strings or numbers.");
 	case scanning::token_type::SLASH:
 		return get_number(left) / get_number(right);
 	case scanning::token_type::STAR:
@@ -126,7 +128,7 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 
 	default:
 		// should not reach here
-		throw clox::interpreting::runtime_error(be->get_op(),
+		throw clox::interpreting::classic::runtime_error(be->get_op(),
 				std::format("{} is not a valid binary operator.", be->get_op().lexeme()));
 		break;
 	}
@@ -135,8 +137,8 @@ clox::interpreting::interpreter::visit_binary_expression(const std::shared_ptr<b
 	return nil_value_tag;
 }
 
-clox::interpreting::evaluating_result
-clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::visit_unary_expression(const std::shared_ptr<unary_expression>& ue)
 {
 	auto right = evaluate(ue->get_right());
 	auto op = ue->get_op();
@@ -150,7 +152,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 	case scanning::token_type::PLUS_PLUS:
 		if (ue->get_right()->get_type() != parsing::PC_TYPE_var_expression)
 		{
-			throw clox::interpreting::runtime_error(op, "++ applies only to variables");
+			throw clox::interpreting::classic::runtime_error(op, "++ applies only to variables");
 		}
 
 		{
@@ -165,7 +167,7 @@ clox::interpreting::interpreter::visit_unary_expression(const std::shared_ptr<un
 
 		if (ue->get_right()->get_type() != parsing::PC_TYPE_var_expression)
 		{
-			throw clox::interpreting::runtime_error(ue->get_op(), "-- applies only to variables");
+			throw clox::interpreting::classic::runtime_error(ue->get_op(), "-- applies only to variables");
 		}
 
 		{
@@ -197,7 +199,7 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 	case scanning::token_type::PLUS_PLUS:
 		if (pe->get_left()->get_type() != parsing::PC_TYPE_var_expression)
 		{
-			throw clox::interpreting::runtime_error(pe->get_op(), "Postfix ++ applies only to variables");
+			throw clox::interpreting::classic::runtime_error(pe->get_op(), "Postfix ++ applies only to variables");
 		}
 
 		{
@@ -212,7 +214,7 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 
 		if (pe->get_left()->get_type() != parsing::PC_TYPE_var_expression)
 		{
-			throw clox::interpreting::runtime_error(pe->get_op(), "Postfix -- applies only to variables");
+			throw clox::interpreting::classic::runtime_error(pe->get_op(), "Postfix -- applies only to variables");
 		}
 
 		{
@@ -233,29 +235,29 @@ evaluating_result interpreter::visit_postfix_expression(const shared_ptr<parsing
 }
 
 
-clox::interpreting::evaluating_result
-clox::interpreting::interpreter::visit_literal_expression(
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::visit_literal_expression(
 		const std::shared_ptr<parsing::literal_expression>& expression)
 {
 	return interpreter::literal_value_to_interpreting_result(expression->get_value());
 }
 
-clox::interpreting::evaluating_result
-clox::interpreting::interpreter::visit_grouping_expression(
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::visit_grouping_expression(
 		const std::shared_ptr<parsing::grouping_expression>& expression)
 {
 	return evaluate(expression->get_expr());
 }
 
-std::string clox::interpreting::interpreter::result_to_string(
+std::string clox::interpreting::classic::interpreter::result_to_string(
 		const token& error_prone,
-		const clox::interpreting::evaluating_result& res)
+		const clox::interpreting::classic::evaluating_result& res)
 {
 	return visit(evaluating_result_stringify_visitor{ error_prone }, res);
 }
 
 void
-clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts, bool repl)
+clox::interpreting::classic::interpreter::interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts, bool repl)
 {
 	try
 	{
@@ -270,14 +272,14 @@ clox::interpreting::interpreter::interpret(const std::vector<std::shared_ptr<par
 			execute(s);
 		}
 	}
-	catch (const clox::interpreting::runtime_error& re)
+	catch (const clox::interpreting::classic::runtime_error& re)
 	{
 		clox::logging::logger::instance().runtime_error(re);
 	}
 }
 
-clox::interpreting::evaluating_result
-clox::interpreting::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::literal_value_to_interpreting_result(const literal_value_type& value)
 {
 	return std::visit([](auto&& value) -> evaluating_result
 	{
@@ -297,13 +299,13 @@ clox::interpreting::interpreter::literal_value_to_interpreting_result(const lite
 	}, value);
 }
 
-clox::interpreting::evaluating_result clox::interpreting::interpreter::evaluate(const shared_ptr<expression>& expr)
+clox::interpreting::classic::evaluating_result clox::interpreting::classic::interpreter::evaluate(const shared_ptr<expression>& expr)
 {
 	return accept(*expr, *dynamic_cast<expression_visitor<evaluating_result>*>(this));
 }
 
 
-bool clox::interpreting::interpreter::is_truthy(clox::interpreting::evaluating_result e)
+bool clox::interpreting::classic::interpreter::is_truthy(clox::interpreting::classic::evaluating_result e)
 {
 	// Ruby’s rule: false and nil are false, and everything else is truthy
 	if (holds_alternative<nil_value_tag_type>(e))return false;
@@ -311,8 +313,8 @@ bool clox::interpreting::interpreter::is_truthy(clox::interpreting::evaluating_r
 	return true;
 }
 
-bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreting::evaluating_result lhs,
-		clox::interpreting::evaluating_result rhs)
+bool clox::interpreting::classic::interpreter::is_equal(const token& op, clox::interpreting::classic::evaluating_result lhs,
+		clox::interpreting::classic::evaluating_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
 	{
@@ -327,7 +329,7 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 	{
 		if (!is_number(rhs))
 		{
-			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+			throw clox::interpreting::classic::runtime_error(op, "Operands must be the same type.");
 		}
 		return get_number(lhs) == get_number(rhs);
 	}
@@ -335,7 +337,7 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 	{
 		if (!holds_alternative<string>(rhs))
 		{
-			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+			throw clox::interpreting::classic::runtime_error(op, "Operands must be the same type.");
 		}
 		return get<string>(lhs) == get<string>(rhs);
 	}
@@ -343,7 +345,7 @@ bool clox::interpreting::interpreter::is_equal(const token& op, clox::interpreti
 	{
 		if (!holds_alternative<bool>(rhs))
 		{
-			throw clox::interpreting::runtime_error(op, "Operands must be the same type.");
+			throw clox::interpreting::classic::runtime_error(op, "Operands must be the same type.");
 		}
 		return get<bool>(lhs) == get<bool>(rhs);
 	}
@@ -424,11 +426,11 @@ evaluating_result interpreter::visit_assignment_expression(const std::shared_ptr
 
 void interpreter::visit_block_statement(const std::shared_ptr<block_statement>& bs)
 {
-	execute_block(bs->get_stmts(), make_shared<environment>(this->environment_));
+	execute_block(bs->get_stmts(), make_shared<classic::environment>(this->environment_));
 }
 
 void
-interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& stmts, const shared_ptr<environment>& env)
+interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& stmts, const shared_ptr<classic::environment>& env)
 {
 	auto prev = this->environment_;
 
@@ -512,7 +514,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 
 	if (!holds_alternative<shared_ptr<callable>>(callee) && !holds_alternative<overloaded_functions>(callee))
 	{
-		throw clox::interpreting::runtime_error{ ce->get_paren(), "Expression isn't callable." };
+		throw clox::interpreting::classic::runtime_error{ ce->get_paren(), "Expression isn't callable." };
 	}
 
 
@@ -531,7 +533,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		}
 		else if (!func_binding)
 		{
-			throw clox::interpreting::runtime_error{ ce->get_paren(),
+			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
 													 "Internal: function binding required." };
 		}
 	}
@@ -575,7 +577,7 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 	int64_t dist = -1;
 	if (binding->type() != binding_type::BINDING_VARIABLE)
 	{
-		throw clox::interpreting::runtime_error{ tk,
+		throw clox::interpreting::classic::runtime_error{ tk,
 												 std::format("{} is not a variable.",
 														 tk.lexeme()) };
 	}
@@ -608,7 +610,7 @@ interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expressi
 	int64_t dist = -1;
 	if (binding->type() != resolving::binding_type::BINDING_VARIABLE)
 	{
-		throw clox::interpreting::runtime_error{ tk,
+		throw clox::interpreting::classic::runtime_error{ tk,
 												 std::format("{} is not a variable.",
 														 tk.lexeme()) };
 	}
@@ -639,7 +641,7 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 		if (!holds_alternative<shared_ptr<callable>>(base_val) ||
 			!(base = dynamic_pointer_cast<lox_class>(get<shared_ptr<callable>>(base_val))))
 		{
-			throw clox::interpreting::runtime_error{ cls->get_base_class()->get_name(),
+			throw clox::interpreting::classic::runtime_error{ cls->get_base_class()->get_name(),
 													 std::format("'{}' is not inheritable.",
 															 cls->get_base_class()->get_name().lexeme()) };
 		}
@@ -649,7 +651,7 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 
 	if (cls->get_base_class())
 	{
-		environment_ = make_shared<environment>(environment_);
+		environment_ = make_shared<classic::environment>(environment_);
 		environment_->put("base", base);
 	}
 
@@ -681,7 +683,7 @@ evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_ex
 		return get<shared_ptr<lox_instance>>(obj)->get(expr->get_name());
 	}
 
-	throw clox::interpreting::runtime_error{ expr->get_name(),
+	throw clox::interpreting::classic::runtime_error{ expr->get_name(),
 											 std::format("Properties access is not allowed except instances") };
 }
 
@@ -691,7 +693,7 @@ evaluating_result interpreter::visit_set_expression(const std::shared_ptr<set_ex
 
 	if (!holds_alternative<shared_ptr<lox_instance>>(obj))
 	{
-		throw clox::interpreting::runtime_error{ se->get_name(),
+		throw clox::interpreting::classic::runtime_error{ se->get_name(),
 												 std::format("Only instances have fields") };
 	}
 
@@ -726,7 +728,7 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 
 	if (!method)
 	{
-		throw clox::interpreting::runtime_error{ expr->get_member(),
+		throw clox::interpreting::classic::runtime_error{ expr->get_member(),
 												 std::format("'{}' is undefined.", expr->get_member().lexeme()) };
 	}
 
@@ -762,7 +764,7 @@ bool interpreter::is_number(const evaluating_result& e)
 evaluating_result
 interpreter::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
 {
-	return clox::interpreting::evaluating_result();
+	return clox::interpreting::classic::evaluating_result();
 }
 
 void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statement>& fes)

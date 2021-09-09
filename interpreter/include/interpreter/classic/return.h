@@ -27,9 +27,9 @@
 #include <stdexcept>
 #include <utility>
 
-#include <interpreter/evaluating_result.h>
+#include <interpreter/classic/evaluating_result.h>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 class return_value final
 		: public std::exception

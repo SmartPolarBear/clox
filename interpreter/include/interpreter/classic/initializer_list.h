@@ -19,19 +19,24 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/30/2021.
+// Created by cleve on 9/1/2021.
 //
 #pragma once
-#include <interpreter/evaluating_result.h>
 
-namespace clox::interpreting
-{
-class clock_func final
-		: public callable
-{
-public:
+#include <scanner/scanner.h>
 
-	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
-			const std::vector<evaluating_result>& args) override;
+#include <parser/gen/parser_classes.inc>
+
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
+namespace clox::interpreting::classic
+{
+class lox_initializer_list
+{
+
 };
 }

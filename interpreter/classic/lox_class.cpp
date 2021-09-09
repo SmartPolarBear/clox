@@ -25,18 +25,19 @@
 #include <format>
 #include <memory>
 
-#include <interpreter/interpreter.h>
+#include <interpreter/classic/interpreter.h>
 
-#include <interpreter/lox_function.h>
-#include <interpreter/lox_class.h>
+#include <interpreter/classic/lox_function.h>
+#include <interpreter/classic/lox_class.h>
 
 using namespace std;
 
 using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
 
-clox::interpreting::evaluating_result
-clox::interpreting::lox_class::call(interpreter* the_interpreter,
+evaluating_result
+lox_class::call(interpreter* the_interpreter,
 		const std::shared_ptr<parsing::expression>& caller, const std::vector<evaluating_result>& args)
 {
 	auto inst = make_shared<lox_instance>(shared_from_this());
@@ -56,14 +57,14 @@ clox::interpreting::lox_class::call(interpreter* the_interpreter,
 			}
 			else
 			{
-				throw clox::interpreting::runtime_error{
+				throw runtime_error{
 						dynamic_pointer_cast<parsing::call_expression>(caller)->get_paren(),
 						"Calling non-function object" };
 			}
 		}
 		else
 		{
-			throw clox::interpreting::runtime_error{
+			throw runtime_error{
 					dynamic_pointer_cast<parsing::call_expression>(caller)->get_paren(),
 					"Calling non-exist object" };
 		}
@@ -72,13 +73,13 @@ clox::interpreting::lox_class::call(interpreter* the_interpreter,
 	return inst;
 }
 
-std::string clox::interpreting::lox_class::printable_string()
+std::string lox_class::printable_string()
 {
 	return std::format("class {}", name_);
 }
 
 std::optional<overloaded_functions>
-clox::interpreting::lox_class::lookup_method(const std::string& name)
+lox_class::lookup_method(const std::string& name)
 {
 	if (methods_.contains(name))
 	{

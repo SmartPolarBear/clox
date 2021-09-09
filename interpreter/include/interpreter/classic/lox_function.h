@@ -23,17 +23,18 @@
 //
 #pragma once
 
-#include <interpreter/evaluating_result.h>
-#include <interpreter/environment.h>
-#include <interpreter/lox_instance.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/environment.h>
+#include <interpreter/classic/lox_instance.h>
 
 #include <parser/gen/parser_classes.inc>
 
 
 #include <memory>
 #include <utility>
+#include "environment.h"
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 class lox_function final
 		: public callable
@@ -44,12 +45,12 @@ public:
 	{
 	}
 
-	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure)
+	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<classic::environment> closure)
 			: decl_(std::move(decl)), closure_(std::move(closure))
 	{
 	}
 
-	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure,
+	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<classic::environment> closure,
 			bool is_initializer)
 			: decl_(std::move(decl)), closure_(std::move(closure)), is_init_(is_initializer)
 	{
@@ -62,7 +63,7 @@ public:
 	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance>& inst);
 
 private:
-	std::shared_ptr<environment> closure_{ nullptr };
+	std::shared_ptr<classic::environment> closure_{ nullptr };
 	std::shared_ptr<parsing::function_statement> decl_{ nullptr };
 	bool is_init_{ false };
 };

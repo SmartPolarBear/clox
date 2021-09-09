@@ -21,33 +21,57 @@
 //
 // Created by cleve on 7/6/2021.
 //
+
 #pragma once
 
-#include <interpreter/lox_class.h>
+#include <helper/printable.h>
 
-#include <memory>
-#include <utility>
+#include <interpreter/classic/lox_function.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/environment.h>
+
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <memory>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
-class lox_instance final
-		: public helper::printable,
-		  public std::enable_shared_from_this<lox_instance>
+class lox_class final
+		: public callable,
+		  public helper::printable,
+		  public std::enable_shared_from_this<lox_class>
 {
 public:
-	explicit lox_instance(std::shared_ptr<class lox_class> cls) : class_(std::move(cls))
+	explicit lox_class(std::string name) : name_(std::move(name))
 	{
 	}
 
+	explicit lox_class(std::string name, const std::shared_ptr<lox_class>& base)
+			: name_(std::move(name)), base_(base)
+	{
+	}
+
+
+	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+			const std::vector<evaluating_result>& args) override;
+
 	std::string printable_string() override;
 
-	evaluating_result get(const scanning::token& tk) const;
+	[[nodiscard]] std::string name() const
+	{
+		return name_;
+	}
 
-	void set(const scanning::token& tk, evaluating_result val);
+	void put_method(const std::string& name, const std::shared_ptr<parsing::statement>&,
+			const std::shared_ptr<class callable>&);
+
+	std::optional<overloaded_functions> lookup_method(const std::string& name);
+
 
 private:
-	std::shared_ptr<class lox_class> class_{ nullptr };
-	std::unordered_map<std::string, evaluating_result> fields_{};
+	std::string name_{};
+	std::weak_ptr<lox_class> base_{};
+	std::unordered_map<std::string, overloaded_functions> methods_{};
 };
 }

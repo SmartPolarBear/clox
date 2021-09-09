@@ -19,33 +19,52 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/16/2021.
+// Created by cleve on 7/6/2021.
 //
-#pragma once
 
-#include <stdexcept>
+#include <format>
+#include <utility>
 
-namespace clox::interpreting
+#include <interpreter/classic/lox_instance.h>
+#include <interpreter/classic/runtime_error.h>
+#include <interpreter/classic/environment.h>
+
+
+using namespace std;
+
+using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
+
+std::string lox_instance::printable_string()
 {
-class runtime_error final
-		: public std::runtime_error
-{
-public:
-
-	runtime_error(scanning::token tk, const std::string& msg)
-			: tk_(std::move(tk)), std::runtime_error(msg)
-	{
-	}
-
-	~runtime_error() override = default;
-
-	[[nodiscard]]scanning::token token() const
-	{
-		return tk_;
-	}
-
-private:
-	scanning::token tk_;
-};
-
+	return std::format("Instance of class {} at {}", class_->name(), (uintptr_t)this);
 }
+
+evaluating_result lox_instance::get(const clox::scanning::token& tk) const
+{
+	if (fields_.contains(tk.lexeme()))
+	{
+		return fields_.at(tk.lexeme());
+	}
+
+	if (auto m = class_->lookup_method(tk.lexeme());m)
+	{
+		auto method = m.value();
+
+		for (auto& p:method)
+		{
+			p.second = dynamic_pointer_cast<lox_function>(p.second)->bind(
+					const_pointer_cast<lox_instance>(shared_from_this()));
+		}
+
+		return method;
+	}
+
+	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
+}
+
+void lox_instance::set(const clox::scanning::token& tk, evaluating_result val)
+{
+	fields_[tk.lexeme()] = std::move(val);
+}
+

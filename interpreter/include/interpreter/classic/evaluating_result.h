@@ -33,7 +33,7 @@
 #include <memory>
 #include <map>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 
 using overloaded_functions = std::unordered_map<std::shared_ptr<parsing::statement>, std::shared_ptr<class callable>>;

@@ -9,7 +9,7 @@
 
 #include <logger/logger.h>
 
-#include <interpreter/interpreter.h>
+#include <interpreter/classic/interpreter.h>
 #include <interpreter/vm/chunk.h>
 
 #include <resolver/resolver.h>
@@ -50,7 +50,7 @@ int clox::driver::run_code(helper::console& output_cons, const string& code)
 
 	resolver rsv{};
 
-	interpreter the_interpreter{ output_cons, rsv.bindings() };
+	classic::interpreter the_interpreter{ output_cons, rsv.bindings() };
 
 	rsv.resolve(stmts);
 
@@ -78,7 +78,7 @@ int clox::driver::run_file(helper::console& cons, const std::string& name)
 int clox::driver::run_repl(helper::console& cons)
 {
 	resolver rsv{};
-	interpreter the_interpreter{ cons, rsv.bindings() };
+	classic::interpreter the_interpreter{ cons, rsv.bindings() };
 
 	auto ck = make_shared<vm::chunk>("test");
 	auto idx = ck->add_constant(244.0f);

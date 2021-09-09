@@ -19,59 +19,19 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/6/2021.
+// Created by cleve on 6/30/2021.
 //
-
 #pragma once
+#include <interpreter/classic/evaluating_result.h>
 
-#include <helper/printable.h>
-
-#include <interpreter/lox_function.h>
-#include <interpreter/evaluating_result.h>
-#include <interpreter/environment.h>
-
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <memory>
-
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
-class lox_class final
-		: public callable,
-		  public helper::printable,
-		  public std::enable_shared_from_this<lox_class>
+class clock_func final
+		: public callable
 {
 public:
-	explicit lox_class(std::string name) : name_(std::move(name))
-	{
-	}
-
-	explicit lox_class(std::string name, const std::shared_ptr<lox_class>& base)
-			: name_(std::move(name)), base_(base)
-	{
-	}
-
 
 	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
 			const std::vector<evaluating_result>& args) override;
-
-	std::string printable_string() override;
-
-	[[nodiscard]] std::string name() const
-	{
-		return name_;
-	}
-
-	void put_method(const std::string& name, const std::shared_ptr<parsing::statement>&,
-			const std::shared_ptr<class callable>&);
-
-	std::optional<overloaded_functions> lookup_method(const std::string& name);
-
-
-private:
-	std::string name_{};
-	std::weak_ptr<lox_class> base_{};
-	std::unordered_map<std::string, overloaded_functions> methods_{};
 };
 }

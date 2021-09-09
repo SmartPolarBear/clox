@@ -30,8 +30,8 @@
 
 #include <parser/gen/parser_classes.inc>
 
-#include <interpreter/evaluating_result.h>
-#include <interpreter/environment.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/environment.h>
 #include <resolver/binding.h>
 
 #include <scanner/nil_value.h>
@@ -44,8 +44,9 @@
 
 #include <variant>
 #include <string>
+#include "environment.h"
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 
 
@@ -123,7 +124,7 @@ public:
 	void execute(const std::shared_ptr<parsing::statement>& s);
 
 	void execute_block(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
-			const std::shared_ptr<environment>& env);
+			const std::shared_ptr<classic::environment>& env);
 
 private:
 
@@ -139,15 +140,13 @@ private:
 
 	static std::string result_to_string(const scanning::token& error_prone, const evaluating_result& res);
 
-	// FIXME: temporarily all using long double for all numbers
 	static long double get_number(const evaluating_result& l);
 
 	static bool is_number(const evaluating_result& e);
 
 	static evaluating_result literal_value_to_interpreting_result(const scanning::literal_value_type& any);
 
-	static bool is_equal(const scanning::token& op, clox::interpreting::evaluating_result lhs,
-			clox::interpreting::evaluating_result rhs);
+	static bool is_equal(const scanning::token& op, evaluating_result lhs, evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
 
@@ -155,8 +154,8 @@ private:
 
 	mutable helper::console* console_{ nullptr };
 
-	std::shared_ptr<environment> globals_{ nullptr };
-	std::shared_ptr<environment> environment_{ nullptr };
+	std::shared_ptr<classic::environment> globals_{ nullptr };
+	std::shared_ptr<classic::environment> environment_{ nullptr };
 
 	std::shared_ptr<resolving::binding_table> locals_{};
 };

@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include <interpreter/evaluating_result.h>
-#include <interpreter/runtime_error.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/runtime_error.h>
 
 #include <unordered_map>
 #include <string>
 #include <optional>
 #include <memory>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 class environment final
 		: public std::enable_shared_from_this<environment>

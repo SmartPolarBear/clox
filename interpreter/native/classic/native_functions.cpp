@@ -19,24 +19,26 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/1/2021.
+// Created by cleve on 6/30/2021.
 //
-#pragma once
 
-#include <scanner/scanner.h>
+#include <cstddef>
+#include <chrono>
 
-#include <parser/gen/parser_classes.inc>
+#include <interpreter/classic/interpreter.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/native_functions.h>
 
-#include <variant>
-#include <string>
+using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
-#include <memory>
-#include <map>
+using namespace std::chrono;
 
-namespace clox::interpreting
+
+evaluating_result
+clox::interpreting::classic::clock_func::call(struct interpreter* the_interpreter,
+		const std::shared_ptr<parsing::expression>& caller,
+		const std::vector<evaluating_result>& args)
 {
-class lox_initializer_list
-{
-
-};
+	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
