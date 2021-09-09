@@ -317,15 +317,80 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 }
 
 void
-clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr<ternary_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr<ternary_expression>& te)
 {
+	generate(te->get_cond());
 
+	auto false_jmp = emit_jump(V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
+
+	emit_code(V(op_code::POP)); // pop the cond value
+	generate(te->get_true_expr());  // calculate the true expression
+
+	auto end_jmp = emit_jump(V(op_code::JUMP)); // skip the false expression
+
+	// Here goes the false expression
+	patch_jump(false_jmp);
+
+	emit_code(V(op_code::POP)); // pop the cond value
+	generate(te->get_false_expr()); // calculate the false expression
+
+	// Here goes the end
+	patch_jump(end_jmp);
 }
 
 void
-clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr<logical_expression>& ptr)
+clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr<logical_expression>& le)
 {
+	switch (le->get_op().type())
+	{
 
+	case scanning::token_type::AND:
+	{
+		// This implements a logical short circuit for logical and:
+		generate(le->get_left()); // calculate lhs expression first.
+
+		// if lhs is false, jump to end and leave the false value in the stack
+		auto end_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+
+		// if lhs is true, the value is useless so that it is discarded (poped)
+		emit_code(V(op_code::POP));
+
+		// and calculate rhs. the rhs determines the value of the expression
+		generate(le->get_right());
+
+		patch_jump(end_jmp);
+		break;
+	}
+	case scanning::token_type::OR:
+	{
+		// Same goes for logical or
+		generate(le->get_left()); // calculate lhs first
+
+		// if value is false, we jump to the calculation of rhs
+		auto false_jmp = emit_jump(V(vm::op_code::JUMP_IF_FALSE));
+
+		// if value is true, we reach here and jump to the end
+		auto true_jmp = emit_jump(V(vm::op_code::JUMP));
+
+		// Here goes the calculation of rhs
+		patch_jump(false_jmp);
+
+		// lhs is now useless
+		emit_code(V(vm::op_code::POP));
+
+		// calculation of rhs
+		generate(le->get_right());
+
+		// Here goes the end
+		patch_jump(true_jmp);
+
+		break;
+	}
+
+	default:
+		UNREACHABLE_EXCEPTION;
+
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ptr)
