@@ -28,9 +28,10 @@
 #include <parser/gen/parser_base.inc>
 
 #include <interpreter/vm/chunk.h>
+#include <interpreter/vm/heap.h>
+#include <interpreter/vm/opcode.h>
 
 #include <interpreter/codegen/exceptions.h>
-#include <interpreter/vm/heap.h>
 
 #include <resolver/binding.h>
 
@@ -141,12 +142,12 @@ private:
 
 	std::shared_ptr<vm::chunk> current();
 
-	void emit_byte(uint16_t byte);
+	void emit_code(vm::full_opcode_type byte);
 
-	template<std::convertible_to<uint16_t> ...Args>
-	void emit_bytes(const Args& ...arg)
+	template<std::convertible_to<vm::full_opcode_type> ...Args>
+	void emit_codes(const Args& ...arg)
 	{
-		(emit_byte((uint16_t)arg), ...);
+		(emit_code((uint16_t)arg), ...);
 	}
 
 	void emit_return();

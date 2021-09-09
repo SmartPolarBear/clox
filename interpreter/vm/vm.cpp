@@ -101,7 +101,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 
 	case V(op_code::POP_N):
 	{
-		const auto count = static_cast<size_t>(next_byte());
+		const auto count = static_cast<size_t>(next_code());
 		for (size_t i = 0; i < count; i++)
 		{
 			pop();
@@ -263,7 +263,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
-			auto slot = next_byte();
+			auto slot = next_code();
 			stack_[slot] = peek(0);
 		}
 		else
@@ -286,7 +286,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
-			auto slot = next_byte();
+			auto slot = next_code();
 			push(stack_[slot]); // assignment expression should create a value
 		}
 		else
@@ -377,7 +377,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
-			auto slot = next_byte();
+			auto slot = next_code();
 			auto prev_val = stack_[slot];
 
 			stack_[slot] = std::visit(inc_dec_visitor, prev_val);
@@ -409,14 +409,21 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 
 value virtual_machine::next_constant()
 {
-	return chunk_->constant_at(next_byte());
+	return chunk_->constant_at(next_code());
 }
 
 
-chunk::code_type virtual_machine::next_byte()
+chunk::code_type virtual_machine::next_code()
 {
 	return *ip_++;
 }
+
+chunk::long_code_type virtual_machine::next_long_code()
+{
+	ip_ += 2;
+	return static_cast<uint64_t>(static_cast<uint64_t>(*(ip_ - 2)) << 32ull | static_cast<uint64_t>(*(ip_ - 1)));
+}
+
 
 value virtual_machine::pop()
 {
@@ -467,6 +474,4 @@ std::string virtual_machine::next_variable_name()
 {
 	return get<std::string>(next_constant());
 }
-
-
 

@@ -113,39 +113,39 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 	switch (be->get_op().type())
 	{
 	case scanning::token_type::PLUS:
-		emit_byte(V(vm::op_code::ADD));
+		emit_code(V(vm::op_code::ADD));
 		break;
 	case scanning::token_type::MINUS:
-		emit_byte(V(vm::op_code::SUBTRACT));
+		emit_code(V(vm::op_code::SUBTRACT));
 		break;
 	case scanning::token_type::SLASH:
-		emit_byte(V(vm::op_code::DIVIDE));
+		emit_code(V(vm::op_code::DIVIDE));
 		break;
 	case scanning::token_type::STAR:
-		emit_byte(V(vm::op_code::MULTIPLY));
+		emit_code(V(vm::op_code::MULTIPLY));
 		break;
 	case scanning::token_type::STAR_STAR:
-		emit_byte(V(vm::op_code::POW));
+		emit_code(V(vm::op_code::POW));
 		break;
 
 	case scanning::token_type::EQUAL_EQUAL:
-		emit_byte(V(vm::op_code::EQUAL));
+		emit_code(V(vm::op_code::EQUAL));
 		break;
 	case scanning::token_type::BANG_EQUAL:
-		emit_byte(V(vm::op_code::EQUAL));
-		emit_byte(V(vm::op_code::NOT));
+		emit_code(V(vm::op_code::EQUAL));
+		emit_code(V(vm::op_code::NOT));
 		break;
 	case scanning::token_type::GREATER:
-		emit_byte(V(vm::op_code::GREATER));
+		emit_code(V(vm::op_code::GREATER));
 		break;
 	case scanning::token_type::GREATER_EQUAL:
-		emit_byte(V(vm::op_code::GREATER_EQUAL));
+		emit_code(V(vm::op_code::GREATER_EQUAL));
 		break;
 	case scanning::token_type::LESS:
-		emit_byte(V(vm::op_code::LESS));
+		emit_code(V(vm::op_code::LESS));
 		break;
 	case scanning::token_type::LESS_EQUAL:
-		emit_byte(V(vm::op_code::LESS_EQUAL));
+		emit_code(V(vm::op_code::LESS_EQUAL));
 		break;
 	default:
 		UNREACHABLE_EXCEPTION;
@@ -160,10 +160,10 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
-		emit_byte(V(vm::op_code::NEGATE));
+		emit_code(V(vm::op_code::NEGATE));
 		break;
 	case scanning::token_type::BANG:
-		emit_byte(V(vm::op_code::NOT));
+		emit_code(V(vm::op_code::NOT));
 		break;
 
 	case scanning::token_type::PLUS_PLUS:
@@ -268,11 +268,11 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 
 		if constexpr(std::is_same_v<T, boolean_literal_type>)
 		{
-			emit_byte(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
+			emit_code(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
 		}
 		else if constexpr(std::is_same_v<T, nil_value_tag_type>)
 		{
-			emit_byte(V(vm::op_code::CONSTANT_NIL));
+			emit_code(V(vm::op_code::CONSTANT_NIL));
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
@@ -308,11 +308,11 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	// See opcode.h for the design here in details
 	if (is_global_variable(lookup_ret))
 	{
-		emit_bytes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 	}
 	else
 	{
-		emit_bytes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
+		emit_codes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
 	}
 }
 
@@ -347,13 +347,13 @@ void clox::interpreting::compiling::codegen::visit_expression_statement(
 		const std::shared_ptr<expression_statement>& es)
 {
 	generate(es->get_expr());
-	emit_byte(V(op_code::POP));
+	emit_code(V(op_code::POP));
 }
 
 void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& pe)
 {
 	generate(pe->get_expr());
-	emit_byte(V(op_code::PRINT));
+	emit_code(V(op_code::PRINT));
 }
 
 void
@@ -365,7 +365,7 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 	}
 	else
 	{
-		emit_byte(V(op_code::CONSTANT_NIL));
+		emit_code(V(op_code::CONSTANT_NIL));
 	}
 
 	if (current_scope_depth_ == 0)
@@ -428,20 +428,19 @@ std::shared_ptr<vm::chunk> codegen::current()
 	return current_chunk_;
 }
 
-void codegen::emit_byte(uint16_t byte)
+void codegen::emit_code(vm::full_opcode_type byte)
 {
 	current()->write(byte);
 }
 
-
 void codegen::emit_return()
 {
-	emit_byte(V(op_code::RETURN));
+	emit_code(V(op_code::RETURN));
 }
 
 void codegen::emit_constant(const value& val)
 {
-	emit_bytes(V(op_code::CONSTANT), make_constant(val));
+	emit_codes(V(op_code::CONSTANT), make_constant(val));
 }
 
 uint16_t codegen::make_constant(const value& val)
@@ -459,7 +458,7 @@ void codegen::scope_begin()
 void codegen::scope_end()
 {
 	auto count = local_scopes_.back()->count();
-	emit_bytes(
+	emit_codes(
 			V(op_code::POP_N),
 			static_cast<chunk::code_type>(count)
 	);
@@ -472,7 +471,7 @@ void codegen::scope_end()
 void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
 {
 	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
-	emit_bytes(VC(SEC_OP_GLOBAL,op_code::DEFINE), global);
+	emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
 }
 
 void codegen::declare_local_variable(const string& name, size_t depth)

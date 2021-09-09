@@ -44,6 +44,8 @@ using main_opcode_base_type [[maybe_unused]] = uint16_t;
 using secondary_opcode_base_type = uint16_t;
 
 static inline constexpr size_t SECONDARY_LSHIFT = 16;
+static inline constexpr full_opcode_type SECONDARY_MASK = 0xFFFF0000;
+static inline constexpr full_opcode_type MAIN_MASK = 0xFFFF;
 
 enum class op_code : main_opcode_base_type
 {
@@ -123,7 +125,6 @@ enum secondary_op_code : secondary_opcode_base_type
 	SEC_OP_POSTFIX = 1 << 1,
 	SEC_OP_GLOBAL = 1 << 2,
 	SEC_OP_LOCAL = 1 << 3,
-	SEC_OP_PROPERTY = 1 << 4,
 
 	SEC_OPCODE_ENUM_MAX,
 };
@@ -135,21 +136,21 @@ static inline constexpr full_opcode_type compose_opcode(secondary_opcode_base_ty
 
 static inline constexpr full_opcode_type patch_main(full_opcode_type op, op_code main)
 {
-	op &= 0xFFFF0000;
+	op &= SECONDARY_MASK;
 	op |= helper::enum_cast(main);
 	return op;
 }
 
 static inline constexpr full_opcode_type patch_secondary(full_opcode_type op, secondary_opcode_base_type sec)
 {
-	op &= 0xFFFF;
+	op &= MAIN_MASK;
 	op |= (sec << SECONDARY_LSHIFT);
 	return op;
 }
 
 static inline constexpr op_code main_op_code_of(full_opcode_type code)
 {
-	return static_cast<op_code>(code & 0xFFFF);
+	return static_cast<op_code>(code & MAIN_MASK);
 }
 
 static inline constexpr secondary_opcode_base_type secondary_op_code_of(full_opcode_type code)
