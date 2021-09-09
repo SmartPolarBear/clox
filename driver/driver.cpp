@@ -121,3 +121,17 @@ int clox::driver::run_repl(helper::console& cons)
 
 	return 0;
 }
+
+int clox::driver::run(const argparse::ArgumentParser& arg_parser)
+{
+	auto file = arg_parser.get<string>("--file");
+	if (!file.empty())
+	{
+		return clox::driver::run_file(clox::helper::std_console::instance(), file);
+	}
+	else
+	{
+		return clox::driver::run_repl(clox::helper::std_console::instance());
+	}
+	return 0;
+}

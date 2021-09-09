@@ -18,26 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//
+// Created by cleve on 9/10/2021.
+//
+
 #pragma once
 
-#include <helper/console.h>
-
-#include <string>
-
-#include <argparse/argparse.hpp>
-
-namespace clox::driver
+namespace clox::interpreting
 {
-
-int run(const argparse::ArgumentParser& args);
-
-// these interfaces are mainly used for unit tests
-
-[[nodiscard]] int run_code(helper::console& output_cons,
-		const std::string& code);
-
-[[nodiscard]] int run_file(helper::console& cons, const std::string& name);
-
-[[nodiscard]] int run_repl(helper::console& cons);
 
 }
