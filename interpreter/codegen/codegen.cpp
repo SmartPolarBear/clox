@@ -402,8 +402,26 @@ clox::interpreting::compiling::codegen::visit_foreach_statement(const std::share
 
 }
 
-void clox::interpreting::compiling::codegen::visit_if_statement(const std::shared_ptr<if_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_if_statement(const std::shared_ptr<if_statement>& ifs)
 {
+	generate(ifs->get_cond());
+
+	auto then_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+	emit_code(V(op_code::POP));// pop conditional value when cond is true
+
+	generate(ifs->get_true_stmt());
+
+	auto else_jmp = emit_jump(V(op_code::JUMP)); // when execute true branch, we must skip the else branch
+
+	patch_jump(then_jmp);
+	emit_code(V(op_code::POP));// pop conditional value when cond is false
+
+	if (ifs->get_false_stmt())
+	{
+		generate(ifs->get_false_stmt());
+	}
+
+	patch_jump(else_jmp);
 
 }
 
@@ -502,4 +520,24 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 	}
 	return make_tuple(nullopt, false);
 }
+
+vm::chunk::iterator_type codegen::emit_jump(vm::full_opcode_type jmp)
+{
+	emit_code(jmp);
+	emit_code(PATCHABLE_PLACEHOLDER);
+
+	return current()->end() - 1;
+}
+
+void codegen::patch_jump(vm::chunk::iterator_type pos)
+{
+	auto dist = current()->end() - 1 - pos;
+	if (dist > numeric_limits<full_opcode_type>::max())
+	{
+		throw jump_too_long{ static_cast<size_t>(dist) };
+	}
+
+	*pos = dist;
+}
+
 

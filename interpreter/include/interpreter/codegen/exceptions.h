@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <format>
 #include <stdexcept>
 
 namespace clox::interpreting::compiling
@@ -36,6 +37,20 @@ public:
 	explicit internal_codegen_error(const std::string& msg) : std::runtime_error(msg)
 	{
 	}
+};
+
+class jump_too_long :
+		std::runtime_error
+{
+public:
+	explicit jump_too_long(size_t len)
+			: len_(len),
+			  std::runtime_error(std::format("{} is too long to jump", len))
+	{
+	}
+
+private:
+	size_t len_{};
 };
 
 }

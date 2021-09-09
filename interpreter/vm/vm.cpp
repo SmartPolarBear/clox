@@ -400,6 +400,23 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::JUMP):
+	{
+		auto offset = next_code();
+		ip_ += offset;
+		break;
+	}
+
+	case V(op_code::JUMP_IF_FALSE):
+	{
+		auto offset = next_code();
+		if (is_false(peek(0)))
+		{
+			ip_ += offset;
+		}
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
@@ -416,12 +433,6 @@ value virtual_machine::next_constant()
 chunk::code_type virtual_machine::next_code()
 {
 	return *ip_++;
-}
-
-chunk::long_code_type virtual_machine::next_long_code()
-{
-	ip_ += 2;
-	return static_cast<uint64_t>(static_cast<uint64_t>(*(ip_ - 2)) << 32ull | static_cast<uint64_t>(*(ip_ - 1)));
 }
 
 

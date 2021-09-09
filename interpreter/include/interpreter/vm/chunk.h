@@ -42,9 +42,7 @@ public:
 	static inline constexpr int64_t INVALID_LINE = -1;
 
 	using code_type = full_opcode_type;
-
-	static_assert(sizeof(code_type) == sizeof(uint32_t));
-	using long_code_type = uint64_t;
+	static_assert(sizeof(code_type) >= sizeof(uint32_t));
 
 	using code_list_type = std::vector<code_type>;
 

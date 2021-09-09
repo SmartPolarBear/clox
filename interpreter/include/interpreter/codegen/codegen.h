@@ -45,6 +45,8 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
+	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
+public:
 	explicit codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table);
 
 
@@ -153,6 +155,10 @@ private:
 	void emit_return();
 
 	void emit_constant(const vm::value& val);
+
+	vm::chunk::iterator_type emit_jump(vm::full_opcode_type jmp);
+
+	void patch_jump(vm::chunk::iterator_type pos);
 
 	uint16_t identifier_constant(const scanning::token& identifier);
 

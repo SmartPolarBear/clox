@@ -150,7 +150,6 @@ private:
 
 	chunk::code_type next_code();
 
-	chunk::long_code_type next_long_code();
 	//
 
 	std::shared_ptr<object_heap> heap_{};

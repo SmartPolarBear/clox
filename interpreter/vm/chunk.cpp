@@ -100,16 +100,21 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 
+	case op_code::JUMP:
+	case op_code::JUMP_IF_FALSE:
+		out.out() << std::format(" {} -> {}", offset, offset + 2 + codes_[offset + 1]);
+		return offset + 2;
+
 	case op_code::INC:
 	case op_code::DEC:
 	case op_code::SET:
 	case op_code::GET:
 	case op_code::DEFINE:
-		if(secondary&SEC_OP_GLOBAL)
+		if (secondary & SEC_OP_GLOBAL)
 		{
 			out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		}
-		else if(secondary&SEC_OP_LOCAL)
+		else if (secondary & SEC_OP_LOCAL)
 		{
 			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		}
