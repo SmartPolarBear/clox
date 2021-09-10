@@ -62,8 +62,6 @@ using namespace clox::interpreting::vm;
 using namespace clox::interpreting::compiling;
 
 
-
-
 int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
 {
 	resolver rsv{};
@@ -80,6 +78,11 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
+
+	if (show_asm_)
+	{
+		gen_.current()->disassemble(*cons_);
+	}
 
 	virtual_machine vm{ *cons_, heap_ };
 	vm.run(gen_.current()); // FIXME
@@ -100,6 +103,11 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	codegen gen_{ heap_, repl_resolver_.bindings() };
 	gen_.generate(stmts);
 
+	if (show_asm_)
+	{
+		gen_.current()->disassemble(*cons_);
+	}
+
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
@@ -109,5 +117,11 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	else if (logger::instance().has_runtime_errors())return 67;
 
 	return 0;
+}
+
+void clox::driver::vm_interpreter_adapter::set_output(bool show_ast, bool show_asm)
+{
+	show_ast_ = show_ast;
+	show_asm_ = show_asm;
 }
 

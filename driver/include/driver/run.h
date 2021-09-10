@@ -39,14 +39,20 @@ namespace clox::driver
 
 [[nodiscard]] int run_code(helper::console& output_cons,
 		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& code);
+		const std::string& code,
+		bool dump_ast = false,
+		bool dump_assembly = false);
 
 [[nodiscard]] int run_file(helper::console& cons,
 		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& name);
+		const std::string& name,
+		bool dump_ast = false,
+		bool dump_assembly = false);
 
 [[nodiscard]] int run_repl(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		bool dump_ast = false,
+		bool dump_assembly = false
 );
 
 }

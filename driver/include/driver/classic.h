@@ -44,6 +44,8 @@ public:
 	{
 	}
 
+	void set_output(bool show_ast, bool show_asm) override;
+
 	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
 
 	int repl(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
@@ -51,6 +53,9 @@ public:
 private:
 	resolving::resolver repl_resolver_{};
 	interpreting::classic::interpreter repl_intp_;
+
+	bool show_ast_{ false };
+	bool show_asm_{ false };
 
 	mutable helper::console* cons_{};
 };

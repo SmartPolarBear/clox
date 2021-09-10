@@ -36,9 +36,19 @@ int clox::driver::run(const argparse::ArgumentParser& arg_parser)
 {
 	auto file = arg_parser.get<string>("--file");
 
+
+	bool show_ast = arg_parser.get<bool>("--show-ast");
+	bool show_asm = arg_parser.get<bool>("--show-assembly");
+
 	shared_ptr<interpreter_adapter> adapter{ nullptr };
 	if (arg_parser.get<bool>("--classic"))
 	{
+		if (show_asm)
+		{
+			logger::instance().error("--show-ast", "In classic mode, there is no assembly code to display.");
+			return 1;
+		}
+
 		adapter = static_pointer_cast<interpreter_adapter>(
 				make_shared<classic_interpreter_adapter>(clox::helper::std_console::instance()));
 	}
@@ -48,13 +58,21 @@ int clox::driver::run(const argparse::ArgumentParser& arg_parser)
 				make_shared<vm_interpreter_adapter>(clox::helper::std_console::instance()));
 	}
 
+
 	if (!file.empty())
 	{
-		return clox::driver::run_file(clox::helper::std_console::instance(), adapter, file);
+		return clox::driver::run_file(clox::helper::std_console::instance(),
+				adapter,
+				file,
+				show_ast,
+				show_asm);
 	}
 	else
 	{
-		return clox::driver::run_repl(clox::helper::std_console::instance(), adapter);
+		return clox::driver::run_repl(clox::helper::std_console::instance(),
+				adapter,
+				show_ast,
+				show_asm);
 	}
 
 	return 0;

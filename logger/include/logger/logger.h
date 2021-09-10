@@ -29,6 +29,8 @@ public:
 
 	helper::console& get_console();
 
+	void error(const std::string& param, const std::string& message);
+
 	void error(size_t line, const std::string& message);
 
 	void error(const scanning::token& token, const std::string& msg);
