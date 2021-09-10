@@ -42,7 +42,7 @@ clox::interpreting::vm::value_stringify_visitor::value_stringify_visitor(bool sh
 template<>
 std::string clox::interpreting::vm::value_stringify_visitor::operator()(nil_value_type val)
 {
-	return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), "nil");
+	return std::format("{}{}", type_name_of<std::decay_t<decltype(val)>>(), "nil");
 }
 
 

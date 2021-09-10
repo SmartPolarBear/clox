@@ -150,7 +150,7 @@ private:
 	template<std::convertible_to<vm::full_opcode_type> ...Args>
 	void emit_codes(const Args& ...arg)
 	{
-		(emit_code((uint16_t)arg), ...);
+		(emit_code((vm::full_opcode_type)arg), ...);
 	}
 
 	void emit_return();
@@ -183,6 +183,7 @@ private:
 		void declare(const std::string& name, slot_type slot)
 		{
 			locals_.insert_or_assign(name, slot);
+			count_++;
 		}
 
 		[[nodiscard]] std::optional<slot_type> find(const std::string& name)

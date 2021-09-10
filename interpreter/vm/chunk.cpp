@@ -65,25 +65,26 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 
 	out.out() << std::format("{0:0>8}", offset); // example: 00000001:	CONSTANT
 
+	constexpr size_t LINE_NUMBER_WIDTH = 10;
 	if (offset > 0 && lines_[offset] == lines_[offset - 1])
 	{
-		out.out() << std::format("{0:>8}  ", "|");
+		out.out() << std::format("{0:>{1}}  ", "|", LINE_NUMBER_WIDTH);
 	}
 	else
 	{
 		if (lines_[offset] == INVALID_LINE)
 		{
-			out.out() << std::format("{0:>8}  ", "<invalid>");
+			out.out() << std::format("{0:>{1}}  ", "<invalid>", LINE_NUMBER_WIDTH);
 		}
 		else
 		{
-			out.out() << std::format("{0:>8}  ", lines_[offset]);
+			out.out() << std::format("{0:>{1}}  ", lines_[offset], LINE_NUMBER_WIDTH);
 		}
 	}
 
 	try
 	{
-		out.out() << std::format("[{0:0>8} <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
+		out.out() << std::format("[{0:0>8}, <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
 				secondary,
 				op,
 				helper::enum_cast(op));
@@ -100,9 +101,13 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 
+	case op_code::POP_N:
+		out.out() << std::format(" N={}", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	case op_code::JUMP:
 	case op_code::JUMP_IF_FALSE:
-		out.out() << std::format(" {} -> {}", offset, offset + 2 + codes_[offset + 1]);
+		out.out() << std::format(" {} -> {}", offset, offset + 2 + codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	case op_code::INC:

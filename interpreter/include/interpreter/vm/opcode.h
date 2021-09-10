@@ -131,20 +131,23 @@ enum secondary_op_code : secondary_opcode_base_type
 
 static inline constexpr full_opcode_type compose_opcode(secondary_opcode_base_type sec, op_code main)
 {
-	return sec << SECONDARY_LSHIFT | helper::enum_cast(main);
+	auto ret = (static_cast<full_opcode_type>(sec) << SECONDARY_LSHIFT) |
+			   static_cast<full_opcode_type>(helper::enum_cast(main));
+
+	return ret;
 }
 
 static inline constexpr full_opcode_type patch_main(full_opcode_type op, op_code main)
 {
 	op &= SECONDARY_MASK;
-	op |= helper::enum_cast(main);
+	op |= static_cast<full_opcode_type>(helper::enum_cast(main));
 	return op;
 }
 
 static inline constexpr full_opcode_type patch_secondary(full_opcode_type op, secondary_opcode_base_type sec)
 {
 	op &= MAIN_MASK;
-	op |= (sec << SECONDARY_LSHIFT);
+	op |= static_cast<full_opcode_type>(sec << SECONDARY_LSHIFT);
 	return op;
 }
 
@@ -188,7 +191,6 @@ struct customize::enum_range<clox::interpreting::vm::op_code>
 	static constexpr int max = (int)clox::interpreting::vm::op_code::OPCODE_ENUM_MAX;
 };
 }
-
 
 
 #include <string>

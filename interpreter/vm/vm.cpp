@@ -249,7 +249,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 
 	case V(op_code::PRINT):
 	{
-		cons_->out() << std::format("{}", pop()) << endl;
+		cons_->out() << visit(value_stringify_visitor{ false }, pop()) << endl;
 		break;
 	}
 
@@ -421,14 +421,13 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		throw invalid_opcode{ instruction };
 	}
 
-	UNREACHABLE_EXCEPTION;
+	return true;
 }
 
 value virtual_machine::next_constant()
 {
 	return chunk_->constant_at(next_code());
 }
-
 
 chunk::code_type virtual_machine::next_code()
 {
@@ -488,6 +487,9 @@ std::string virtual_machine::next_variable_name()
 
 virtual_machine_status virtual_machine::run(const shared_ptr<chunk>& chunk)
 {
-	return virtual_machine_status::RUNTIME_ERROR;
+	chunk_ = chunk;
+	ip_ = chunk_->begin();
+
+	return run();
 }
 

@@ -52,6 +52,7 @@ codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolvin
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
 	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
+	current_chunk_ = make_shared<chunk>(); //FIXME
 }
 
 
@@ -72,7 +73,7 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 		generate(stmt);
 	}
 
-	emit_return();
+//	emit_return(); // FIXME: it should be, but not be there
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(

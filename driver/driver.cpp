@@ -51,12 +51,15 @@ int clox::driver::run(const argparse::ArgumentParser& arg_parser)
 
 		adapter = static_pointer_cast<interpreter_adapter>(
 				make_shared<classic_interpreter_adapter>(clox::helper::std_console::instance()));
+
 	}
 	else
 	{
 		adapter = static_pointer_cast<interpreter_adapter>(
 				make_shared<vm_interpreter_adapter>(clox::helper::std_console::instance()));
 	}
+
+	adapter->set_output(show_ast, show_asm);
 
 
 	if (!file.empty())
