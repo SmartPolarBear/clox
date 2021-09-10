@@ -19,62 +19,34 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/15/2021.
+// Created by cleve on 9/10/2021.
 //
 
-
-#include <test_scaffold_console.h>
-#include <test_interpreter_adapter.h>
-
-#include <logger/logger.h>
-
-#include <gtest/gtest.h>
-
-#include <cstring>
-
-class ConditionalTest : public ::testing::Test
-{
-
-protected:
-
-	virtual void SetUp()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	virtual void TearDown()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	const char* if_{
-#include <conditional/if.txt>
-	};
-
-	const char* if_out_{
-#include <conditional/if.out>
-	};
-
-};
-
+#pragma once
 
 #include <driver/run.h>
+#include <driver/interpreter_adapter.h>
+
+#include <helper/console.h>
+
+#include <string>
 
 
-using namespace std;
-
-using namespace clox::driver;
-
-
-TEST_F(ConditionalTest, IfTest)
+namespace clox::driver
 {
-	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), if_);
-	ASSERT_EQ(ret, 0);
+// these interfaces are mainly used for unit tests
 
-	auto output = cons.get_written_text();
-	ASSERT_NE(output.find(if_out_), string::npos);
+[[nodiscard]] int run_code(helper::console& output_cons,
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		const std::string& code);
+
+[[nodiscard]] int run_file(helper::console& cons,
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		const std::string& name);
+
+[[nodiscard]] int run_repl(helper::console& cons,
+		const std::shared_ptr<interpreter_adapter>& adapter
+);
+
 }

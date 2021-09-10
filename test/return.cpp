@@ -23,6 +23,7 @@
 //
 
 #include <test_scaffold_console.h>
+#include <test_interpreter_adapter.h>
 
 #include <logger/logger.h>
 
@@ -66,7 +67,8 @@ private:
 	};
 };
 
-#include <driver/driver.h>
+#include <driver/run.h>
+
 
 using namespace std;
 
@@ -76,7 +78,7 @@ TEST_F(ReturnTest, GoodReturnTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, return_code());
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), return_code());
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -89,7 +91,7 @@ TEST_F(ReturnTest, BadReturnTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, bad_return_code());
+	int ret = run_code(cons, test_interpreter_adapater::get(cons),bad_return_code());
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_written_text();

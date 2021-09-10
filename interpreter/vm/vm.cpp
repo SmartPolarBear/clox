@@ -486,3 +486,8 @@ std::string virtual_machine::next_variable_name()
 	return get<std::string>(next_constant());
 }
 
+virtual_machine_status virtual_machine::run(const shared_ptr<chunk>& chunk)
+{
+	return virtual_machine_status::RUNTIME_ERROR;
+}
+

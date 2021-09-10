@@ -22,6 +22,7 @@
 // Created by cleve on 7/15/2021.
 //
 #include <test_scaffold_console.h>
+#include <test_interpreter_adapter.h>
 
 #include <logger/logger.h>
 
@@ -65,7 +66,8 @@ protected:
 };
 
 
-#include <driver/driver.h>
+#include <driver/run.h>
+
 
 using namespace std;
 
@@ -75,7 +77,7 @@ TEST_F(LoopTest, ForTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, for_);
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), for_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -86,7 +88,7 @@ TEST_F(LoopTest, WhileTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, while_);
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), while_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

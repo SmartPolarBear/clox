@@ -45,6 +45,7 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
+
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
 public:
 	explicit codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table);
@@ -103,6 +104,7 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
+	std::shared_ptr<vm::chunk> current();
 
 private:
 
@@ -142,7 +144,6 @@ private:
 		return global;
 	}
 
-	std::shared_ptr<vm::chunk> current();
 
 	void emit_code(vm::full_opcode_type byte);
 

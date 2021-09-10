@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <driver/run.h>
+
 #include <helper/console.h>
 
 #include <string>
@@ -31,13 +33,5 @@ namespace clox::driver
 
 int run(const argparse::ArgumentParser& args);
 
-// these interfaces are mainly used for unit tests
-
-[[nodiscard]] int run_code(helper::console& output_cons,
-		const std::string& code);
-
-[[nodiscard]] int run_file(helper::console& cons, const std::string& name);
-
-[[nodiscard]] int run_repl(helper::console& cons);
 
 }
