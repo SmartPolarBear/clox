@@ -84,7 +84,7 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 
 	try
 	{
-		out.out() << std::format("[{0:0>8}, <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
+		out.out() << std::format("[{0:0>8b}, <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
 				secondary,
 				op,
 				helper::enum_cast(op));

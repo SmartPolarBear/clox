@@ -161,6 +161,7 @@ static inline constexpr secondary_opcode_base_type secondary_op_code_of(full_opc
 	return static_cast<secondary_opcode_base_type>(code >> SECONDARY_LSHIFT);
 }
 
+
 static inline constexpr auto op_code_value(op_code code)
 {
 	return helper::enum_cast(code);
