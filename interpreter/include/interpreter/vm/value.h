@@ -194,7 +194,7 @@ private:
 	{
 		if (!show_type_)
 		{
-			return " ";
+			return "";
 		}
 
 		return std::string{ type_names::type_name<T>::value };
