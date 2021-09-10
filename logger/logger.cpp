@@ -20,11 +20,17 @@ void clox::logging::logger::set_console(clox::helper::console& cons)
 	console_ = &cons;
 }
 
+void clox::logging::logger::error(const string& param, const string& message)
+{
+	errors_++;
+
+	console_->error() << format("{}: {}") << endl;
+}
 
 void clox::logging::logger::error(size_t line, const std::string& message)
 {
 	errors_++;
-	if(line==0)
+	if (line == 0)
 	{
 		console_->out() << format("{}", message) << endl;
 	}
@@ -40,7 +46,7 @@ void clox::logging::logger::error(const clox::scanning::token& token, const std:
 	{
 		error(token.line(), std::format("{} at end.\n", msg));
 	}
-	else if(token.type()==token_type::VIRTUAL)
+	else if (token.type() == token_type::VIRTUAL)
 	{
 		error(0, std::format("Internal compiler error.\n", msg));
 	}
@@ -98,4 +104,6 @@ bool clox::logging::logger::has_warnings() const
 {
 	return warnings_;
 }
+
+
 

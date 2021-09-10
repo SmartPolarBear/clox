@@ -88,3 +88,9 @@ int clox::driver::classic_interpreter_adapter::repl(const std::vector<std::share
 
 	return 0;
 }
+
+void clox::driver::classic_interpreter_adapter::set_output(bool show_ast, bool show_asm)
+{
+	show_ast_ = show_ast;
+	show_asm_ = show_asm;
+}

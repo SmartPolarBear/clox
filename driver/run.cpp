@@ -34,7 +34,9 @@ using namespace clox::interpreting;
 
 int clox::driver::run_code(helper::console& output_cons,
 		const std::shared_ptr<interpreter_adapter>& adapter,
-		const string& code)
+		const string& code,
+		bool dump_ast,
+		bool dump_assembly)
 {
 	// switch to the desirable console for logging
 	auto& prev_cons = logger::instance().get_console();
@@ -56,18 +58,22 @@ int clox::driver::run_code(helper::console& output_cons,
 
 int clox::driver::run_file(helper::console& cons,
 		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& name)
+		const std::string& name,
+		bool dump_ast,
+		bool dump_assembly)
 {
 	ifstream src{ name };
 
 	stringstream ss{};
 	ss << src.rdbuf();
 
-	return run_code(cons, adapter, ss.str());
+	return run_code(cons, adapter, ss.str(), dump_ast, dump_assembly);
 }
 
 int clox::driver::run_repl(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter)
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		bool dump_ast,
+		bool dump_assembly)
 {
 	resolver rsv{};
 	classic::interpreter the_interpreter{ cons, rsv.bindings() };

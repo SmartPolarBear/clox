@@ -24,6 +24,16 @@ int main(int argc, char* argv[])
 			.default_value(false)
 			.implicit_value(true);
 
+	arg_parser.add_argument("-t", "--show-ast")
+			.help("Show AST structure")
+			.default_value(false)
+			.implicit_value(true);
+
+	arg_parser.add_argument("-d", "--show-assembly")
+			.help("Show assembly code")
+			.default_value(false)
+			.implicit_value(true);
+
 	try
 	{
 		arg_parser.parse_args(argc, argv);

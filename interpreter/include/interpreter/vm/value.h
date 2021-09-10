@@ -116,15 +116,20 @@ public:
 	{
 		if constexpr(std::is_same_v<object_value_type, std::decay_t<T>>)
 		{
-			return std::format("{0} {#x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
+			if (auto str = dynamic_cast<string_object_raw_pointer>(val);str)
+			{
+				return std::format("{0}{1}", type_name_of<string_object_raw_pointer>(), str->string());
+			}
+
+			return std::format("{0}{1:<0x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
 		}
 		else if constexpr(std::is_same_v<variable_name_type, std::decay_t<T>>)
 		{
-			return std::format("{} name: {}", type_name_of<std::decay_t<decltype(val)>>(), val);
+			return std::format("{}{}", type_name_of<std::decay_t<decltype(val)>>(), val);
 		}
 		else
 		{
-			return std::format("{} {}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
+			return std::format("{}{}", type_name_of<std::decay_t<decltype(val)>>(), std::to_string(val));
 		}
 	}
 
@@ -157,6 +162,12 @@ private:
 		struct type_name<object_value_type>
 		{
 			static constexpr std::string_view value{ "<object>" };
+		};
+
+		template<>
+		struct type_name<string_object_raw_pointer>
+		{
+			static constexpr std::string_view value{ "<string>" };
 		};
 
 		template<>
