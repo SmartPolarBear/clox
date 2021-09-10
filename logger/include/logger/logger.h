@@ -4,7 +4,7 @@
 
 #include <helper/console.h>
 #include <scanner/scanner.h>
-#include <interpreter/runtime_error.h>
+#include <interpreter/classic/runtime_error.h>
 
 #include <iostream>
 #include <string>
@@ -37,7 +37,7 @@ public:
 
 	void warning(const scanning::token& token, const std::string& msg);
 
-	void runtime_error(const interpreting::runtime_error& re);
+	void runtime_error(const interpreting::classic::runtime_error& re);
 
 	void clear_error();
 

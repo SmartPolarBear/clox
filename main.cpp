@@ -19,6 +19,11 @@ int main(int argc, char* argv[])
 			.implicit_value(string{ "" })
 			.nargs(1);
 
+	arg_parser.add_argument("-a", "--classic")
+			.help("Use classic (tree-walker) interpreter instead of bytecode virtual machine")
+			.default_value(false)
+			.implicit_value(true);
+
 	try
 	{
 		arg_parser.parse_args(argc, argv);
@@ -30,13 +35,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	auto file = arg_parser.get<string>("--file");
-	if (!file.empty())
-	{
-		return clox::driver::run_file(clox::helper::std_console::instance(), file);
-	}
-	else
-	{
-		return clox::driver::run_repl(clox::helper::std_console::instance());
-	}
+	return clox::driver::run(arg_parser);
+
+
 }

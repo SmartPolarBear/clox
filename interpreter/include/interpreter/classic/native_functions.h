@@ -19,50 +19,19 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/6/2021.
+// Created by cleve on 6/30/2021.
 //
+#pragma once
+#include <interpreter/classic/evaluating_result.h>
 
-#include <format>
-#include <utility>
-
-#include <interpreter/lox_instance.h>
-#include <interpreter/runtime_error.h>
-
-
-using namespace std;
-
-using namespace clox::interpreting;
-
-std::string clox::interpreting::lox_instance::printable_string()
+namespace clox::interpreting::classic
 {
-	return std::format("Instance of class {} at {}", class_->name(), (uintptr_t)this);
-}
-
-clox::interpreting::evaluating_result clox::interpreting::lox_instance::get(const clox::scanning::token& tk) const
+class clock_func final
+		: public callable
 {
-	if (fields_.contains(tk.lexeme()))
-	{
-		return fields_.at(tk.lexeme());
-	}
+public:
 
-	if (auto m = class_->lookup_method(tk.lexeme());m)
-	{
-		auto method = m.value();
-
-		for (auto& p:method)
-		{
-			p.second = dynamic_pointer_cast<lox_function>(p.second)->bind(
-					const_pointer_cast<lox_instance>(shared_from_this()));
-		}
-
-		return method;
-	}
-
-	throw runtime_error{ tk, std::format("{} property is undefined.", tk.lexeme()) };
+	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+			const std::vector<evaluating_result>& args) override;
+};
 }
-
-void lox_instance::set(const clox::scanning::token& tk, evaluating_result val)
-{
-	fields_[tk.lexeme()] = std::move(val);
-}
-

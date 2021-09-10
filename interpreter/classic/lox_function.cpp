@@ -20,21 +20,23 @@
 
 #include <scanner/nil_value.h>
 
-#include <interpreter/lox_function.h>
-#include <interpreter/interpreter.h>
-#include <interpreter/return.h>
+#include <interpreter/classic/lox_function.h>
+#include <interpreter/classic/interpreter.h>
+#include <interpreter/classic/return.h>
+#include <interpreter/classic/environment.h>
 
 #include <memory>
 
 using namespace std;
 
 using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
-clox::interpreting::evaluating_result
-clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
+evaluating_result
+lox_function::call(interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
 		const std::vector<evaluating_result>& args)
 {
-	auto env = make_shared<environment>(closure_);
+	auto env = make_shared<classic::environment>(closure_);
 
 	auto params = decl_->get_params();
 	for (size_t i = 0; i < params.size(); i++)
@@ -78,7 +80,7 @@ clox::interpreting::lox_function::call(interpreter* the_interpreter, const std::
 
 std::shared_ptr<lox_function> lox_function::bind(const shared_ptr<lox_instance>& inst)
 {
-	auto env = make_shared<environment>(closure_);
+	auto env = make_shared<classic::environment>(closure_);
 	env->put("this", inst);
 	return make_shared<lox_function>(decl_, env, is_init_);
 }

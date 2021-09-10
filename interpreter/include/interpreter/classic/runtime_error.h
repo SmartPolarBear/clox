@@ -19,62 +19,33 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/15/2021.
+// Created by cleve on 6/16/2021.
 //
+#pragma once
 
+#include <stdexcept>
 
-#include <test_scaffold_console.h>
-#include <test_interpreter_adapter.h>
-
-#include <logger/logger.h>
-
-#include <gtest/gtest.h>
-
-#include <cstring>
-
-class ConditionalTest : public ::testing::Test
+namespace clox::interpreting::classic
 {
+class runtime_error final
+		: public std::runtime_error
+{
+public:
 
-protected:
-
-	virtual void SetUp()
+	runtime_error(scanning::token tk, const std::string& msg)
+			: tk_(std::move(tk)), std::runtime_error(msg)
 	{
-		clox::logging::logger::instance().clear_error();
-
 	}
 
-	virtual void TearDown()
-	{
-		clox::logging::logger::instance().clear_error();
+	~runtime_error() override = default;
 
+	[[nodiscard]]scanning::token token() const
+	{
+		return tk_;
 	}
 
-	const char* if_{
-#include <conditional/if.txt>
-	};
-
-	const char* if_out_{
-#include <conditional/if.out>
-	};
-
+private:
+	scanning::token tk_;
 };
 
-
-#include <driver/run.h>
-
-
-using namespace std;
-
-using namespace clox::driver;
-
-
-TEST_F(ConditionalTest, IfTest)
-{
-	test_scaffold_console cons{};
-
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), if_);
-	ASSERT_EQ(ret, 0);
-
-	auto output = cons.get_written_text();
-	ASSERT_NE(output.find(if_out_), string::npos);
 }

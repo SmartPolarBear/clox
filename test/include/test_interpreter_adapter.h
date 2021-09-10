@@ -19,32 +19,21 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/30/2021.
+// Created by cleve on 9/10/2021.
 //
 
 #pragma once
 
-#include <stdexcept>
-#include <utility>
+#include <driver/interpreter_adapter.h>
+#include <driver/classic.h>
 
-#include <interpreter/evaluating_result.h>
+#include <memory>
 
-namespace clox::interpreting
-{
-class return_value final
-		: public std::exception
+class test_interpreter_adapater
 {
 public:
-	explicit return_value(evaluating_result val) : val_{ std::move(val) }
-	{
-	}
+	using adapter_type = clox::driver::classic_interpreter_adapter;
 
-	[[nodiscard]] evaluating_result value() const
-	{
-		return val_;
-	}
-
-private:
-	evaluating_result val_{};
+	static std::shared_ptr<clox::driver::interpreter_adapter> get(
+			clox::helper::console& cons);
 };
-}

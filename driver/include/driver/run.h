@@ -19,35 +19,34 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/6/2021.
+// Created by cleve on 9/10/2021.
 //
+
 #pragma once
 
-#include <interpreter/lox_class.h>
+#include <driver/run.h>
+#include <driver/interpreter_adapter.h>
 
-#include <memory>
-#include <utility>
-#include <unordered_map>
+#include <helper/console.h>
 
-namespace clox::interpreting
+#include <string>
+
+
+namespace clox::driver
 {
-class lox_instance final
-		: public helper::printable,
-		  public std::enable_shared_from_this<lox_instance>
-{
-public:
-	explicit lox_instance(std::shared_ptr<class lox_class> cls) : class_(std::move(cls))
-	{
-	}
 
-	std::string printable_string() override;
+// these interfaces are mainly used for unit tests
 
-	evaluating_result get(const scanning::token& tk) const;
+[[nodiscard]] int run_code(helper::console& output_cons,
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		const std::string& code);
 
-	void set(const scanning::token& tk, evaluating_result val);
+[[nodiscard]] int run_file(helper::console& cons,
+		const std::shared_ptr<interpreter_adapter>& adapter,
+		const std::string& name);
 
-private:
-	std::shared_ptr<class lox_class> class_{ nullptr };
-	std::unordered_map<std::string, evaluating_result> fields_{};
-};
+[[nodiscard]] int run_repl(helper::console& cons,
+		const std::shared_ptr<interpreter_adapter>& adapter
+);
+
 }

@@ -19,62 +19,58 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/15/2021.
+// Created by cleve on 9/10/2021.
 //
 
+#pragma once
 
-#include <test_scaffold_console.h>
-#include <test_interpreter_adapter.h>
+#include <parser/gen/parser_base.inc>
+#include <parser/gen/parser_classes.inc>
 
-#include <logger/logger.h>
+#include <resolver/resolver.h>
+#include <interpreter/vm/vm.h>
 
-#include <gtest/gtest.h>
+#include <string>
+#include <vector>
+#include <memory>
 
-#include <cstring>
+#include <concepts>
 
-class ConditionalTest : public ::testing::Test
+namespace clox::driver
 {
+class interpreter_adapter
+{
+public:
 
-protected:
+	virtual int full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts) = 0;
 
-	virtual void SetUp()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	virtual void TearDown()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	const char* if_{
-#include <conditional/if.txt>
-	};
-
-	const char* if_out_{
-#include <conditional/if.out>
-	};
-
+	virtual int repl(const std::vector<std::shared_ptr<parsing::statement>>& stmts) = 0;
 };
 
-
-#include <driver/run.h>
-
-
-using namespace std;
-
-using namespace clox::driver;
-
-
-TEST_F(ConditionalTest, IfTest)
+class vm_interpreter_adapter final
+		: public interpreter_adapter
 {
-	test_scaffold_console cons{};
+public:
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), if_);
-	ASSERT_EQ(ret, 0);
+	explicit vm_interpreter_adapter(helper::console& cons)
+			: heap_(std::make_shared<interpreting::vm::object_heap>()),
+			  cons_(&cons),
+			  repl_resolver_(),
+			  repl_vm_(cons, heap_)
+	{
+	}
 
-	auto output = cons.get_written_text();
-	ASSERT_NE(output.find(if_out_), string::npos);
+	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
+
+	int repl(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
+
+private:
+	std::shared_ptr<interpreting::vm::object_heap> heap_{};
+
+	resolving::resolver repl_resolver_{};
+	interpreting::vm::virtual_machine repl_vm_;
+
+	mutable helper::console* cons_{};
+};
+
 }

@@ -23,6 +23,7 @@
 //
 
 #include <test_scaffold_console.h>
+#include <test_interpreter_adapter.h>
 
 #include <logger/logger.h>
 
@@ -66,7 +67,8 @@ protected:
 	};
 };
 
-#include <driver/driver.h>
+#include <driver/run.h>
+
 
 using namespace std;
 
@@ -76,7 +78,7 @@ TEST_F(ClassTest, ClassTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, class_);
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), class_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -87,7 +89,7 @@ TEST_F(ClassTest, InheritanceTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons, inheritance);
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), inheritance);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();

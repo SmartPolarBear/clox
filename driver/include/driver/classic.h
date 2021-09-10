@@ -19,19 +19,39 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/30/2021.
+// Created by cleve on 9/10/2021.
 //
-#pragma once
-#include <interpreter/evaluating_result.h>
 
-namespace clox::interpreting
+#pragma once
+
+#include <helper/console.h>
+
+#include <resolver/resolver.h>
+#include <interpreter/classic/interpreter.h>
+
+#include <driver/interpreter_adapter.h>
+
+namespace clox::driver
 {
-class clock_func final
-		: public callable
+class classic_interpreter_adapter final
+		: public interpreter_adapter
 {
 public:
+	explicit classic_interpreter_adapter(helper::console& cons)
+			: cons_(&cons),
+			  repl_resolver_(),
+			  repl_intp_(cons, repl_resolver_.bindings())
+	{
+	}
 
-	evaluating_result call(struct interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller,
-			const std::vector<evaluating_result>& args) override;
+	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+
+	int repl(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+
+private:
+	resolving::resolver repl_resolver_{};
+	interpreting::classic::interpreter repl_intp_;
+
+	mutable helper::console* cons_{};
 };
 }

@@ -19,51 +19,24 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/30/2021.
+// Created by cleve on 9/1/2021.
 //
 #pragma once
 
-#include <interpreter/evaluating_result.h>
-#include <interpreter/environment.h>
-#include <interpreter/lox_instance.h>
+#include <scanner/scanner.h>
 
 #include <parser/gen/parser_classes.inc>
 
+#include <variant>
+#include <string>
 
 #include <memory>
-#include <utility>
+#include <map>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
-class lox_function final
-		: public callable
+class lox_initializer_list
 {
-public:
-	explicit lox_function(std::shared_ptr<parsing::function_statement> decl)
-			: decl_(std::move(decl))
-	{
-	}
 
-	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure)
-			: decl_(std::move(decl)), closure_(std::move(closure))
-	{
-	}
-
-	lox_function(std::shared_ptr<parsing::function_statement> decl, std::shared_ptr<environment> closure,
-			bool is_initializer)
-			: decl_(std::move(decl)), closure_(std::move(closure)), is_init_(is_initializer)
-	{
-	}
-
-	~lox_function() = default;
-
-	evaluating_result call(class interpreter* the_interpreter, const std::shared_ptr<parsing::expression>& caller, const std::vector<evaluating_result>& args) override;
-
-	std::shared_ptr<lox_function> bind(const std::shared_ptr<lox_instance>& inst);
-
-private:
-	std::shared_ptr<environment> closure_{ nullptr };
-	std::shared_ptr<parsing::function_statement> decl_{ nullptr };
-	bool is_init_{ false };
 };
 }

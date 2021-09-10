@@ -22,72 +22,73 @@
 // Created by cleve on 8/30/2021.
 //
 
-#include <interpreter/evaluating_result.h>
-#include <interpreter/lox_instance.h>
-#include <interpreter/initializer_list.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/lox_instance.h>
+#include <interpreter/classic/initializer_list.h>
 
 #include <format>
 
 using namespace std;
+using namespace clox::interpreting::classic;
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(clox::scanning::integer_literal_type integer)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(clox::scanning::integer_literal_type integer)
 {
 	return to_string((clox::scanning::floating_literal_type) /*FIXME*/ integer);
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(clox::scanning::floating_literal_type floating)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(clox::scanning::floating_literal_type floating)
 {
 	return to_string(floating);
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(clox::scanning::boolean_literal_type boolean)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(clox::scanning::boolean_literal_type boolean)
 {
 	return string{ bool_to_string(boolean) };
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(clox::scanning::string_literal_type string_lit)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(clox::scanning::string_literal_type string_lit)
 {
 	return string_lit;
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(clox::scanning::nil_value_tag_type nil_value)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(clox::scanning::nil_value_tag_type nil_value)
 {
 	return "nil";
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(const std::shared_ptr<lox_instance>& inst)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(const std::shared_ptr<lox_instance>& inst)
 {
 	return inst->printable_string();
 }
 
 std::string
-clox::interpreting::evaluating_result_stringify_visitor::operator()(const std::shared_ptr<callable>& cl)
+clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(const std::shared_ptr<callable>& cl)
 {
 	auto printable = dynamic_pointer_cast<helper::printable>(cl);
 	if (!printable)
 	{
-		throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
+		throw clox::interpreting::classic::runtime_error{ error_token_, std::format("{} is not printable.",
 				typeid(cl).name()) };
 	}
 	return printable->printable_string();
 }
 
-std::string clox::interpreting::evaluating_result_stringify_visitor::operator()(
-		clox::interpreting::overloaded_functions overload_func)
+std::string clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(
+		clox::interpreting::classic::overloaded_functions overload_func)
 {
-	throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
+	throw clox::interpreting::classic::runtime_error{ error_token_, std::format("{} is not printable.",
 			typeid(overload_func).name()) };
 }
 
-std::string clox::interpreting::evaluating_result_stringify_visitor::operator()(
+std::string clox::interpreting::classic::evaluating_result_stringify_visitor::operator()(
 		const shared_ptr<lox_initializer_list>& lst)
 {
-	throw clox::interpreting::runtime_error{ error_token_, std::format("{} is not printable.",
+	throw clox::interpreting::classic::runtime_error{ error_token_, std::format("{} is not printable.",
 			typeid(lst).name()) };
 }

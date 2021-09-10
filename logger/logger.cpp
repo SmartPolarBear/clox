@@ -55,7 +55,7 @@ bool clox::logging::logger::has_errors() const
 	return errors_;
 }
 
-void clox::logging::logger::runtime_error(const clox::interpreting::runtime_error& re)
+void clox::logging::logger::runtime_error(const clox::interpreting::classic::runtime_error& re)
 {
 	runtime_errors_++;
 	console_->out() << std::format("[Line {1}, at runtime] {0}\n", re.what(), re.token().line()) << endl;

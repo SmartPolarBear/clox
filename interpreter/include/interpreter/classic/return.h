@@ -22,22 +22,29 @@
 // Created by cleve on 6/30/2021.
 //
 
-#include <cstddef>
-#include <chrono>
+#pragma once
 
-#include <interpreter/interpreter.h>
-#include <interpreter/evaluating_result.h>
-#include <interpreter/native_functions.h>
+#include <stdexcept>
+#include <utility>
 
-using namespace clox::interpreting;
+#include <interpreter/classic/evaluating_result.h>
 
-using namespace std::chrono;
-
-
-evaluating_result
-clox::interpreting::clock_func::call(struct interpreter* the_interpreter,
-		const std::shared_ptr<parsing::expression>& caller,
-		const std::vector<evaluating_result>& args)
+namespace clox::interpreting::classic
 {
-	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+class return_value final
+		: public std::exception
+{
+public:
+	explicit return_value(evaluating_result val) : val_{ std::move(val) }
+	{
+	}
+
+	[[nodiscard]] evaluating_result value() const
+	{
+		return val_;
+	}
+
+private:
+	evaluating_result val_{};
+};
 }

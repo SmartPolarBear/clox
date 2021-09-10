@@ -19,62 +19,26 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 7/15/2021.
+// Created by cleve on 6/30/2021.
 //
 
+#include <cstddef>
+#include <chrono>
 
-#include <test_scaffold_console.h>
-#include <test_interpreter_adapter.h>
+#include <interpreter/classic/interpreter.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/native_functions.h>
 
-#include <logger/logger.h>
+using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
-#include <gtest/gtest.h>
+using namespace std::chrono;
 
-#include <cstring>
 
-class ConditionalTest : public ::testing::Test
+evaluating_result
+clox::interpreting::classic::clock_func::call(struct interpreter* the_interpreter,
+		const std::shared_ptr<parsing::expression>& caller,
+		const std::vector<evaluating_result>& args)
 {
-
-protected:
-
-	virtual void SetUp()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	virtual void TearDown()
-	{
-		clox::logging::logger::instance().clear_error();
-
-	}
-
-	const char* if_{
-#include <conditional/if.txt>
-	};
-
-	const char* if_out_{
-#include <conditional/if.out>
-	};
-
-};
-
-
-#include <driver/run.h>
-
-
-using namespace std;
-
-using namespace clox::driver;
-
-
-TEST_F(ConditionalTest, IfTest)
-{
-	test_scaffold_console cons{};
-
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), if_);
-	ASSERT_EQ(ret, 0);
-
-	auto output = cons.get_written_text();
-	ASSERT_NE(output.find(if_out_), string::npos);
+	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }

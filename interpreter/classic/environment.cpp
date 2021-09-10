@@ -22,15 +22,16 @@
 // Created by cleve on 6/19/2021.
 //
 
-#include <interpreter/environment.h>
+#include <interpreter/classic/environment.h>
 
 #include <utility>
 #include <format>
 
 using namespace std;
 using namespace clox::interpreting;
+using namespace clox::interpreting::classic;
 
-std::optional<evaluating_result> clox::interpreting::environment::get(const clox::scanning::token& name)
+std::optional<evaluating_result> classic::environment::get(const clox::scanning::token& name)
 {
 	if (values_->contains(name.lexeme()))
 	{
@@ -49,12 +50,12 @@ std::optional<evaluating_result> clox::interpreting::environment::get(const clox
 	return nullopt;
 }
 
-void environment::put(const std::string& name, evaluating_result value)
+void classic::environment::put(const std::string& name, evaluating_result value)
 {
 	(*values_)[name] = std::move(value);
 }
 
-void environment::assign(const clox::scanning::token& name, evaluating_result val)
+void classic::environment::assign(const clox::scanning::token& name, evaluating_result val)
 {
 	if (values_->contains(name.lexeme()))
 	{
@@ -68,10 +69,10 @@ void environment::assign(const clox::scanning::token& name, evaluating_result va
 		return;
 	}
 
-	throw clox::interpreting::runtime_error{ name, std::format("Undefined variable '{}'.", name.lexeme()) };
+	throw runtime_error{ name, std::format("Undefined variable '{}'.", name.lexeme()) };
 }
 
-std::optional<evaluating_result> environment::get_at(const string& name, int64_t depth)
+std::optional<evaluating_result> classic::environment::get_at(const string& name, int64_t depth)
 {
 	auto an = ancestor(depth);
 	if (auto p = an.lock())
@@ -92,7 +93,7 @@ std::optional<evaluating_result> environment::get_at(const string& name, int64_t
 	return std::nullopt;
 }
 
-std::weak_ptr<environment> environment::ancestor(int64_t dist)
+std::weak_ptr<classic::environment> classic::environment::ancestor(int64_t dist)
 {
 	weak_ptr<environment> ret{ this->shared_from_this() };
 	for (int i = 0; i < dist; i++)
@@ -109,7 +110,7 @@ std::weak_ptr<environment> environment::ancestor(int64_t dist)
 	return ret;
 }
 
-void environment::assign_at(const clox::scanning::token& name, evaluating_result val, int64_t depth)
+void classic::environment::assign_at(const clox::scanning::token& name, evaluating_result val, int64_t depth)
 {
 	auto an = ancestor(depth);
 	if (auto p = an.lock())
@@ -122,7 +123,7 @@ void environment::assign_at(const clox::scanning::token& name, evaluating_result
 	}
 }
 
-void environment::put(const string& name, const shared_ptr<parsing::statement>& stmt,
+void classic::environment::put(const string& name, const shared_ptr<parsing::statement>& stmt,
 		const shared_ptr<struct callable>& func)
 {
 	(*funcs_)[name][stmt] = func;

@@ -20,18 +20,18 @@
 
 #pragma once
 
+#include <driver/run.h>
+
 #include <helper/console.h>
 
 #include <string>
 
+#include <argparse/argparse.hpp>
+
 namespace clox::driver
 {
 
-[[nodiscard]] int run_code(helper::console& output_cons,
-		const std::string& code);
+int run(const argparse::ArgumentParser& args);
 
-[[nodiscard]] int run_file(helper::console& cons, const std::string& name);
-
-[[nodiscard]] int run_repl(helper::console& cons);
 
 }

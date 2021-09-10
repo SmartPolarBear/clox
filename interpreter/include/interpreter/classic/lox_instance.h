@@ -19,24 +19,35 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/1/2021.
+// Created by cleve on 7/6/2021.
 //
 #pragma once
 
-#include <scanner/scanner.h>
-
-#include <parser/gen/parser_classes.inc>
-
-#include <variant>
-#include <string>
+#include <interpreter/classic/lox_class.h>
 
 #include <memory>
-#include <map>
+#include <utility>
+#include <unordered_map>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
-class lox_initializer_list
+class lox_instance final
+		: public helper::printable,
+		  public std::enable_shared_from_this<lox_instance>
 {
+public:
+	explicit lox_instance(std::shared_ptr<class lox_class> cls) : class_(std::move(cls))
+	{
+	}
 
+	std::string printable_string() override;
+
+	evaluating_result get(const scanning::token& tk) const;
+
+	void set(const scanning::token& tk, evaluating_result val);
+
+private:
+	std::shared_ptr<class lox_class> class_{ nullptr };
+	std::unordered_map<std::string, evaluating_result> fields_{};
 };
 }

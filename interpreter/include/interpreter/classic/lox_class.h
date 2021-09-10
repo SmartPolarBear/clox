@@ -26,16 +26,16 @@
 
 #include <helper/printable.h>
 
-#include <interpreter/lox_function.h>
-#include <interpreter/evaluating_result.h>
-#include <interpreter/environment.h>
+#include <interpreter/classic/lox_function.h>
+#include <interpreter/classic/evaluating_result.h>
+#include <interpreter/classic/environment.h>
 
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <memory>
 
-namespace clox::interpreting
+namespace clox::interpreting::classic
 {
 class lox_class final
 		: public callable,

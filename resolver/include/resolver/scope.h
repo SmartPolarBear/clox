@@ -26,7 +26,7 @@
 
 #include <parser/gen/parser_classes.inc>
 
-#include <interpreter/interpreter.h>
+#include <interpreter/classic/interpreter.h>
 
 #include <resolver/lox_type.h>
 #include <resolver/callable_type.h>

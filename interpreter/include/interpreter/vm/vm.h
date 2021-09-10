@@ -73,6 +73,8 @@ public:
 	explicit virtual_machine(helper::console& cons,
 			std::shared_ptr<object_heap> heap);
 
+	virtual_machine_status run(const std::shared_ptr<chunk>&chunk);
+
 private:
 	virtual_machine_status run();
 
