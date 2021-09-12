@@ -23,6 +23,7 @@
 //
 
 #include <helper/exceptions.h>
+#include <helper/std_console.h>
 
 #include <interpreter/codegen/codegen.h>
 #include <interpreter/codegen/exceptions.h>
@@ -79,15 +80,40 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		const std::shared_ptr<assignment_expression>& ae)
 {
-	if (!is_patchable(current()->peek(1)))
-	{
-		throw invalid_opcode(current()->peek(1));
-	}
+//	generate(ae->get_value());
 
-	auto unpatched = current()->peek(1);
-	current()->patch(patch_main(unpatched, op_code::SET), 1);
+//	if (!is_patchable(current()->peek(1)))
+//	{
+//		current()->disassemble(helper::std_console::instance());
+//		throw invalid_opcode(current()->peek(1));
+//	}
+//
+//	auto unpatched = current()->peek(1);
+//	current()->patch(patch_main(unpatched, op_code::SET), 1);
+//
+
+// The above algorithm will be useful if we unify the assignment expression and set expression
 
 	generate(ae->get_value());
+
+	auto name = ae->get_name();
+	auto lookup_ret = variable_lookup(name.lexeme());
+
+	if (is_variable_lookup_failure(lookup_ret))
+	{
+		throw internal_codegen_error{ "Name lookup failure" };
+	}
+
+	// See opcode.h for the design here in details
+	if (is_global_variable(lookup_ret))
+	{
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+	}
+	else
+	{
+		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), variable_slot(lookup_ret));
+	}
+
 }
 
 void

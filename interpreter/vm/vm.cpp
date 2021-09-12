@@ -417,6 +417,13 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::LOOP):
+	{
+		auto offset = next_code();
+		ip_ -= offset;
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
