@@ -217,7 +217,7 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 		}
 
 		auto unpatched = current()->peek(1);
-		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
+		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
 
 
 		break;
@@ -276,7 +276,7 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 		}
 
 		auto unpatched = current()->peek(1);
-		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
+		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
 		break;
 	}
 	default:
@@ -643,7 +643,7 @@ void codegen::patch_jump(vm::chunk::difference_type pos)
 		throw jump_too_long{ static_cast<size_t>(dist) };
 	}
 
-	current()->patch(dist, pos);
+	current()->patch_begin(dist, pos);
 }
 
 void codegen::emit_loop(vm::chunk::difference_type pos)
