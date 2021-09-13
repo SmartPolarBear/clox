@@ -10,6 +10,7 @@ else
 
 print num==11?"fuck":(num==10?"yes":"no");
 
+
 {
     var num=nil;
     if(num)

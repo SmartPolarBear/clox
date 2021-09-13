@@ -474,13 +474,14 @@ bool virtual_machine::is_false(const value& val)
 	return std::visit([this](auto&& val) -> bool
 	{
 		using T = std::decay_t<decltype(val)>;
+
 		if constexpr(is_same_v<T, bool>)
 		{
 			return !static_cast<scanning::boolean_literal_type>(val);
 		}
-		else if constexpr(is_same_v<T, scanning::nil_value_tag_type>)
+		else if constexpr(is_same_v<T, nil_value_type>)
 		{
-			return false;
+			return true; // the value is false, so is_false should return true
 		}
 		else
 		{
