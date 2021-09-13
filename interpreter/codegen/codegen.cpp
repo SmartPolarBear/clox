@@ -319,7 +319,7 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
 		const std::shared_ptr<grouping_expression>& ge)
 {
-	generate(ge);
+	generate(ge->get_expr());
 }
 
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
