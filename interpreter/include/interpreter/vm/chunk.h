@@ -106,7 +106,6 @@ private:
 
 	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);
 
-
 	std::string name_{};
 
 	std::vector<value> constants_{};

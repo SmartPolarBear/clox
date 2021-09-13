@@ -288,6 +288,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
+			stack_[slot] = peek(0);
 			push(stack_[slot]); // assignment expression should create a value
 		}
 		else
