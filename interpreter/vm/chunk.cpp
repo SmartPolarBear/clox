@@ -126,6 +126,10 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 
 		return offset + 2;
 
+	case op_code::LOOP:
+		out.out() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	default:
 		out.out() << endl;
 		return offset + 1;
@@ -166,12 +170,19 @@ std::string chunk::filename()
 	return "<filename placeholder>";
 }
 
-void chunk::patch(chunk::code_type new_op, int64_t offset)
+void chunk::patch_begin(chunk::code_type new_op, int64_t offset)
+{
+	*(codes_.begin() + offset) = new_op;
+}
+
+void chunk::patch_end(chunk::code_type new_op, int64_t offset)
 {
 	*(codes_.rbegin() + offset) = new_op;
 }
+
 
 chunk::code_type chunk::peek(int64_t offset)
 {
 	return *(codes_.rbegin() + offset);
 }
+

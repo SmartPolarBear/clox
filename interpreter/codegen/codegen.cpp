@@ -23,6 +23,7 @@
 //
 
 #include <helper/exceptions.h>
+#include <helper/std_console.h>
 
 #include <interpreter/codegen/codegen.h>
 #include <interpreter/codegen/exceptions.h>
@@ -79,15 +80,40 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		const std::shared_ptr<assignment_expression>& ae)
 {
-	if (!is_patchable(current()->peek(1)))
-	{
-		throw invalid_opcode(current()->peek(1));
-	}
+//	generate(ae->get_value());
 
-	auto unpatched = current()->peek(1);
-	current()->patch(patch_main(unpatched, op_code::SET), 1);
+//	if (!is_patchable(current()->peek(1)))
+//	{
+//		current()->disassemble(helper::std_console::instance());
+//		throw invalid_opcode(current()->peek(1));
+//	}
+//
+//	auto unpatched = current()->peek(1);
+//	current()->patch(patch_main(unpatched, op_code::SET), 1);
+//
+
+// The above algorithm will be useful if we unify the assignment expression and set expression
 
 	generate(ae->get_value());
+
+	auto name = ae->get_name();
+	auto lookup_ret = variable_lookup(name.lexeme());
+
+	if (is_variable_lookup_failure(lookup_ret))
+	{
+		throw internal_codegen_error{ "Name lookup failure" };
+	}
+
+	// See opcode.h for the design here in details
+	if (is_global_variable(lookup_ret))
+	{
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+	}
+	else
+	{
+		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), variable_slot(lookup_ret));
+	}
+
 }
 
 void
@@ -191,7 +217,7 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 		}
 
 		auto unpatched = current()->peek(1);
-		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
+		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
 
 
 		break;
@@ -250,7 +276,7 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 		}
 
 		auto unpatched = current()->peek(1);
-		current()->patch(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
+		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
 		break;
 	}
 	default:
@@ -293,7 +319,7 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
 		const std::shared_ptr<grouping_expression>& ge)
 {
-	generate(ge);
+	generate(ge->get_expr());
 }
 
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
@@ -617,12 +643,12 @@ void codegen::patch_jump(vm::chunk::difference_type pos)
 		throw jump_too_long{ static_cast<size_t>(dist) };
 	}
 
-	current()->patch(dist, pos);
+	current()->patch_begin(dist, pos);
 }
 
 void codegen::emit_loop(vm::chunk::difference_type pos)
 {
-	auto dist = current()->count() - 1 - pos;
+	auto dist = current()->count() - pos + 2;
 	if (dist > numeric_limits<full_opcode_type>::max())
 	{
 		throw jump_too_long{ static_cast<size_t>(dist) };

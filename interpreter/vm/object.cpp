@@ -23,3 +23,21 @@
 //
 
 #include <interpreter/vm/object.h>
+#include <interpreter/vm/string_object.h>
+
+using namespace clox::interpreting::vm;
+
+bool clox::interpreting::vm::object::equal(const clox::interpreting::vm::object* lhs,
+		const clox::interpreting::vm::object* rhs)
+{
+	if (is_string(*lhs) && is_string(*rhs))
+	{
+		return dynamic_cast<const string_object*>(lhs)->string() == dynamic_cast<const string_object*>(rhs)->string();
+	}
+	else if (is_string(*lhs) || is_string(*rhs))
+	{
+		return false;
+	}
+
+	return lhs == rhs;
+}

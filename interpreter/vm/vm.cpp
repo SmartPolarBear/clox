@@ -283,10 +283,12 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		{
 			auto name = next_variable_name();
 			globals_.at(name) = peek(0);
+			push(peek(0));
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
+			stack_[slot] = peek(0);
 			push(stack_[slot]); // assignment expression should create a value
 		}
 		else
@@ -417,6 +419,13 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		break;
 	}
 
+	case V(op_code::LOOP):
+	{
+		auto offset = next_code();
+		ip_ -= offset;
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
@@ -465,13 +474,14 @@ bool virtual_machine::is_false(const value& val)
 	return std::visit([this](auto&& val) -> bool
 	{
 		using T = std::decay_t<decltype(val)>;
+
 		if constexpr(is_same_v<T, bool>)
 		{
 			return !static_cast<scanning::boolean_literal_type>(val);
 		}
-		else if constexpr(is_same_v<T, scanning::nil_value_tag_type>)
+		else if constexpr(is_same_v<T, nil_value_type>)
 		{
-			return false;
+			return true; // the value is false, so is_false should return true
 		}
 		else
 		{

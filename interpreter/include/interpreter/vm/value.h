@@ -71,6 +71,7 @@ static inline bool is_string_value(const value& val)
 
 static inline bool operator==(const value& lhs, const value& rhs)
 {
+
 	return std::visit([&rhs](auto&& lhs_val) -> bool
 	{
 		using TLeft = std::decay_t<decltype(lhs_val)>;
@@ -86,6 +87,10 @@ static inline bool operator==(const value& lhs, const value& rhs)
 				if constexpr(!std::is_same_v<TLeft, TRight>)
 				{
 					return false; // not of the same type, they can't be equal
+				}
+				else if constexpr(std::is_same_v<TLeft, object_value_type> && std::is_same_v<TRight, object_value_type>)
+				{
+					return object::equal(lhs_val, rhs_val);
 				}
 				else
 				{

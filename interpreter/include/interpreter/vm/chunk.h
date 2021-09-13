@@ -82,7 +82,15 @@ public:
 
 	void write(code_type op, int64_t line);
 
-	void patch(code_type new_op, int64_t offset);
+	/// Patch the code offset from the first opcode
+	/// \param new_op
+	/// \param offset
+	void patch_begin(code_type new_op, int64_t offset);
+
+	/// Patch the code offset from the last opcode
+	/// \param new_op
+	/// \param offset
+	void patch_end(code_type new_op, int64_t offset);
 
 	code_type peek(int64_t offset);
 
@@ -97,7 +105,6 @@ public:
 private:
 
 	uint64_t disassemble_instruction(helper::console& out, uint64_t offset);
-
 
 	std::string name_{};
 
