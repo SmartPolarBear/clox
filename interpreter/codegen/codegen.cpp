@@ -648,7 +648,7 @@ void codegen::patch_jump(vm::chunk::difference_type pos)
 
 void codegen::emit_loop(vm::chunk::difference_type pos)
 {
-	auto dist = current()->count() - 1 - pos;
+	auto dist = current()->count() - pos + 2;
 	if (dist > numeric_limits<full_opcode_type>::max())
 	{
 		throw jump_too_long{ static_cast<size_t>(dist) };

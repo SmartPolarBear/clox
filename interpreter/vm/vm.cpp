@@ -283,6 +283,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		{
 			auto name = next_variable_name();
 			globals_.at(name) = peek(0);
+			push(peek(0));
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{

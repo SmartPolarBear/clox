@@ -49,6 +49,8 @@ public:
 		return obj.type() == object_type::STRING;
 	}
 
+	static bool equal(const object* lhs, const object* rhs);
+
 public:
 	[[nodiscard]]virtual object_type type() const noexcept = 0;
 };
