@@ -27,12 +27,14 @@
 
 #include <interpreter/vm/object.h>
 
+#include <interpreter/vm/string_object.h>
+#include <interpreter/vm/function_object.h>
+
 #include <variant>
 #include <string>
 
 #include <memory>
 #include <map>
-#include "string_object.h"
 
 
 namespace clox::interpreting::vm
@@ -90,7 +92,7 @@ static inline bool operator==(const value& lhs, const value& rhs)
 				}
 				else if constexpr(std::is_same_v<TLeft, object_value_type> && std::is_same_v<TRight, object_value_type>)
 				{
-					return object::equal(lhs_val, rhs_val);
+					return object::pointer_equal(lhs_val, rhs_val);
 				}
 				else
 				{
@@ -121,12 +123,20 @@ public:
 	{
 		if constexpr(std::is_same_v<object_value_type, std::decay_t<T>>)
 		{
-			if (auto str = dynamic_cast<string_object_raw_pointer>(val);str)
+			if (val->type() == object_type::STRING)
 			{
-				return std::format("{0}{1}", type_name_of<string_object_raw_pointer>(), str->string());
+				return std::format("{0}{1}", type_name_of<string_object_raw_pointer>(),
+						dynamic_cast<string_object_raw_pointer>(val)->printable_string());
 			}
-
-			return std::format("{0}{1:<0x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
+			else if (val->type() == object_type::FUNCTION)
+			{
+				return std::format("{0}{1}", type_name_of<string_object_raw_pointer>(),
+						dynamic_cast<function_object_raw_pointer>(val)->printable_string());
+			}
+			else
+			{
+				return std::format("{0}{1:<0x}", type_name_of<std::decay_t<decltype(val)>>(), (uintptr_t)val);
+			}
 		}
 		else if constexpr(std::is_same_v<variable_name_type, std::decay_t<T>>)
 		{

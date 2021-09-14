@@ -19,46 +19,25 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/14/2021.
 //
 
-#pragma once
+#include <interpreter/vm/function_object.h>
 
-#include <scanner/scanner.h>
+using namespace std;
 
-#include <variant>
-#include <string>
-#include <string_view>
-
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
+clox::interpreting::vm::object_type clox::interpreting::vm::function_object::type() const noexcept
 {
-enum class object_type
+	return object_type::FUNCTION;
+}
+
+clox::interpreting::vm::function_object::function_object(std::string name, size_t arity)
+		: name_(name), arity_(arity),
+		  body_(make_shared<chunk>())
 {
-	STRING,
-	FUNCTION,
-};
+}
 
-class object
-		: public helper::printable
+string clox::interpreting::vm::function_object::printable_string()
 {
-
-public:
-	static inline bool is_string(const object& obj)
-	{
-		return obj.type() == object_type::STRING;
-	}
-
-	static bool pointer_equal(const object* lhs, const object* rhs);
-
-
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
-};
-
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
-
+	return std::format("function {} of {} arity", name_, arity_);
 }

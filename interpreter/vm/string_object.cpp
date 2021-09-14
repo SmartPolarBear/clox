@@ -39,3 +39,8 @@ clox::interpreting::vm::string_object::string_object(std::string value)
 {
 
 }
+
+std::string clox::interpreting::vm::string_object::printable_string()
+{
+	return data_;
+}
