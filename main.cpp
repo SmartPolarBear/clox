@@ -34,6 +34,11 @@ int main(int argc, char* argv[])
 			.default_value(false)
 			.implicit_value(true);
 
+	arg_parser.add_argument("-vd", "--verbose-debug")
+			.help("Verbose debug output.")
+			.default_value(false)
+			.implicit_value(true);
+
 	arg_parser.add_argument("-t", "--time-statistic")
 			.help("Show time statistic like the runtime, compile time, etc.")
 			.default_value(false)
