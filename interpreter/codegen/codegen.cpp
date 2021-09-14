@@ -549,7 +549,8 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 std::shared_ptr<vm::chunk> codegen::current()
 {
-	return current_chunk_;
+//	return current_chunk_;
+	return functions_.back()->body();
 }
 
 void codegen::emit_code(vm::full_opcode_type byte)
@@ -656,6 +657,24 @@ void codegen::emit_loop(vm::chunk::difference_type pos)
 
 	emit_code(V(op_code::LOOP));
 	emit_code(dist);
+}
+
+void codegen::function_push(vm::function_object_raw_pointer func)
+{
+	functions_.push_back(func)
+}
+
+vm::function_object_raw_pointer codegen::function_pop()
+{
+	auto top = function_top();
+	functions_.pop_back();
+
+	return top;
+}
+
+vm::function_object_raw_pointer codegen::function_top()
+{
+	return functions_.back();
 }
 
 

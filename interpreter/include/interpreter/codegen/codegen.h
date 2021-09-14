@@ -120,6 +120,12 @@ private:
 
 	void declare_local_variable(const std::string& name, size_t depth = 0);
 
+	void function_push(vm::function_object_raw_pointer func);
+
+	vm::function_object_raw_pointer function_pop();
+
+	vm::function_object_raw_pointer function_top();
+
 	///
 	/// \param name
 	/// \return {optional<slot>, is global}
@@ -207,7 +213,9 @@ private:
 
 	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 
-	std::shared_ptr<vm::chunk> current_chunk_{};
+//	std::shared_ptr<vm::chunk> current_chunk_{};
+
+	std::vector<vm::function_object_raw_pointer> functions_{};
 
 	std::shared_ptr<vm::object_heap> heap_{};
 

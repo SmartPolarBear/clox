@@ -42,7 +42,7 @@ class function_object final
 		: public object
 {
 public:
-	explicit function_object(std::string name,size_t arity);
+	explicit function_object(std::string name, size_t arity);
 
 	[[nodiscard]] object_type type() const noexcept override;
 
@@ -54,6 +54,11 @@ public:
 	[[nodiscard]] size_t arity() const
 	{
 		return arity_;
+	}
+
+	[[nodiscard]] auto body() const
+	{
+		return body_;
 	}
 
 private:
