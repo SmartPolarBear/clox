@@ -179,7 +179,13 @@ private:
 		using slot_type = int64_t;
 		static inline constexpr slot_type GLOBAL_SLOT = -1;
 	public:
-		local_scope() = default;
+		local_scope()
+		{
+			locals_.insert_or_assign("", 0); // VM's slot 0 is for internal usage.
+		}
+
+		~local_scope() = default;
+
 
 		[[nodiscard]] size_t count() const
 		{

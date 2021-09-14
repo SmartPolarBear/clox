@@ -53,7 +53,8 @@ codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolvin
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
 	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
-	current_chunk_ = make_shared<chunk>(); //FIXME
+//	current_chunk_ = make_shared<chunk>();
+	function_push(heap->allocate<function_object>("", 0));
 }
 
 
@@ -73,8 +74,6 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 	{
 		generate(stmt);
 	}
-
-//	emit_return(); // FIXME: it should be, but not be there
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
@@ -661,11 +660,15 @@ void codegen::emit_loop(vm::chunk::difference_type pos)
 
 void codegen::function_push(vm::function_object_raw_pointer func)
 {
-	functions_.push_back(func)
+	functions_.push_back(func);
 }
 
 vm::function_object_raw_pointer codegen::function_pop()
 {
+	//TODO: print disassembly when errors occur
+
+	emit_return();
+
 	auto top = function_top();
 	functions_.pop_back();
 
