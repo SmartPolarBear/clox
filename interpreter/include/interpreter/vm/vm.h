@@ -61,10 +61,37 @@ private:
 class virtual_machine final
 {
 public:
-	static inline constexpr size_t STACK_RESERVED_SIZE = 64;
+	static inline constexpr size_t CALL_STACK_MAX = 64;
+	static inline constexpr size_t STACK_RESERVED_SIZE = 16384;
 
 	using value_list_type = std::vector<value>;
 	using global_table_type = std::unordered_map<std::string, value>;
+	using ip_type = chunk::iterator_type;
+
+	class call_frame final
+	{
+	public:
+		friend class virtual_machine;
+
+	public:
+
+		[[nodiscard]] auto slot() const
+		{
+			return slot_;
+		}
+
+		[[nodiscard]] auto slot(size_t i) const
+		{
+			return slot_ + i;
+		}
+
+	private:
+		function_object_raw_pointer function_{};
+		ip_type ip_{};
+		std::vector<value>::iterator slot_;
+	};
+
+
 public:
 	virtual_machine() = delete;
 
@@ -73,12 +100,12 @@ public:
 	explicit virtual_machine(helper::console& cons,
 			std::shared_ptr<object_heap> heap);
 
-	virtual_machine_status run(const std::shared_ptr<chunk>&chunk);
+	virtual_machine_status run(const std::shared_ptr<chunk>& chunk);
 
 private:
 	virtual_machine_status run();
 
-	bool run_code(chunk::code_type instruction);
+	bool run_code(chunk::code_type instruction, call_frame**);
 
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
@@ -154,16 +181,23 @@ private:
 
 	//
 
+
 	std::shared_ptr<object_heap> heap_{};
 
 	std::shared_ptr<chunk> chunk_{};
 
-	chunk::iterator_type ip_{};
+	ip_type ip_{};
 
 	value_list_type stack_{};
 
 	global_table_type globals_{};
 
+	std::array<call_frame, CALL_STACK_MAX> call_frames_{};
+
+	size_t call_frame_count_{ 0 };
+
 	mutable helper::console* cons_{ nullptr };
 };
+
+
 }
