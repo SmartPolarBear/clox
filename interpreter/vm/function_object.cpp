@@ -23,8 +23,12 @@
 //
 
 #include <interpreter/vm/function_object.h>
+#include <interpreter/vm/chunk.h>
+
+#include <utility>
 
 using namespace std;
+using namespace clox::interpreting::vm;
 
 clox::interpreting::vm::object_type clox::interpreting::vm::function_object::type() const noexcept
 {
@@ -32,12 +36,12 @@ clox::interpreting::vm::object_type clox::interpreting::vm::function_object::typ
 }
 
 clox::interpreting::vm::function_object::function_object(std::string name, size_t arity)
-		: name_(name), arity_(arity),
+		: name_(std::move(name)), arity_(arity),
 		  body_(make_shared<chunk>())
 {
 }
 
 string clox::interpreting::vm::function_object::printable_string()
 {
-	return std::format("function {} of {} arity", name_, arity_);
+	return std::format("<function {} of {} arity>", name_, arity_);
 }

@@ -28,7 +28,6 @@
 #include <scanner/scanner.h>
 
 #include <interpreter/vm/object.h>
-#include <interpreter/vm/chunk.h>
 
 #include <variant>
 #include <string>
@@ -64,7 +63,7 @@ public:
 private:
 	std::string name_{};
 	size_t arity_{};
-	std::shared_ptr<chunk> body_{};
+	std::shared_ptr<class chunk /* to avoid header circular dependency*/ > body_{};
 };
 
 using function_object_raw_pointer = function_object*;
