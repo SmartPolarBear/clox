@@ -81,11 +81,12 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 
 	if (show_asm_)
 	{
-		gen_.current()->disassemble(*cons_);
+		gen_.top_function()->body()->disassemble(*cons_);
 	}
 
 	virtual_machine vm{ *cons_, heap_ };
-	vm.run(gen_.current()); // FIXME
+//	vm.run(gen_.current()); // FIXME
+	vm.run(gen_.top_function());
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
@@ -105,13 +106,15 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 
 	if (show_asm_)
 	{
-		gen_.current()->disassemble(*cons_);
+		gen_.top_function()->body()->disassemble(*cons_);
 	}
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	repl_vm_.run(gen_.current());  // FIXME
+//	repl_vm_.run(gen_.current());  // FIXME
+	repl_vm_.run(gen_.top_function());  // FIXME
+
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;

@@ -104,9 +104,10 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	std::shared_ptr<vm::chunk> current();
-
+	vm::function_object_raw_pointer top_function();
 private:
+
+	std::shared_ptr<vm::chunk> current();
 
 	void generate(const std::shared_ptr<parsing::statement>& s);
 

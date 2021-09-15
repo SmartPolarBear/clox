@@ -85,6 +85,17 @@ public:
 			return slot_ + i;
 		}
 
+		[[nodiscard]] function_object_raw_pointer function() const
+		{
+			return function_;
+		}
+
+		[[nodiscard]] ip_type ip() const
+		{
+			return ip_;
+		}
+
+
 	private:
 		function_object_raw_pointer function_{};
 		ip_type ip_{};
@@ -100,7 +111,7 @@ public:
 	explicit virtual_machine(helper::console& cons,
 			std::shared_ptr<object_heap> heap);
 
-	virtual_machine_status run(const std::shared_ptr<chunk>& chunk);
+	virtual_machine_status run(function_object_raw_pointer func);
 
 private:
 	virtual_machine_status run();
@@ -110,9 +121,11 @@ private:
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
 	{
+		auto frame = &call_frames_[call_frame_count_ - 1];
+
 		cons_->error() << std::format("[Line {}] in file {}:",
-				chunk_->line_of(ip_),
-				chunk_->filename()) << std::endl;
+				frame->function_->body()->line_of(ip_),
+				frame->function_->body()->filename()) << std::endl;
 
 		cons_->error() << std::format(fmt, args...);
 
@@ -179,12 +192,27 @@ private:
 
 	chunk::code_type next_code();
 
-	//
+	// call frame
 
+	call_frame& top_call_frame()
+	{
+		return call_frames_[call_frame_count_ - 1];
+	}
+
+	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, std::vector<value>::iterator slot)
+	{
+		call_frames_[call_frame_count_].function_ = func;
+		call_frames_[call_frame_count_].ip_ = ip;
+		call_frames_[call_frame_count_].slot_ = slot;
+
+		call_frame_count_++;
+	}
+
+	//
 
 	std::shared_ptr<object_heap> heap_{};
 
-	std::shared_ptr<chunk> chunk_{};
+//	std::shared_ptr<chunk> chunk_{};
 
 	ip_type ip_{};
 

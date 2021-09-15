@@ -680,4 +680,9 @@ vm::function_object_raw_pointer codegen::function_top()
 	return functions_.back();
 }
 
+vm::function_object_raw_pointer codegen::top_function()
+{
+	return function_top();
+}
+
 

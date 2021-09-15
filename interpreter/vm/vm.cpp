@@ -63,7 +63,8 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 
 	auto frame = &call_frames_.back();
 
-	for (; ip_ != chunk_->end();)
+//	for (; ip_ != chunk_->end();)
+	for (; ip_ != top_call_frame().function()->body()->end();)
 	{
 		try
 		{
@@ -444,7 +445,9 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 
 value virtual_machine::next_constant()
 {
-	return chunk_->constant_at(next_code());
+//	return chunk_->constant_at(next_code());
+	return top_call_frame().function()->body()->constant_at(next_code());
+
 }
 
 chunk::code_type virtual_machine::next_code()
@@ -505,10 +508,14 @@ std::string virtual_machine::next_variable_name()
 }
 
 // TODO: change it to accept function_object
-virtual_machine_status virtual_machine::run(const shared_ptr<chunk>& chunk)
+virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
 {
-	chunk_ = chunk;
-	ip_ = chunk_->begin();
+	push(func);
+
+	push_call_frame(func,func->body()->begin(),stack_.begin());
+
+//	chunk_ = func;
+//	ip_ = chunk_->begin();
 
 	return run();
 }
