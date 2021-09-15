@@ -1,0 +1,12 @@
+var p=false;
+var q=false;
+var r=true;
+var s=true;
+
+print p or q;
+print p or r;
+print r or s;
+
+print p and q;
+print p and r;
+print r and s;
