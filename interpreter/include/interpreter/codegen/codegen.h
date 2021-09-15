@@ -152,6 +152,12 @@ private:
 		return global;
 	}
 
+	std::optional<vm::chunk::code_type> function_lookup(const std::shared_ptr<parsing::statement>& stmt);
+
+	bool is_function_lookup_failure(const std::optional<vm::chunk::code_type>& rets)
+	{
+		return rets.has_value();
+	}
 
 	void emit_code(vm::full_opcode_type byte);
 
@@ -210,9 +216,27 @@ private:
 			return locals_.at(name);
 		}
 
+		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type pos)
+		{
+			function_map_[stmt] = pos;
+		}
+
+		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.contains(stmt);
+		}
+
+		vm::chunk::code_type find(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.at(stmt);
+		}
+
 	private:
+		std::unordered_map<std::shared_ptr<parsing::statement>, vm::chunk::code_type> function_map_{};
+
 		std::unordered_map<std::string, slot_type> locals_{};
 		size_t count_{ 0 };
+
 	};
 
 	int64_t current_scope_depth_{ 0 };

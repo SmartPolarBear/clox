@@ -160,6 +160,7 @@ value chunk::constant_at(chunk::code_type pos)
 	return constants_.at(pos);
 }
 
+
 int64_t chunk::line_of(chunk::code_list_type::iterator ip)
 {
 	return lines_.at(ip - begin() - 1);
@@ -185,4 +186,3 @@ chunk::code_type chunk::peek(int64_t offset)
 {
 	return *(codes_.rbegin() + offset);
 }
-

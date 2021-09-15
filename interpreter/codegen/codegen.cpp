@@ -419,9 +419,28 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 	}
 }
 
-void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
+	if (auto binding_ret = bindings_->get(ce);binding_ret)
+	{
+		if (auto binding = binding_ret.value();binding->type() == resolving::binding_type::BINDING_FUNCTION)
+		{
+			auto func = function_lookup(dynamic_pointer_cast<function_binding>(binding)->statement());
+			if (is_function_lookup_failure(func))
+			{
+				throw internal_codegen_error{ "Function lookup failure" };
+			}
+			else
+			{
+				for (const auto& arg: ce->get_args())
+				{
+					generate(arg);
+				}
 
+				emit_codes(V(op_code::CALL), func.value(), ce->get_args().size());
+			}
+		}
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
@@ -531,9 +550,18 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 }
 
 void
-clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& ptr)
+clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
 
+	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
+
+	generate(fs->get_body());
+
+	auto top = function_pop();
+
+	auto pos = make_constant(top);
+
+	local_scope().add_function(fs, pos);
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& ptr)
@@ -627,6 +655,20 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 	return make_tuple(nullopt, false);
 }
 
+std::optional<vm::chunk::code_type> codegen::function_lookup(const std::shared_ptr<parsing::statement>& stmt)
+{
+	for (const auto& scope: local_scopes_
+							| ranges::views::reverse)
+	{
+		if (scope->contains_function(stmt))
+		{
+			return scope->find(stmt);
+		}
+	}
+
+	return nullopt;
+}
+
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 {
 	emit_code(jmp);
@@ -684,5 +726,4 @@ vm::function_object_raw_pointer codegen::top_function()
 {
 	return function_top();
 }
-
 
