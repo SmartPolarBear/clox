@@ -44,6 +44,7 @@ virtual_machine::virtual_machine(clox::helper::console& cons,
 		: heap_(std::move(heap)), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
+	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
 }
 
 virtual_machine::~virtual_machine()
@@ -412,7 +413,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case V(op_code::JUMP):
 	{
 		auto offset = next_code();
-		frame.ip_ += offset;
+		frame.ip() += offset;
 		break;
 	}
 
@@ -421,7 +422,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		auto offset = next_code();
 		if (is_false(peek(0)))
 		{
-			frame.ip_ += offset;
+			frame.ip() += offset;
 		}
 		break;
 	}
@@ -429,7 +430,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case V(op_code::LOOP):
 	{
 		auto offset = next_code();
-		frame.ip_ -= offset;
+		frame.ip() -= offset;
 		break;
 	}
 

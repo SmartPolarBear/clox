@@ -23,6 +23,7 @@ print num==11?"fuck":(num==10?"yes":"no");
     }
 }
 
+
 var str="xkzgreat";
 if(str=="xkzgreat")
 {

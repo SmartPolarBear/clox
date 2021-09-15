@@ -105,6 +105,7 @@ public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
 	vm::function_object_raw_pointer top_function();
+
 private:
 
 	std::shared_ptr<vm::chunk> current();
@@ -216,7 +217,7 @@ private:
 
 	int64_t current_scope_depth_{ 0 };
 
-	int64_t local_totals_{ 0 };
+	int64_t local_totals_{ 1 }; // first slot is in use
 
 	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 

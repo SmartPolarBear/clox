@@ -67,14 +67,18 @@ public:
 	using value_list_type = std::vector<value>;
 	using global_table_type = std::unordered_map<std::string, value>;
 	using ip_type = chunk::iterator_type;
-	using call_frame_list_type = std::vector<value>;
 
 	class call_frame final
 	{
 	public:
-		friend class virtual_machine;
+
 
 	public:
+
+		explicit call_frame(function_object_raw_pointer func, ip_type ip, size_t offset)
+				: function_(func), ip_(ip), stack_offset_(offset)
+		{
+		}
 
 		[[nodiscard]] size_t stack_offset() const
 		{
@@ -98,6 +102,7 @@ public:
 		size_t stack_offset_{};
 	};
 
+	using call_frame_list_type = std::vector<call_frame>;
 
 public:
 	virtual_machine() = delete;
@@ -117,11 +122,10 @@ private:
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
 	{
-		auto frame = &call_frames_[call_frame_count_ - 1];
 
 		cons_->error() << std::format("[Line {}] in file {}:",
-				frame->function_->body()->line_of(top_call_frame().ip()),
-				frame->function_->body()->filename()) << std::endl;
+				top_call_frame().function()->body()->line_of(top_call_frame().ip()),
+				top_call_frame().function()->body()->filename()) << std::endl;
 
 		cons_->error() << std::format(fmt, args...);
 
@@ -194,21 +198,17 @@ private:
 
 	call_frame& top_call_frame()
 	{
-		return call_frames_[call_frame_count_ - 1];
+		return *call_frames_.rbegin();
 	}
 
 	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, size_t stack_offset)
 	{
-		call_frames_[call_frame_count_].function_ = func;
-		call_frames_[call_frame_count_].ip_ = ip;
-		call_frames_[call_frame_count_].stack_offset_ = stack_offset;
-
-		++call_frame_count_;
+		call_frames_.emplace_back(func, ip, stack_offset);
 	}
 
 	void pop_call_frame()
 	{
-		--call_frame_count_;
+		call_frames_.pop_back();
 	}
 
 	//
@@ -223,9 +223,7 @@ private:
 
 	global_table_type globals_{};
 
-	std::array<call_frame, CALL_STACK_RESERVED_SIZE> call_frames_{};
-
-	size_t call_frame_count_{ 0 };
+	call_frame_list_type call_frames_{};
 
 	mutable helper::console* cons_{ nullptr };
 };
