@@ -54,7 +54,7 @@ codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolvin
 {
 	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
 //	current_chunk_ = make_shared<chunk>();
-	function_push(heap->allocate<function_object>("", 0));
+	function_push(heap_->allocate<function_object>("", 0));
 }
 
 

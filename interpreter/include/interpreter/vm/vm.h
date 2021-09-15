@@ -205,7 +205,12 @@ private:
 		call_frames_[call_frame_count_].ip_ = ip;
 		call_frames_[call_frame_count_].slot_ = slot;
 
-		call_frame_count_++;
+		++call_frame_count_;
+	}
+
+	void pop_call_frame()
+	{
+		--call_frame_count_;
 	}
 
 	//
