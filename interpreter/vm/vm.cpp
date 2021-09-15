@@ -61,15 +61,14 @@ void virtual_machine::reset_stack()
 clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
 {
 
-	auto frame = &call_frames_.back();
 
 //	for (; ip_ != chunk_->end();)
-	for (; ip_ != top_call_frame().function()->body()->end();)
+	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
 		try
 		{
-			chunk::code_type instruction = *ip_++;
-			run_code(instruction, &frame);
+			chunk::code_type instruction = *top_call_frame().ip()++;
+			run_code(instruction, top_call_frame());
 		}
 		catch (const vm_return& vr)
 		{
@@ -86,7 +85,7 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 }
 
 
-bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
+bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 {
 	switch (V(main_op_code_of(instruction)))
 	{
@@ -268,7 +267,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 		{
 			auto slot = next_code();
 //			push(stack_[slot]);
-			push(*(*frame)->slot(slot));
+			push(slot_at(frame, slot));
 
 		}
 		else
@@ -293,10 +292,9 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-			auto stack_slot = (*frame)->slot(slot);
-			*stack_slot = peek(0);
+			slot_at(frame, slot) = peek(0);
 //			push(stack_[slot]); // assignment expression should create a value
-			push(*stack_slot); // assignment expression should create a value
+			push(slot_at(frame, slot)); // assignment expression should create a value
 
 		}
 		else
@@ -388,11 +386,10 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-			auto stack_slot = (*frame)->slot(slot);
 
-			auto prev_val = *stack_slot;
+			auto prev_val = slot_at(frame, slot);
 
-			*stack_slot = std::visit(inc_dec_visitor, prev_val);
+			slot_at(frame, slot) = std::visit(inc_dec_visitor, prev_val);
 
 			if (secondary & SEC_OP_POSTFIX)
 			{
@@ -400,7 +397,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 			}
 			else
 			{
-				push(*stack_slot);
+				push(slot_at(frame, slot));
 			}
 
 		}
@@ -415,7 +412,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 	case V(op_code::JUMP):
 	{
 		auto offset = next_code();
-		(*frame)->ip_ += offset;
+		frame.ip_ += offset;
 		break;
 	}
 
@@ -424,7 +421,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 		auto offset = next_code();
 		if (is_false(peek(0)))
 		{
-			(*frame)->ip_ += offset;
+			frame.ip_ += offset;
 		}
 		break;
 	}
@@ -432,7 +429,7 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 	case V(op_code::LOOP):
 	{
 		auto offset = next_code();
-		(*frame)->ip_ -= offset;
+		frame.ip_ -= offset;
 		break;
 	}
 
@@ -441,6 +438,12 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame** frame)
 	}
 
 	return true;
+}
+
+
+value& virtual_machine::slot_at(const call_frame& frame, size_t slot)
+{
+	return *(stack_.begin() + frame.stack_offset() + slot);
 }
 
 value virtual_machine::next_constant()
@@ -452,7 +455,7 @@ value virtual_machine::next_constant()
 
 chunk::code_type virtual_machine::next_code()
 {
-	return *ip_++;
+	return *top_call_frame().ip()++;
 }
 
 
@@ -512,7 +515,7 @@ virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
 {
 	push(func);
 
-	push_call_frame(func,func->body()->begin(),stack_.begin());
+	push_call_frame(func, func->body()->begin(), 0);
 
 //	chunk_ = func;
 //	ip_ = chunk_->begin();

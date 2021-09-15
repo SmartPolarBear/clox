@@ -61,12 +61,13 @@ private:
 class virtual_machine final
 {
 public:
-	static inline constexpr size_t CALL_STACK_MAX = 64;
+	static inline constexpr size_t CALL_STACK_RESERVED_SIZE = 64;
 	static inline constexpr size_t STACK_RESERVED_SIZE = 16384;
 
 	using value_list_type = std::vector<value>;
 	using global_table_type = std::unordered_map<std::string, value>;
 	using ip_type = chunk::iterator_type;
+	using call_frame_list_type = std::vector<value>;
 
 	class call_frame final
 	{
@@ -75,14 +76,9 @@ public:
 
 	public:
 
-		[[nodiscard]] auto slot() const
+		[[nodiscard]] size_t stack_offset() const
 		{
-			return slot_;
-		}
-
-		[[nodiscard]] auto slot(size_t i) const
-		{
-			return slot_ + i;
+			return stack_offset_;
 		}
 
 		[[nodiscard]] function_object_raw_pointer function() const
@@ -90,7 +86,7 @@ public:
 			return function_;
 		}
 
-		[[nodiscard]] ip_type ip() const
+		[[nodiscard]] ip_type& ip()
 		{
 			return ip_;
 		}
@@ -99,7 +95,7 @@ public:
 	private:
 		function_object_raw_pointer function_{};
 		ip_type ip_{};
-		std::vector<value>::iterator slot_;
+		size_t stack_offset_{};
 	};
 
 
@@ -116,7 +112,7 @@ public:
 private:
 	virtual_machine_status run();
 
-	bool run_code(chunk::code_type instruction, call_frame**);
+	bool run_code(chunk::code_type instruction, call_frame& frame);
 
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
@@ -124,7 +120,7 @@ private:
 		auto frame = &call_frames_[call_frame_count_ - 1];
 
 		cons_->error() << std::format("[Line {}] in file {}:",
-				frame->function_->body()->line_of(ip_),
+				frame->function_->body()->line_of(top_call_frame().ip()),
 				frame->function_->body()->filename()) << std::endl;
 
 		cons_->error() << std::format(fmt, args...);
@@ -192,6 +188,8 @@ private:
 
 	chunk::code_type next_code();
 
+	value& slot_at(const call_frame& frame, size_t slot);
+
 	// call frame
 
 	call_frame& top_call_frame()
@@ -199,11 +197,11 @@ private:
 		return call_frames_[call_frame_count_ - 1];
 	}
 
-	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, std::vector<value>::iterator slot)
+	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, size_t stack_offset)
 	{
 		call_frames_[call_frame_count_].function_ = func;
 		call_frames_[call_frame_count_].ip_ = ip;
-		call_frames_[call_frame_count_].slot_ = slot;
+		call_frames_[call_frame_count_].stack_offset_ = stack_offset;
 
 		++call_frame_count_;
 	}
@@ -219,13 +217,13 @@ private:
 
 //	std::shared_ptr<chunk> chunk_{};
 
-	ip_type ip_{};
+//	ip_type ip_{};
 
 	value_list_type stack_{};
 
 	global_table_type globals_{};
 
-	std::array<call_frame, CALL_STACK_MAX> call_frames_{};
+	std::array<call_frame, CALL_STACK_RESERVED_SIZE> call_frames_{};
 
 	size_t call_frame_count_{ 0 };
 
