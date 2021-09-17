@@ -22,7 +22,22 @@
 // Created by cleve on 9/17/2021.
 //
 
-#ifndef CLOX_CONFIGURATION_H
-#define CLOX_CONFIGURATION_H
+#pragma once
 
-#endif //CLOX_CONFIGURATION_H
+#include <base/base.h>
+
+namespace clox::base
+{
+class predefined_configuration final
+		: public singleton<predefined_configuration>
+{
+
+};
+
+class configurable_configuration
+		: public singleton<configurable_configuration>
+{
+
+};
+
+}
