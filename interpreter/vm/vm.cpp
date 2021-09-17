@@ -69,11 +69,11 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 		try
 		{
 			chunk::code_type instruction = *top_call_frame().ip()++;
-			run_code(instruction, top_call_frame());
-		}
-		catch (const vm_return& vr)
-		{
-			return vr.status();
+			auto[status, exit] = run_code(instruction, top_call_frame());
+			if (exit)
+			{
+				return status.value_or(virtual_machine_status::OK);
+			}
 		}
 		catch (const exception& e)
 		{
@@ -86,14 +86,15 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 }
 
 
-bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
+std::tuple<std::optional<virtual_machine_status>, bool>
+virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 {
 	switch (V(main_op_code_of(instruction)))
 	{
 	case V(op_code::RETURN):
 	{
 		pop();
-		throw vm_return{ virtual_machine_status::OK };
+		return { virtual_machine_status::OK, true };
 	}
 
 	case V(op_code::POP):
@@ -434,11 +435,21 @@ bool virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case V(op_code::CALL):
+	{
+		auto callable = next_constant();
+		auto arg_count = next_code();
+
+		call_value(callable, arg_count);
+
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
 
-	return true;
+	return { nullopt, false };
 }
 
 
@@ -451,7 +462,6 @@ value virtual_machine::next_constant()
 {
 //	return chunk_->constant_at(next_code());
 	return top_call_frame().function()->body()->constant_at(next_code());
-
 }
 
 chunk::code_type virtual_machine::next_code()
@@ -522,5 +532,33 @@ virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
 //	ip_ = chunk_->begin();
 
 	return run();
+}
+
+void virtual_machine::call_value(const value& val, size_t arg_count)
+{
+	if (!holds_alternative<object_raw_pointer>(val))
+	{
+		throw invalid_value{ val };
+	}
+
+	auto obj = get<object_raw_pointer>(val);
+
+	if (obj->type() == object_type::FUNCTION)
+	{
+		auto func = dynamic_cast<function_object_raw_pointer> (obj);
+		call(func, arg_count);
+	}
+	else
+	{
+		throw invalid_value{ val };
+	}
+}
+
+void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
+{
+	func->body()->disassemble(*cons_);
+	push_call_frame(func,
+			func->body()->begin(),
+			stack_.size() - arg_count - 1);
 }
 

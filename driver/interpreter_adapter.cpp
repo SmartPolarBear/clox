@@ -73,7 +73,7 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	codegen gen_{ heap_, repl_resolver_.bindings() };
+	codegen gen_{ heap_, rsv.bindings() };
 	gen_.generate(stmts);
 
 	if (logger::instance().has_errors())return 65;

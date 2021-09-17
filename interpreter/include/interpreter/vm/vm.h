@@ -40,24 +40,6 @@ enum class virtual_machine_status
 	RUNTIME_ERROR,
 };
 
-class vm_return final
-{
-public:
-	explicit vm_return(virtual_machine_status st)
-			: status_(st)
-	{
-	}
-
-	[[nodiscard]] virtual_machine_status status() const
-	{
-		return status_;
-	}
-
-private:
-	virtual_machine_status status_{};
-};
-
-
 class virtual_machine final
 {
 public:
@@ -117,7 +99,8 @@ public:
 private:
 	virtual_machine_status run();
 
-	bool run_code(chunk::code_type instruction, call_frame& frame);
+	// {return status, exit}
+	std::tuple<std::optional<virtual_machine_status>,bool> run_code(chunk::code_type instruction, call_frame& frame);
 
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
@@ -165,6 +148,10 @@ private:
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
 		}
 	}
+
+	void call_value(const value &val,size_t arg_count);
+
+	void call(function_object_raw_pointer func,size_t arg_count);
 
 	bool is_false(const value& val);
 

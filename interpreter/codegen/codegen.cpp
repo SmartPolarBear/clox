@@ -432,14 +432,24 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			}
 			else
 			{
+				emit_codes(V(vm::op_code::CONSTANT), func.value()); // make the function into the stack
+
 				for (const auto& arg: ce->get_args())
 				{
-					generate(arg);
+					generate(arg); // push arguments in the stack
 				}
 
-				emit_codes(V(op_code::CALL), func.value(), ce->get_args().size());
+				emit_codes(V(op_code::CALL), func.value(), ce->get_args().size()); // call the function
 			}
 		}
+		else
+		{
+			throw internal_codegen_error{ "Function lookup failure" };
+		}
+	}
+	else
+	{
+		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
 
@@ -552,16 +562,27 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
+	scope_begin();
+
+	for (const auto& param: fs->get_params())
+	{
+		declare_local_variable(param.first.lexeme());
+	}
+
+	auto _ = finally([this, &fs]
+	{
+		scope_end();
+
+		auto top = function_pop();
+
+		auto pos = make_constant(top);
+
+		local_scopes_.back()->add_function(fs, pos);
+	});
+
 	generate(fs->get_body());
-
-	auto top = function_pop();
-
-	auto pos = make_constant(top);
-
-	local_scope().add_function(fs, pos);
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& ptr)

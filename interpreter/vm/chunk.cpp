@@ -130,6 +130,13 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.out() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
 
+	case op_code::CALL:
+		out.out() << std::format(" {} '{}', {} args.",
+				codes_[offset + 1],
+				constants_[codes_[offset + 1]],
+				codes_[offset + 2]) << endl;
+		return offset + 3;
+
 	default:
 		out.out() << endl;
 		return offset + 1;

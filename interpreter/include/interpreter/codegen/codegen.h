@@ -156,7 +156,7 @@ private:
 
 	bool is_function_lookup_failure(const std::optional<vm::chunk::code_type>& rets)
 	{
-		return rets.has_value();
+		return !rets.has_value();
 	}
 
 	void emit_code(vm::full_opcode_type byte);
