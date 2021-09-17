@@ -562,27 +562,28 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
+	auto global_pos = make_constant(nullptr); // reserve a place in constant table for it
+	local_scopes_.back()->add_function(fs, global_pos);
+
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
 	scope_begin();
+
+	auto local_pos = make_constant(nullptr); // reserve a place in constant table for it
+	local_scopes_.back()->add_function(fs, local_pos);
 
 	for (const auto& param: fs->get_params())
 	{
 		declare_local_variable(param.first.lexeme());
 	}
 
-	auto _ = finally([this, &fs]
-	{
-		scope_end();
-
-		auto top = function_pop();
-
-		auto pos = make_constant(top);
-
-		local_scopes_.back()->add_function(fs, pos);
-	});
-
 	generate(fs->get_body());
+
+	set_constant(local_pos, function_top());
+
+	scope_end();
+
+	set_constant(global_pos, function_pop());
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
@@ -622,6 +623,11 @@ uint16_t codegen::make_constant(const value& val)
 {
 	auto idx = current()->add_constant(val);
 	return idx;
+}
+
+void codegen::set_constant(vm::full_opcode_type pos, const value& val)
+{
+	current()->constant_at(pos) = val;
 }
 
 void codegen::scope_begin()
@@ -749,4 +755,5 @@ vm::function_object_raw_pointer codegen::top_function()
 {
 	return function_top();
 }
+
 

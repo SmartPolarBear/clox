@@ -98,7 +98,7 @@ public:
 
 	code_type add_constant(const value& val);
 
-	value constant_at(code_type pos);
+	value& constant_at(code_type pos);
 
 	int64_t line_of(code_list_type::iterator ip);
 
