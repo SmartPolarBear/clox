@@ -130,7 +130,7 @@ public:
 			}
 			else if (val->type() == object_type::FUNCTION)
 			{
-				return std::format("{0}{1}", type_name_of<string_object_raw_pointer>(),
+				return std::format("{0}{1}", type_name_of<object_raw_pointer>(),
 						dynamic_cast<function_object_raw_pointer>(val)->printable_string());
 			}
 			else
