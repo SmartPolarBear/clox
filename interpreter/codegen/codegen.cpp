@@ -585,9 +585,10 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	generate(fs->get_body());
 }
 
-void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
 {
-
+	generate(rs->get_val());
+	emit_code(V(op_code::RETURN));
 }
 
 void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
@@ -608,6 +609,7 @@ void codegen::emit_code(vm::full_opcode_type byte)
 
 void codegen::emit_return()
 {
+	emit_code(V(op_code::CONSTANT_NIL));
 	emit_code(V(op_code::RETURN));
 }
 

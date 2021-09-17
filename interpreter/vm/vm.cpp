@@ -93,8 +93,22 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 	case V(op_code::RETURN):
 	{
-		pop();
-		return { virtual_machine_status::OK, true };
+		auto ret = pop();
+
+		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
+		{
+			stack_.pop_back();
+		}
+
+		if (call_frames_.empty())
+		{
+			pop();
+			return { virtual_machine_status::OK, true };
+		}
+
+		push(ret);
+		pop_call_frame();
+		break;
 	}
 
 	case V(op_code::POP):
