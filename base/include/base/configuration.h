@@ -28,16 +28,18 @@
 
 namespace clox::base
 {
-class predefined_configuration final
-		: public singleton<predefined_configuration>
-{
-
-};
 
 class configurable_configuration
-		: public singleton<configurable_configuration>
 {
+public:
+	virtual bool dump_ast() = 0;
 
+	virtual bool dump_assembly() = 0;
 };
+
+class predefined_configuration
+{
+};
+
 
 }

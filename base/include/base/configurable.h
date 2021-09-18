@@ -19,11 +19,20 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/17/2021.
+// Created by cleve on 9/18/2021.
 //
 
+
+#include <base/base.h>
 #include <base/configuration.h>
 
-#include <base/predefined.h>
-#include <base/configurable.h>
+namespace clox::base
+{
+class runtime_configurable_configuration
+		: public configurable_configuration
+{
+public:
+	runtime_configurable_configuration() = default;
 
+};
+}
