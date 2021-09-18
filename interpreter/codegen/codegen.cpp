@@ -432,8 +432,6 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			}
 			else
 			{
-				emit_codes(V(vm::op_code::CONSTANT), func.value()); // make the function into the stack
-
 				for (const auto& arg: ce->get_args())
 				{
 					generate(arg); // push arguments in the stack
@@ -562,15 +560,14 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto global_pos = make_constant(nullptr); // reserve a place in constant table for it
-	local_scopes_.back()->add_function(fs, global_pos);
+	auto global_pos = make_constant(nullptr);
+	auto id = make_function(fs);
+	local_scopes_.back()->add_function(fs, id);
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
-	scope_begin();
 
-	auto local_pos = make_constant(nullptr); // reserve a place in constant table for it
-	local_scopes_.back()->add_function(fs, local_pos);
+	scope_begin();
 
 	for (const auto& param: fs->get_params())
 	{
@@ -579,11 +576,12 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	generate(fs->get_body());
 
-	set_constant(local_pos, function_top());
-
 	scope_end();
 
-	set_constant(global_pos, function_pop());
+	auto func = function_pop();
+
+	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, global_pos);
+	set_constant(global_pos, func);
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
@@ -754,6 +752,17 @@ vm::function_object_raw_pointer codegen::function_top()
 vm::function_object_raw_pointer codegen::top_function()
 {
 	return function_top();
+}
+
+vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
+{
+	if (functions_ids_.contains(func))
+	{
+		return functions_ids_.at(func);
+	}
+
+	functions_ids_.insert_or_assign(func, function_id_counter_);
+	return function_id_counter_++;
 }
 
 

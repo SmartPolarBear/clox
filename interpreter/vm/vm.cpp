@@ -332,6 +332,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			globals_.insert_or_assign(name, peek(0));
 			pop();
 		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			auto id = next_code();
+			auto func_obj = next_constant();
+
+			functions_.insert_or_assign(id, func_obj);
+		}
 		else // one can only define global
 		{
 			throw invalid_opcode{ instruction };
@@ -452,10 +459,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case V(op_code::CALL):
 	{
-		auto callable = next_constant();
+		auto callable_id = next_code();
 		auto arg_count = next_code();
 
-		call_value(callable, arg_count);
+		call_value(functions_.at(callable_id), arg_count);
 
 		break;
 	}
@@ -571,7 +578,7 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
 {
-	if(configurable_configuration_instance().dump_assembly())
+	if (configurable_configuration_instance().dump_assembly())
 	{
 		func->body()->disassemble(*cons_);
 	}

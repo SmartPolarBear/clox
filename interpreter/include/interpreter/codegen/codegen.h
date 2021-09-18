@@ -183,6 +183,8 @@ private:
 
 	uint16_t make_constant(const vm::value& val);
 
+	vm::full_opcode_type make_function(const std::shared_ptr<parsing::statement>& func);
+
 	class local_scope
 	{
 	public:
@@ -247,9 +249,11 @@ private:
 
 	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 
-//	std::shared_ptr<vm::chunk> current_chunk_{};
-
 	std::vector<vm::function_object_raw_pointer> functions_{};
+
+	std::unordered_map<std::shared_ptr<parsing::statement>, vm::full_opcode_type> functions_ids_{};
+
+	size_t function_id_counter_{ 1 };
 
 	std::shared_ptr<vm::object_heap> heap_{};
 

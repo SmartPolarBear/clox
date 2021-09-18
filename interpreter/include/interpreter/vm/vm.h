@@ -48,6 +48,7 @@ public:
 
 	using value_list_type = std::vector<value>;
 	using global_table_type = std::unordered_map<std::string, value>;
+	using function_table_type = std::unordered_map<full_opcode_type, value>;
 	using ip_type = chunk::iterator_type;
 
 	class call_frame final
@@ -100,7 +101,7 @@ private:
 	virtual_machine_status run();
 
 	// {return status, exit}
-	std::tuple<std::optional<virtual_machine_status>,bool> run_code(chunk::code_type instruction, call_frame& frame);
+	std::tuple<std::optional<virtual_machine_status>, bool> run_code(chunk::code_type instruction, call_frame& frame);
 
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
@@ -149,9 +150,9 @@ private:
 		}
 	}
 
-	void call_value(const value &val,size_t arg_count);
+	void call_value(const value& val, size_t arg_count);
 
-	void call(function_object_raw_pointer func,size_t arg_count);
+	void call(function_object_raw_pointer func, size_t arg_count);
 
 	bool is_false(const value& val);
 
@@ -209,6 +210,8 @@ private:
 	value_list_type stack_{};
 
 	global_table_type globals_{};
+
+	function_table_type functions_{};
 
 	call_frame_list_type call_frames_{};
 
