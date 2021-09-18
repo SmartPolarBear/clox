@@ -46,7 +46,6 @@ public:
 
 	virtual int repl(const std::vector<std::shared_ptr<parsing::statement>>& stmts) = 0;
 
-	virtual void set_output(bool show_ast, bool show_asm) = 0;
 };
 
 class vm_interpreter_adapter final
@@ -62,7 +61,6 @@ public:
 	{
 	}
 
-	void set_output(bool show_ast, bool show_asm) override;
 
 	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
 
@@ -73,9 +71,6 @@ private:
 
 	resolving::resolver repl_resolver_{};
 	interpreting::vm::virtual_machine repl_vm_;
-
-	bool show_ast_{ false };
-	bool show_asm_{ false };
 
 	mutable helper::console* cons_{};
 };

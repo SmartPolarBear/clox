@@ -56,24 +56,18 @@ int clox::driver::run_code(helper::console& output_cons,
 	return adapter->full_code(stmts);
 }
 
-int clox::driver::run_file(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& name,
-		bool dump_ast,
-		bool dump_assembly)
+int clox::driver::run_file(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter,
+		const std::string& name)
 {
 	ifstream src{ name };
 
 	stringstream ss{};
 	ss << src.rdbuf();
 
-	return run_code(cons, adapter, ss.str(), dump_ast, dump_assembly);
+	return run_code(cons, adapter, ss.str());
 }
 
-int clox::driver::run_repl(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		bool dump_ast,
-		bool dump_assembly)
+int clox::driver::run_repl(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter)
 {
 	resolver rsv{};
 	classic::interpreter the_interpreter{ cons, rsv.bindings() };

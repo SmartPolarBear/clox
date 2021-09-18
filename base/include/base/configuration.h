@@ -26,20 +26,29 @@
 
 #include <base/base.h>
 
+#include <base/configurable.h>
+#include <base/predefined.h>
+
 namespace clox::base
 {
 
-class configurable_configuration
+
+#ifndef CONFIGURABLE_CONFIGURATION_CLASS
+#define CONFIGURABLE_CONFIGURATION_CLASS runtime_configurable_configuration
+#endif
+
+#ifndef PREDEFINED_CONFIGURATION_CLASS
+#define PREDEFINED_CONFIGURATION_CLASS runtime_predefined_configuration
+#endif
+
+static inline auto& configurable_configuration_instance()
 {
-public:
-	virtual bool dump_ast() = 0;
+	return CONFIGURABLE_CONFIGURATION_CLASS::instance();
+}
 
-	virtual bool dump_assembly() = 0;
-};
-
-class predefined_configuration
+static inline auto& predefined_configuration_instance()
 {
-};
-
+	return PREDEFINED_CONFIGURATION_CLASS::instance();
+}
 
 }

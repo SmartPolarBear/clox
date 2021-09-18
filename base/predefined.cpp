@@ -19,33 +19,7 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/10/2021.
+// Created by cleve on 9/18/2021.
 //
 
-#pragma once
-
-#include <driver/run.h>
-#include <driver/interpreter_adapter.h>
-
-#include <helper/console.h>
-
-#include <string>
-
-
-namespace clox::driver
-{
-
-// these interfaces are mainly used for unit tests
-
-[[nodiscard]] int run_code(helper::console& output_cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& code,
-		bool dump_ast = false,
-		bool dump_assembly = false);
-
-[[nodiscard]] int
-run_file(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter, const std::string& name);
-
-[[nodiscard]] int run_repl(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter);
-
-}
+#include <base/predefined.h>

@@ -22,8 +22,8 @@
 // Created by cleve on 9/1/2021.
 //
 
+#include <base/configuration.h>
 #include <helper/exceptions.h>
-
 
 #include <interpreter/vm/vm.h>
 #include <interpreter/vm/exceptions.h>
@@ -35,6 +35,7 @@
 using namespace std;
 using namespace gsl;
 
+using namespace clox::base;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
@@ -570,7 +571,11 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
 {
-	func->body()->disassemble(*cons_);
+	if(configurable_configuration_instance().dump_assembly())
+	{
+		func->body()->disassemble(*cons_);
+	}
+
 	push_call_frame(func,
 			func->body()->begin(),
 			stack_.size() - arg_count - 1);

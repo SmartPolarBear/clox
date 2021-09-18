@@ -23,14 +23,15 @@
 //
 #pragma once
 
-#include <base/configuration.h>
+#include <base/base.h>
 
 namespace clox::base
 {
 class runtime_predefined_configuration final
-		: public predefined_configuration
+		: public predefined_configuration<runtime_predefined_configuration>
 {
-
+public:
+	runtime_predefined_configuration() = default;
 };
 
 }

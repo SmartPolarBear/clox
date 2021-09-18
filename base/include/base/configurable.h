@@ -22,17 +22,28 @@
 // Created by cleve on 9/18/2021.
 //
 
+#pragma once
 
 #include <base/base.h>
-#include <base/configuration.h>
+
+#include <argparse/argparse.hpp>
 
 namespace clox::base
 {
 class runtime_configurable_configuration
-		: public configurable_configuration
+		: public configurable_configuration<runtime_configurable_configuration>
 {
 public:
 	runtime_configurable_configuration() = default;
 
+	void load_arguments(const argparse::ArgumentParser& arg_parser);
+
+	bool dump_ast() override;
+
+	bool dump_assembly() override;
+
+private:
+	bool dump_ast_{};
+	bool dump_assembly_{};
 };
 }

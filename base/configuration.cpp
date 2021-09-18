@@ -27,3 +27,5 @@
 #include <base/predefined.h>
 #include <base/configurable.h>
 
+using namespace clox::base;
+

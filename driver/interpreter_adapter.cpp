@@ -22,6 +22,7 @@
 // Created by cleve on 9/10/2021.
 //
 
+#include <base/configuration.h>
 
 #include <driver/classic.h>
 #include "driver/driver.h"
@@ -52,6 +53,7 @@
 
 using namespace std;
 
+using namespace clox::base;
 using namespace clox::helper;
 using namespace clox::scanning;
 using namespace clox::parsing;
@@ -79,7 +81,7 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	if (show_asm_)
+	if (configurable_configuration_instance().dump_assembly())
 	{
 		gen_.top_function()->body()->disassemble(*cons_);
 	}
@@ -103,7 +105,7 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	codegen gen_{ heap_, repl_resolver_.bindings() };
 	gen_.generate(stmts);
 
-	if (show_asm_)
+	if (configurable_configuration_instance().dump_assembly())
 	{
 		gen_.top_function()->body()->disassemble(*cons_);
 	}
@@ -120,9 +122,4 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	return 0;
 }
 
-void clox::driver::vm_interpreter_adapter::set_output(bool show_ast, bool show_asm)
-{
-	show_ast_ = show_ast;
-	show_asm_ = show_asm;
-}
 
