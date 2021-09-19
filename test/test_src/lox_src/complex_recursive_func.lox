@@ -2,7 +2,25 @@ fun one(){
     return 1;
 }
 
-var number_one=one();
+fun one2()
+{
+    var value = one();
+    return value;
+}
+
+var number_one=one2();
+print number_one;
+
+/*
+fun add(n:integer){
+    if(n<=1) {
+        return 1;
+    }
+
+    return 1+add(n-1);
+}
+
+print add(3);
 
 fun fib(n:integer){
     if(n==1 or n==2){
@@ -14,3 +32,4 @@ fun fib(n:integer){
 for(var i=1;i<10;i=i+1){
     print fib(i);
 }
+*/

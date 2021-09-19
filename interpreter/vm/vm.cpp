@@ -462,7 +462,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		auto callable_id = next_code();
 		auto arg_count = next_code();
 
-		call_value(functions_.at(callable_id), arg_count);
+		auto callable = functions_.at(callable_id);
+
+
+		call_value(callable, arg_count);
 
 		break;
 	}
@@ -583,8 +586,13 @@ void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
 		func->body()->disassemble(*cons_);
 	}
 
+	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
+	assert(stack_offset >= 0);
+
 	push_call_frame(func,
 			func->body()->begin(),
-			stack_.size() - arg_count - 1);
+			stack_offset);
+
+	push(func);
 }
 

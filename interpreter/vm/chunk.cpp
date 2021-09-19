@@ -123,6 +123,12 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		{
 			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			out.out() << std::format(" ID={}, constant {} '{}'", codes_[offset + 1], codes_[offset + 2],
+					constants_[codes_[offset + 2]]) << endl;
+			return offset + 3;
+		}
 
 		return offset + 2;
 
@@ -131,9 +137,8 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		return offset + 2;
 
 	case op_code::CALL:
-		out.out() << std::format(" {} '{}', {} args.",
+		out.out() << std::format("ID={} , {} args",
 				codes_[offset + 1],
-				constants_[codes_[offset + 1]],
 				codes_[offset + 2]) << endl;
 		return offset + 3;
 

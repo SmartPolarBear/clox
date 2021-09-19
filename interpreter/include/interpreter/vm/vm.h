@@ -122,6 +122,8 @@ private:
 	{
 		try
 		{
+			auto l = peek(0), r = peek(1);
+
 			auto right = get_number_promoted(peek(0));
 			auto left = get_number_promoted(peek(1));
 
