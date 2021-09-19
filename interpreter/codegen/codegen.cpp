@@ -425,21 +425,23 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	{
 		if (auto binding = binding_ret.value();binding->type() == resolving::binding_type::BINDING_FUNCTION)
 		{
-			auto func = function_lookup(dynamic_pointer_cast<function_binding>(binding)->statement());
-			if (is_function_lookup_failure(func))
+			auto func_lookup_ret = function_lookup(dynamic_pointer_cast<function_binding>(binding)->statement());
+			if (is_function_lookup_failure(func_lookup_ret))
 			{
 				throw internal_codegen_error{ "Function lookup failure" };
 			}
 			else
 			{
 				// TODO: here, emit something like "pushfunc"
+				auto[id, constant]=func_lookup_ret.value();
+				emit_codes(V(vm::op_code::CONSTANT), constant);
 
 				for (const auto& arg: ce->get_args())
 				{
 					generate(arg); // push arguments in the stack
 				}
 
-				emit_codes(V(op_code::CALL), func.value(), ce->get_args().size()); // call the function
+				emit_codes(V(op_code::CALL), id, ce->get_args().size()); // call the function
 			}
 		}
 		else
@@ -562,9 +564,9 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto global_pos = make_constant(nullptr);
+	auto constant = make_constant(nullptr);
 	auto id = make_function(fs);
-	local_scopes_.back()->add_function(fs, id);
+	local_scopes_.back()->add_function(fs, id, constant);
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
@@ -582,8 +584,8 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	auto func = function_pop();
 
-	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, global_pos);
-	set_constant(global_pos, func);
+	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, constant);
+	set_constant(constant, func);
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
@@ -684,7 +686,8 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 	return make_tuple(nullopt, false);
 }
 
-std::optional<vm::chunk::code_type> codegen::function_lookup(const std::shared_ptr<parsing::statement>& stmt)
+std::optional<tuple<chunk::code_type, chunk::code_type>>
+codegen::function_lookup(const std::shared_ptr<parsing::statement>& stmt)
 {
 	for (const auto& scope: local_scopes_
 							| ranges::views::reverse)

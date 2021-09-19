@@ -152,9 +152,10 @@ private:
 		return global;
 	}
 
-	std::optional<vm::chunk::code_type> function_lookup(const std::shared_ptr<parsing::statement>& stmt);
+	std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>
+	function_lookup(const std::shared_ptr<parsing::statement>& stmt);
 
-	bool is_function_lookup_failure(const std::optional<vm::chunk::code_type>& rets)
+	bool is_function_lookup_failure(const std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>& rets)
 	{
 		return !rets.has_value();
 	}
@@ -220,9 +221,10 @@ private:
 			return locals_.at(name);
 		}
 
-		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type pos)
+		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type id,
+				vm::chunk::code_type constant)
 		{
-			function_map_[stmt] = pos;
+			function_map_[stmt] = std::make_pair(id, constant);
 		}
 
 		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
@@ -230,13 +232,13 @@ private:
 			return function_map_.contains(stmt);
 		}
 
-		vm::chunk::code_type find(const std::shared_ptr<parsing::statement>& stmt)
+		std::tuple<vm::chunk::code_type, vm::chunk::code_type> find(const std::shared_ptr<parsing::statement>& stmt)
 		{
 			return function_map_.at(stmt);
 		}
 
 	private:
-		std::unordered_map<std::shared_ptr<parsing::statement>, vm::chunk::code_type> function_map_{};
+		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
 
 		std::unordered_map<std::string, slot_type> locals_{};
 		size_t count_{ 0 };

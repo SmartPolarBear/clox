@@ -587,13 +587,11 @@ void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
 		func->body()->disassemble(*cons_);
 	}
 
-	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count;// - 1;
+	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
 	assert(stack_offset >= 0);
 
 	push_call_frame(func,
 			func->body()->begin(),
 			stack_offset);
-
-	push(func);
 }
 
