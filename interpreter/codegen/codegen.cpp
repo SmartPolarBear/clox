@@ -432,6 +432,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			}
 			else
 			{
+				// TODO: here, emit something like "pushfunc"
+
 				for (const auto& arg: ce->get_args())
 				{
 					generate(arg); // push arguments in the stack

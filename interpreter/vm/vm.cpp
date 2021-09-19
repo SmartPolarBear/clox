@@ -96,6 +96,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto ret = pop();
 
+//		while (stack_.size() > top_call_frame().stack_offset() + 1) // pop function's value
 		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
 		{
 			stack_.pop_back();
@@ -586,7 +587,7 @@ void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
 		func->body()->disassemble(*cons_);
 	}
 
-	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
+	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count;// - 1;
 	assert(stack_offset >= 0);
 
 	push_call_frame(func,
