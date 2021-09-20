@@ -53,7 +53,8 @@ codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolvin
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
 	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
-	current_chunk_ = make_shared<chunk>(); //FIXME
+//	current_chunk_ = make_shared<chunk>();
+	function_push(heap_->allocate<function_object>("", 0));
 }
 
 
@@ -73,8 +74,6 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 	{
 		generate(stmt);
 	}
-
-//	emit_return(); // FIXME: it should be, but not be there
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
@@ -420,9 +419,39 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 	}
 }
 
-void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
+	if (auto binding_ret = bindings_->get(ce);binding_ret)
+	{
+		if (auto binding = binding_ret.value();binding->type() == resolving::binding_type::BINDING_FUNCTION)
+		{
+			auto func_lookup_ret = function_lookup(dynamic_pointer_cast<function_binding>(binding)->statement());
+			if (is_function_lookup_failure(func_lookup_ret))
+			{
+				throw internal_codegen_error{ "Function lookup failure" };
+			}
+			else
+			{
+				auto[id, constant]=func_lookup_ret.value();
+				emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id);
 
+				for (const auto& arg: ce->get_args())
+				{
+					generate(arg); // push arguments in the stack
+				}
+
+				emit_codes(V(op_code::CALL), id, ce->get_args().size()); // call the function
+			}
+		}
+		else
+		{
+			throw internal_codegen_error{ "Function lookup failure" };
+		}
+	}
+	else
+	{
+		throw internal_codegen_error{ "Function lookup failure" };
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
@@ -532,14 +561,36 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 }
 
 void
-clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& ptr)
+clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
+	auto constant = make_constant(nullptr);
+	auto id = make_function(fs);
+	local_scopes_.back()->add_function(fs, id, constant);
 
+	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
+
+
+	scope_begin();
+
+	for (const auto& param: fs->get_params())
+	{
+		declare_local_variable(param.first.lexeme());
+	}
+
+	generate(fs->get_body());
+
+	scope_end();
+
+	auto func = function_pop();
+
+	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, constant);
+	set_constant(constant, func);
 }
 
-void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
 {
-
+	generate(rs->get_val());
+	emit_code(V(op_code::RETURN));
 }
 
 void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
@@ -549,7 +600,8 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 std::shared_ptr<vm::chunk> codegen::current()
 {
-	return current_chunk_;
+//	return current_chunk_;
+	return functions_.back()->body();
 }
 
 void codegen::emit_code(vm::full_opcode_type byte)
@@ -559,18 +611,25 @@ void codegen::emit_code(vm::full_opcode_type byte)
 
 void codegen::emit_return()
 {
+	emit_code(V(op_code::CONSTANT_NIL));
 	emit_code(V(op_code::RETURN));
 }
 
 void codegen::emit_constant(const value& val)
 {
-	emit_codes(V(op_code::CONSTANT), make_constant(val));
+	auto constant = make_constant(val);
+	emit_codes(V(op_code::CONSTANT), constant);
 }
 
 uint16_t codegen::make_constant(const value& val)
 {
 	auto idx = current()->add_constant(val);
 	return idx;
+}
+
+void codegen::set_constant(vm::full_opcode_type pos, const value& val)
+{
+	current()->constant_at(pos) = val;
 }
 
 void codegen::scope_begin()
@@ -582,6 +641,7 @@ void codegen::scope_begin()
 void codegen::scope_end()
 {
 	auto count = local_scopes_.back()->count();
+
 	emit_codes(
 			V(op_code::POP_N),
 			static_cast<chunk::code_type>(count)
@@ -627,6 +687,21 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 	return make_tuple(nullopt, false);
 }
 
+std::optional<tuple<chunk::code_type, chunk::code_type>>
+codegen::function_lookup(const std::shared_ptr<parsing::statement>& stmt)
+{
+	for (const auto& scope: local_scopes_
+							| ranges::views::reverse)
+	{
+		if (scope->contains_function(stmt))
+		{
+			return scope->find(stmt);
+		}
+	}
+
+	return nullopt;
+}
+
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 {
 	emit_code(jmp);
@@ -656,6 +731,44 @@ void codegen::emit_loop(vm::chunk::difference_type pos)
 
 	emit_code(V(op_code::LOOP));
 	emit_code(dist);
+}
+
+void codegen::function_push(vm::function_object_raw_pointer func)
+{
+	functions_.push_back(func);
+}
+
+vm::function_object_raw_pointer codegen::function_pop()
+{
+	//TODO: print disassembly when errors occur
+
+	emit_return();
+
+	auto top = function_top();
+	functions_.pop_back();
+
+	return top;
+}
+
+vm::function_object_raw_pointer codegen::function_top()
+{
+	return functions_.back();
+}
+
+vm::function_object_raw_pointer codegen::top_function()
+{
+	return function_top();
+}
+
+vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
+{
+	if (functions_ids_.contains(func))
+	{
+		return functions_ids_.at(func);
+	}
+
+	functions_ids_.insert_or_assign(func, function_id_counter_);
+	return function_id_counter_++;
 }
 
 

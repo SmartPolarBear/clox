@@ -19,46 +19,59 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/14/2021.
 //
 
 #pragma once
 
+
 #include <scanner/scanner.h>
+
+#include <interpreter/vm/object.h>
 
 #include <variant>
 #include <string>
-#include <string_view>
 
 #include <memory>
 #include <map>
 
+
 namespace clox::interpreting::vm
 {
-enum class object_type
+class function_object final
+		: public object
 {
-	STRING,
-	FUNCTION,
-};
-
-class object
-		: public helper::printable
-{
-
 public:
-	static inline bool is_string(const object& obj)
+	explicit function_object(std::string name, size_t arity);
+
+	[[nodiscard]] object_type type() const noexcept override;
+
+	[[nodiscard]] std::string name() const
 	{
-		return obj.type() == object_type::STRING;
+		return name_;
 	}
 
-	static bool pointer_equal(const object* lhs, const object* rhs);
+	[[nodiscard]] size_t arity() const
+	{
+		return arity_;
+	}
 
+	[[nodiscard]] auto body() const
+	{
+		return body_;
+	}
 
+private:
 public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
+	std::string printable_string() override;
+
+private:
+	std::string name_{};
+	size_t arity_{};
+	std::shared_ptr<class chunk /* to avoid header circular dependency*/ > body_{};
 };
 
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
+using function_object_raw_pointer = function_object*;
+
 
 }

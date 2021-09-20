@@ -27,7 +27,7 @@
 
 using namespace clox::interpreting::vm;
 
-bool clox::interpreting::vm::object::equal(const clox::interpreting::vm::object* lhs,
+bool clox::interpreting::vm::object::pointer_equal(const clox::interpreting::vm::object* lhs,
 		const clox::interpreting::vm::object* rhs)
 {
 	if (is_string(*lhs) && is_string(*rhs))
@@ -41,3 +41,4 @@ bool clox::interpreting::vm::object::equal(const clox::interpreting::vm::object*
 
 	return lhs == rhs;
 }
+

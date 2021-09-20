@@ -59,6 +59,7 @@ enum class op_code : main_opcode_base_type
 	CONSTANT_FALSE,
 	//
 
+	PUSH,
 	POP,
 	POP_N,
 
@@ -125,6 +126,7 @@ enum secondary_op_code : secondary_opcode_base_type
 	SEC_OP_POSTFIX = 1 << 1,
 	SEC_OP_GLOBAL = 1 << 2,
 	SEC_OP_LOCAL = 1 << 3,
+	SEC_OP_FUNC = 1 << 4,
 
 	SEC_OPCODE_ENUM_MAX,
 };

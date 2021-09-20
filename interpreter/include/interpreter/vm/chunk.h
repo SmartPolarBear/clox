@@ -26,6 +26,8 @@
 
 #include <helper/console.h>
 
+#include <parser/gen/parser_classes.inc>
+
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/value.h>
 
@@ -96,7 +98,7 @@ public:
 
 	code_type add_constant(const value& val);
 
-	value constant_at(code_type pos);
+	value& constant_at(code_type pos);
 
 	int64_t line_of(code_list_type::iterator ip);
 
@@ -111,6 +113,7 @@ private:
 	std::vector<value> constants_{};
 
 	code_list_type codes_{};
+
 	std::vector<int64_t> lines_{};
 };
 }

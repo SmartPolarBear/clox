@@ -1,3 +1,5 @@
+#include <base/configuration.h>
+
 #include <driver/driver.h>
 #include <driver/interpreter_adapter.h>
 #include <driver/classic.h>
@@ -25,6 +27,7 @@
 
 using namespace std;
 
+using namespace clox::base;
 using namespace clox::helper;
 using namespace clox::scanning;
 using namespace clox::parsing;
@@ -36,14 +39,12 @@ int clox::driver::run(const argparse::ArgumentParser& arg_parser)
 {
 	auto file = arg_parser.get<string>("--file");
 
-
-	bool show_ast = arg_parser.get<bool>("--show-ast");
-	bool show_asm = arg_parser.get<bool>("--show-assembly");
+	configurable_configuration_instance().load_arguments(arg_parser);
 
 	shared_ptr<interpreter_adapter> adapter{ nullptr };
 	if (arg_parser.get<bool>("--classic"))
 	{
-		if (show_asm)
+		if (configurable_configuration_instance().dump_assembly())
 		{
 			logger::instance().error("--show-ast", "In classic mode, there is no assembly code to display.");
 			return 1;
@@ -59,23 +60,17 @@ int clox::driver::run(const argparse::ArgumentParser& arg_parser)
 				make_shared<vm_interpreter_adapter>(clox::helper::std_console::instance()));
 	}
 
-	adapter->set_output(show_ast, show_asm);
-
 
 	if (!file.empty())
 	{
 		return clox::driver::run_file(clox::helper::std_console::instance(),
 				adapter,
-				file,
-				show_ast,
-				show_asm);
+				file);
 	}
 	else
 	{
 		return clox::driver::run_repl(clox::helper::std_console::instance(),
-				adapter,
-				show_ast,
-				show_asm);
+				adapter);
 	}
 
 	return 0;

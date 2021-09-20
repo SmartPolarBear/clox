@@ -123,12 +123,31 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		{
 			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			out.out() << std::format(" ID={}, constant {} '{}'", codes_[offset + 1], codes_[offset + 2],
+					constants_[codes_[offset + 2]]) << endl;
+			return offset + 3;
+		}
 
 		return offset + 2;
+
+	case op_code::PUSH:
+		if (secondary & SEC_OP_FUNC)
+		{
+			out.out() << std::format(" ID={}", codes_[offset + 1]) << endl;
+			return offset + 2;
+		}
 
 	case op_code::LOOP:
 		out.out() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
+
+	case op_code::CALL:
+		out.out() << std::format(" ID={} , {} args",
+				codes_[offset + 1],
+				codes_[offset + 2]) << endl;
+		return offset + 3;
 
 	default:
 		out.out() << endl;
@@ -155,10 +174,11 @@ chunk::code_type chunk::add_constant(const value& val)
 	return constants_.size() - 1;
 }
 
-value chunk::constant_at(chunk::code_type pos)
+value& chunk::constant_at(code_type pos)
 {
 	return constants_.at(pos);
 }
+
 
 int64_t chunk::line_of(chunk::code_list_type::iterator ip)
 {
@@ -185,4 +205,3 @@ chunk::code_type chunk::peek(int64_t offset)
 {
 	return *(codes_.rbegin() + offset);
 }
-

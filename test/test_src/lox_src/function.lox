@@ -8,3 +8,17 @@ fun do_it(a:string):string {
 
 print do_it(1);
 print do_it("a");
+
+
+fun one(){
+    return 1;
+}
+
+fun one2()
+{
+    var one_value=one();
+    return one_value+1-1;
+}
+
+var number_one=one2();
+print number_one;

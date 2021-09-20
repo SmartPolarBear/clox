@@ -40,31 +40,53 @@ enum class virtual_machine_status
 	RUNTIME_ERROR,
 };
 
-class vm_return final
-{
-public:
-	explicit vm_return(virtual_machine_status st)
-			: status_(st)
-	{
-	}
-
-	[[nodiscard]] virtual_machine_status status() const
-	{
-		return status_;
-	}
-
-private:
-	virtual_machine_status status_{};
-};
-
-
 class virtual_machine final
 {
 public:
-	static inline constexpr size_t STACK_RESERVED_SIZE = 64;
+	static inline constexpr size_t CALL_STACK_RESERVED_SIZE = 64;
+	static inline constexpr size_t STACK_RESERVED_SIZE = 16384;
 
 	using value_list_type = std::vector<value>;
 	using global_table_type = std::unordered_map<std::string, value>;
+	using function_table_type = std::unordered_map<full_opcode_type, value>;
+	using ip_type = chunk::iterator_type;
+
+	class call_frame final
+	{
+	public:
+
+
+	public:
+
+		explicit call_frame(function_object_raw_pointer func, ip_type ip, size_t offset)
+				: function_(func), ip_(ip), stack_offset_(offset)
+		{
+		}
+
+		[[nodiscard]] size_t stack_offset() const
+		{
+			return stack_offset_;
+		}
+
+		[[nodiscard]] function_object_raw_pointer function() const
+		{
+			return function_;
+		}
+
+		[[nodiscard]] ip_type& ip()
+		{
+			return ip_;
+		}
+
+
+	private:
+		function_object_raw_pointer function_{};
+		ip_type ip_{};
+		size_t stack_offset_{};
+	};
+
+	using call_frame_list_type = std::vector<call_frame>;
+
 public:
 	virtual_machine() = delete;
 
@@ -73,19 +95,21 @@ public:
 	explicit virtual_machine(helper::console& cons,
 			std::shared_ptr<object_heap> heap);
 
-	virtual_machine_status run(const std::shared_ptr<chunk>&chunk);
+	virtual_machine_status run(function_object_raw_pointer func);
 
 private:
 	virtual_machine_status run();
 
-	bool run_code(chunk::code_type instruction);
+	// {return status, exit}
+	std::tuple<std::optional<virtual_machine_status>, bool> run_code(chunk::code_type instruction, call_frame& frame);
 
 	template<class ...TArgs>
 	void runtime_error(std::string_view fmt, const TArgs& ...args)
 	{
+
 		cons_->error() << std::format("[Line {}] in file {}:",
-				chunk_->line_of(ip_),
-				chunk_->filename()) << std::endl;
+				top_call_frame().function()->body()->line_of(top_call_frame().ip()),
+				top_call_frame().function()->body()->filename()) << std::endl;
 
 		cons_->error() << std::format(fmt, args...);
 
@@ -98,6 +122,8 @@ private:
 	{
 		try
 		{
+			auto l = peek(0), r = peek(1);
+
 			auto right = get_number_promoted(peek(0));
 			auto left = get_number_promoted(peek(1));
 
@@ -126,6 +152,10 @@ private:
 		}
 	}
 
+	void call_value(const value& val, size_t arg_count);
+
+	void call(function_object_raw_pointer func, size_t arg_count);
+
 	bool is_false(const value& val);
 
 	bool is_true(const value& val)
@@ -152,18 +182,43 @@ private:
 
 	chunk::code_type next_code();
 
+	value& slot_at(const call_frame& frame, size_t slot);
+
+	// call frame
+
+	call_frame& top_call_frame()
+	{
+		return *call_frames_.rbegin();
+	}
+
+	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, size_t stack_offset)
+	{
+		call_frames_.emplace_back(func, ip, stack_offset);
+	}
+
+	void pop_call_frame()
+	{
+		call_frames_.pop_back();
+	}
+
 	//
 
 	std::shared_ptr<object_heap> heap_{};
 
-	std::shared_ptr<chunk> chunk_{};
+//	std::shared_ptr<chunk> chunk_{};
 
-	chunk::iterator_type ip_{};
+//	ip_type ip_{};
 
 	value_list_type stack_{};
 
 	global_table_type globals_{};
 
+	function_table_type functions_{};
+
+	call_frame_list_type call_frames_{};
+
 	mutable helper::console* cons_{ nullptr };
 };
+
+
 }

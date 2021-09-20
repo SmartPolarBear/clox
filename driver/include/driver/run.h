@@ -43,16 +43,9 @@ namespace clox::driver
 		bool dump_ast = false,
 		bool dump_assembly = false);
 
-[[nodiscard]] int run_file(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& name,
-		bool dump_ast = false,
-		bool dump_assembly = false);
+[[nodiscard]] int
+run_file(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter, const std::string& name);
 
-[[nodiscard]] int run_repl(helper::console& cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		bool dump_ast = false,
-		bool dump_assembly = false
-);
+[[nodiscard]] int run_repl(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter);
 
 }

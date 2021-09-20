@@ -104,9 +104,11 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	std::shared_ptr<vm::chunk> current();
+	vm::function_object_raw_pointer top_function();
 
 private:
+
+	std::shared_ptr<vm::chunk> current();
 
 	void generate(const std::shared_ptr<parsing::statement>& s);
 
@@ -119,6 +121,12 @@ private:
 	void define_global_variable([[maybe_unused]]const std::string& name, vm::chunk::code_type global);
 
 	void declare_local_variable(const std::string& name, size_t depth = 0);
+
+	void function_push(vm::function_object_raw_pointer func);
+
+	vm::function_object_raw_pointer function_pop();
+
+	vm::function_object_raw_pointer function_top();
 
 	///
 	/// \param name
@@ -144,6 +152,13 @@ private:
 		return global;
 	}
 
+	std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>
+	function_lookup(const std::shared_ptr<parsing::statement>& stmt);
+
+	bool is_function_lookup_failure(const std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>& rets)
+	{
+		return !rets.has_value();
+	}
 
 	void emit_code(vm::full_opcode_type byte);
 
@@ -165,7 +180,11 @@ private:
 
 	uint16_t identifier_constant(const scanning::token& identifier);
 
+	void set_constant(vm::full_opcode_type pos, const vm::value& val);
+
 	uint16_t make_constant(const vm::value& val);
+
+	vm::full_opcode_type make_function(const std::shared_ptr<parsing::statement>& func);
 
 	class local_scope
 	{
@@ -173,7 +192,13 @@ private:
 		using slot_type = int64_t;
 		static inline constexpr slot_type GLOBAL_SLOT = -1;
 	public:
-		local_scope() = default;
+		local_scope()
+		{
+			locals_.insert_or_assign("", 0); // VM's slot 0 is for internal usage.
+		}
+
+		~local_scope() = default;
+
 
 		[[nodiscard]] size_t count() const
 		{
@@ -196,18 +221,41 @@ private:
 			return locals_.at(name);
 		}
 
+		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type id,
+				vm::chunk::code_type constant)
+		{
+			function_map_[stmt] = std::make_pair(id, constant);
+		}
+
+		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.contains(stmt);
+		}
+
+		std::tuple<vm::chunk::code_type, vm::chunk::code_type> find(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.at(stmt);
+		}
+
 	private:
+		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
+
 		std::unordered_map<std::string, slot_type> locals_{};
 		size_t count_{ 0 };
+
 	};
 
 	int64_t current_scope_depth_{ 0 };
 
-	int64_t local_totals_{ 0 };
+	int64_t local_totals_{ 1 }; // first slot is in use
 
 	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 
-	std::shared_ptr<vm::chunk> current_chunk_{};
+	std::vector<vm::function_object_raw_pointer> functions_{};
+
+	std::unordered_map<std::shared_ptr<parsing::statement>, vm::full_opcode_type> functions_ids_{};
+
+	size_t function_id_counter_{ 1 };
 
 	std::shared_ptr<vm::object_heap> heap_{};
 

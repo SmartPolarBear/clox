@@ -19,46 +19,31 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/18/2021.
 //
 
 #pragma once
 
-#include <scanner/scanner.h>
+#include <base/base.h>
 
-#include <variant>
-#include <string>
-#include <string_view>
+#include <argparse/argparse.hpp>
 
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
+namespace clox::base
 {
-enum class object_type
+class runtime_configurable_configuration
+		: public configurable_configuration<runtime_configurable_configuration>
 {
-	STRING,
-	FUNCTION,
-};
-
-class object
-		: public helper::printable
-{
-
 public:
-	static inline bool is_string(const object& obj)
-	{
-		return obj.type() == object_type::STRING;
-	}
+	runtime_configurable_configuration() = default;
 
-	static bool pointer_equal(const object* lhs, const object* rhs);
+	void load_arguments(const argparse::ArgumentParser& arg_parser);
 
+	bool dump_ast() override;
 
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
+	bool dump_assembly() override;
+
+private:
+	bool dump_ast_{};
+	bool dump_assembly_{};
 };
-
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
-
 }

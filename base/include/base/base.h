@@ -18,47 +18,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-//
-// Created by cleve on 9/6/2021.
-//
-
 #pragma once
 
-#include <scanner/scanner.h>
+#include <concepts>
 
-#include <variant>
-#include <string>
-#include <string_view>
-
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
-{
-enum class object_type
-{
-	STRING,
-	FUNCTION,
-};
-
-class object
-		: public helper::printable
+namespace clox::base
 {
 
+template<typename T>
+class singleton
+{
 public:
-	static inline bool is_string(const object& obj)
+	static T& instance();
+
+	singleton(const singleton&) = delete;
+
+	singleton& operator=(const singleton&) = delete;
+
+protected:
+	singleton()
 	{
-		return obj.type() == object_type::STRING;
 	}
-
-	static bool pointer_equal(const object* lhs, const object* rhs);
-
-
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
 };
 
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
+template<typename T>
+T& singleton<T>::instance()
+{
+	static T inst{};
+	return inst;
+}
+
+template<typename T>
+class configurable_configuration
+		: public singleton<T>
+{
+public:
+	virtual bool dump_ast() = 0;
+
+	virtual bool dump_assembly() = 0;
+};
+
+template<typename T>
+class predefined_configuration
+		: public singleton<T>
+{
+};
 
 }

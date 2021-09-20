@@ -22,8 +22,8 @@
 // Created by cleve on 9/1/2021.
 //
 
+#include <base/configuration.h>
 #include <helper/exceptions.h>
-
 
 #include <interpreter/vm/vm.h>
 #include <interpreter/vm/exceptions.h>
@@ -35,6 +35,7 @@
 using namespace std;
 using namespace gsl;
 
+using namespace clox::base;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
@@ -44,6 +45,7 @@ virtual_machine::virtual_machine(clox::helper::console& cons,
 		: heap_(std::move(heap)), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
+	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
 }
 
 virtual_machine::~virtual_machine()
@@ -61,16 +63,18 @@ void virtual_machine::reset_stack()
 clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_machine::run()
 {
 
-	for (; ip_ != chunk_->end();)
+
+//	for (; ip_ != chunk_->end();)
+	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
 		try
 		{
-			chunk::code_type instruction = *ip_++;
-			run_code(instruction);
-		}
-		catch (const vm_return& vr)
-		{
-			return vr.status();
+			chunk::code_type instruction = *top_call_frame().ip()++;
+			auto[status, exit] = run_code(instruction, top_call_frame());
+			if (exit)
+			{
+				return status.value_or(virtual_machine_status::OK);
+			}
 		}
 		catch (const exception& e)
 		{
@@ -83,14 +87,47 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 }
 
 
-bool virtual_machine::run_code(chunk::code_type instruction)
+std::tuple<std::optional<virtual_machine_status>, bool>
+virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 {
 	switch (V(main_op_code_of(instruction)))
 	{
 	case V(op_code::RETURN):
 	{
-		pop();
-		throw vm_return{ virtual_machine_status::OK };
+		auto ret = pop();
+
+//		while (stack_.size() > top_call_frame().stack_offset() + 1) // pop function's value
+		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
+		{
+			stack_.pop_back();
+		}
+
+		if (call_frames_.empty())
+		{
+			pop();
+			return { virtual_machine_status::OK, true };
+		}
+
+		push(ret);
+		pop_call_frame();
+		break;
+	}
+
+	case V(op_code::PUSH):
+	{
+		auto secondary = secondary_op_code_of(instruction);
+
+		if (secondary & SEC_OP_FUNC)
+		{
+			auto id = next_code();
+			push(functions_.at(id));
+		}
+		else
+		{
+			throw invalid_opcode{ instruction };
+		}
+
+		break;
 	}
 
 	case V(op_code::POP):
@@ -264,7 +301,9 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-			push(stack_[slot]);
+//			push(stack_[slot]);
+			push(slot_at(frame, slot));
+
 		}
 		else
 		{
@@ -283,18 +322,18 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		{
 			auto name = next_variable_name();
 			globals_.at(name) = peek(0);
-			push(peek(0));
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-			stack_[slot] = peek(0);
-			push(stack_[slot]); // assignment expression should create a value
+			slot_at(frame, slot) = peek(0);
 		}
 		else
 		{
 			throw invalid_opcode{ instruction };
 		}
+
+		// Do not push it because it already at the top of the stack
 
 		break;
 	}
@@ -308,6 +347,13 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 			auto name = next_variable_name();
 			globals_.insert_or_assign(name, peek(0));
 			pop();
+		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			auto id = next_code();
+			auto func_obj = next_constant();
+
+			functions_.insert_or_assign(id, func_obj);
 		}
 		else // one can only define global
 		{
@@ -380,9 +426,10 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-			auto prev_val = stack_[slot];
 
-			stack_[slot] = std::visit(inc_dec_visitor, prev_val);
+			auto prev_val = slot_at(frame, slot);
+
+			slot_at(frame, slot) = std::visit(inc_dec_visitor, prev_val);
 
 			if (secondary & SEC_OP_POSTFIX)
 			{
@@ -390,7 +437,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 			}
 			else
 			{
-				push(stack_[slot]);
+				push(slot_at(frame, slot));
 			}
 
 		}
@@ -405,7 +452,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 	case V(op_code::JUMP):
 	{
 		auto offset = next_code();
-		ip_ += offset;
+		frame.ip() += offset;
 		break;
 	}
 
@@ -414,7 +461,7 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		auto offset = next_code();
 		if (is_false(peek(0)))
 		{
-			ip_ += offset;
+			frame.ip() += offset;
 		}
 		break;
 	}
@@ -422,7 +469,20 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 	case V(op_code::LOOP):
 	{
 		auto offset = next_code();
-		ip_ -= offset;
+		frame.ip() -= offset;
+		break;
+	}
+
+	case V(op_code::CALL):
+	{
+		auto callable_id = next_code();
+		auto arg_count = next_code();
+
+		auto callable = functions_.at(callable_id);
+
+
+		call_value(callable, arg_count);
+
 		break;
 	}
 
@@ -430,17 +490,24 @@ bool virtual_machine::run_code(chunk::code_type instruction)
 		throw invalid_opcode{ instruction };
 	}
 
-	return true;
+	return { nullopt, false };
+}
+
+
+value& virtual_machine::slot_at(const call_frame& frame, size_t slot)
+{
+	return *(stack_.begin() + frame.stack_offset() + slot);
 }
 
 value virtual_machine::next_constant()
 {
-	return chunk_->constant_at(next_code());
+//	return chunk_->constant_at(next_code());
+	return top_call_frame().function()->body()->constant_at(next_code());
 }
 
 chunk::code_type virtual_machine::next_code()
 {
-	return *ip_++;
+	return *top_call_frame().ip()++;
 }
 
 
@@ -495,11 +562,51 @@ std::string virtual_machine::next_variable_name()
 	return get<std::string>(next_constant());
 }
 
-virtual_machine_status virtual_machine::run(const shared_ptr<chunk>& chunk)
+// TODO: change it to accept function_object
+virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
 {
-	chunk_ = chunk;
-	ip_ = chunk_->begin();
+	push(func);
+
+	push_call_frame(func, func->body()->begin(), 0);
+
+//	chunk_ = func;
+//	ip_ = chunk_->begin();
 
 	return run();
+}
+
+void virtual_machine::call_value(const value& val, size_t arg_count)
+{
+	if (!holds_alternative<object_raw_pointer>(val))
+	{
+		throw invalid_value{ val };
+	}
+
+	auto obj = get<object_raw_pointer>(val);
+
+	if (obj->type() == object_type::FUNCTION)
+	{
+		auto func = dynamic_cast<function_object_raw_pointer> (obj);
+		call(func, arg_count);
+	}
+	else
+	{
+		throw invalid_value{ val };
+	}
+}
+
+void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
+{
+	if (configurable_configuration_instance().dump_assembly())
+	{
+		func->body()->disassemble(*cons_);
+	}
+
+	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
+	assert(stack_offset >= 0);
+
+	push_call_frame(func,
+			func->body()->begin(),
+			stack_offset);
 }
 

@@ -50,6 +50,8 @@ public:
 
 	[[nodiscard]] std::string string() const;
 
+	std::string printable_string() override;
+
 private:
 	std::string data_;
 };
