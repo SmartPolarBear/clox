@@ -67,20 +67,20 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 //	for (; ip_ != chunk_->end();)
 	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
-		try
-		{
+//		try
+//		{
 			chunk::code_type instruction = *top_call_frame().ip()++;
 			auto[status, exit] = run_code(instruction, top_call_frame());
 			if (exit)
 			{
 				return status.value_or(virtual_machine_status::OK);
 			}
-		}
-		catch (const exception& e)
-		{
-			runtime_error("{}", e.what());
-			return virtual_machine_status::RUNTIME_ERROR;
-		}
+//		}
+//		catch (const exception& e)
+//		{
+//			runtime_error("{}", e.what());
+//			return virtual_machine_status::RUNTIME_ERROR;
+//		}
 	}
 
 	return virtual_machine_status::OK;
@@ -305,20 +305,18 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			auto name = next_variable_name();
 			globals_.at(name) = peek(0);
-			push(peek(0));
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
 			slot_at(frame, slot) = peek(0);
-//			push(stack_[slot]); // assignment expression should create a value
-			push(slot_at(frame, slot)); // assignment expression should create a value
-
 		}
 		else
 		{
 			throw invalid_opcode{ instruction };
 		}
+
+		// Do not push it because it already at the top of the stack
 
 		break;
 	}

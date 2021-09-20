@@ -641,6 +641,7 @@ void codegen::scope_begin()
 void codegen::scope_end()
 {
 	auto count = local_scopes_.back()->count();
+
 	emit_codes(
 			V(op_code::POP_N),
 			static_cast<chunk::code_type>(count)

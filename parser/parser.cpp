@@ -672,6 +672,7 @@ parser::plain_for_finish_parse(const shared_ptr<statement>& initializer, const c
 	}
 
 	if (!cond)cond = make_shared<literal_expression>(lparen, true);
+
 	body = make_shared<while_statement>(cond, lparen, body);
 
 	if (initializer)
