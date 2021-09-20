@@ -432,9 +432,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			}
 			else
 			{
-				// TODO: here, emit something like "pushfunc"
 				auto[id, constant]=func_lookup_ret.value();
-				emit_codes(V(vm::op_code::CONSTANT), constant);
+				emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id);
 
 				for (const auto& arg: ce->get_args())
 				{
@@ -618,7 +617,8 @@ void codegen::emit_return()
 
 void codegen::emit_constant(const value& val)
 {
-	emit_codes(V(op_code::CONSTANT), make_constant(val));
+	auto constant = make_constant(val);
+	emit_codes(V(op_code::CONSTANT), constant);
 }
 
 uint16_t codegen::make_constant(const value& val)

@@ -67,20 +67,20 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 //	for (; ip_ != chunk_->end();)
 	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
-//		try
-//		{
+		try
+		{
 			chunk::code_type instruction = *top_call_frame().ip()++;
 			auto[status, exit] = run_code(instruction, top_call_frame());
 			if (exit)
 			{
 				return status.value_or(virtual_machine_status::OK);
 			}
-//		}
-//		catch (const exception& e)
-//		{
-//			runtime_error("{}", e.what());
-//			return virtual_machine_status::RUNTIME_ERROR;
-//		}
+		}
+		catch (const exception& e)
+		{
+			runtime_error("{}", e.what());
+			return virtual_machine_status::RUNTIME_ERROR;
+		}
 	}
 
 	return virtual_machine_status::OK;
@@ -110,6 +110,23 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		push(ret);
 		pop_call_frame();
+		break;
+	}
+
+	case V(op_code::PUSH):
+	{
+		auto secondary = secondary_op_code_of(instruction);
+
+		if (secondary & SEC_OP_FUNC)
+		{
+			auto id = next_code();
+			push(functions_.at(id));
+		}
+		else
+		{
+			throw invalid_opcode{ instruction };
+		}
+
 		break;
 	}
 

@@ -1,3 +1,4 @@
+
 fun add(n:integer){
     if(n<=1) {
         return 1;
@@ -6,8 +7,9 @@ fun add(n:integer){
     return 1+add(n-1);
 }
 
+
 for(var i=1;i<10;i=i+1) {
-    print add(i);
+   print add(i);
 }
 
 

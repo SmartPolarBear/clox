@@ -132,12 +132,19 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 
 		return offset + 2;
 
+	case op_code::PUSH:
+		if (secondary & SEC_OP_FUNC)
+		{
+			out.out() << std::format(" ID={}", codes_[offset + 1]) << endl;
+			return offset + 2;
+		}
+
 	case op_code::LOOP:
 		out.out() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	case op_code::CALL:
-		out.out() << std::format("ID={} , {} args",
+		out.out() << std::format(" ID={} , {} args",
 				codes_[offset + 1],
 				codes_[offset + 2]) << endl;
 		return offset + 3;

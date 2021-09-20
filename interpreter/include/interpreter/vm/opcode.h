@@ -59,6 +59,7 @@ enum class op_code : main_opcode_base_type
 	CONSTANT_FALSE,
 	//
 
+	PUSH,
 	POP,
 	POP_N,
 
