@@ -56,31 +56,6 @@ else ()
     message(STATUS "Not use address sanitizer.")
 endif ()
 
-
-if (TemporaryFixStdFormat)
-
-    message(STATUS "Define __cpp_lib_format to workaround IDE's disability to discover std::format.")
-
-    # Suppress Warning C4005 for macro redefinition.
-    # TODO: it's dangerous. Remove it right after CLion fix the bug.
-
-    target_compile_options(clox
-            PRIVATE /wd4005
-            PRIVATE /std:c++latest)
-
-    target_compile_definitions(clox
-            PRIVATE -D_STL_COMPILER_PREPROCESSOR
-            PRIVATE -D__cpp_lib_format
-            PRIVATE -D__cpp_lib_ranges)
-
-    target_compile_options(clox_test
-            PRIVATE /wd4005)
-
-    target_compile_definitions(clox_test
-            PRIVATE -D__cpp_lib_format
-            PRIVATE -D__cpp_lib_ranges)
-endif ()
-
 add_custom_target(parser_classes_inc
         COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
         BYPRODUCTS {CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser_classes.inc
