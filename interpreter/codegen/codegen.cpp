@@ -52,8 +52,7 @@ using namespace clox::interpreting::vm;
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
-	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
-//	current_chunk_ = make_shared<chunk>();
+	local_scopes_.push_back(make_unique<local_scope>(local_scope::scope_type::TOP)); // this scope may never be used.
 	function_push(heap_->allocate<function_object>("", 0));
 }
 
@@ -632,10 +631,10 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 	current()->constant_at(pos) = val;
 }
 
-void codegen::scope_begin()
+void codegen::scope_begin(local_scope::scope_type type)
 {
 	current_scope_depth_++;
-	local_scopes_.push_back(make_unique<local_scope>());
+	local_scopes_.push_back(make_unique<local_scope>(type));
 }
 
 void codegen::scope_end()
@@ -769,6 +768,11 @@ vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
 
 	functions_ids_.insert_or_assign(func, function_id_counter_);
 	return function_id_counter_++;
+}
+
+void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
+{
+
 }
 
 

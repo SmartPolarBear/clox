@@ -155,9 +155,16 @@ private:
 	/// \return
 	std::shared_ptr<expression> prefix();
 
-	/// postfix -> primary ("--"|"++")* | call ;
+	/// postfix -> primary ("--"|"++")* | lambda ;
 	/// \return
 	std::shared_ptr<expression> postfix();
+
+	/// lambda_expr -> "fun" lambda_body ;
+	/// lambda_body -> IDENTIFIER "(" parameters? ")" ":" typeExpr  block ;
+	/// parameter ->  IDENTIFIER ":" typeExpr
+	/// parameters -> parameter ( "," parameter )* ;
+	/// lambda -> lambda_expr | call
+	std::shared_ptr<expression> lambda();
 
 	/// call -> primary ( "(" arguments? ")" )* ;
 	/// arguments      → expression ( "," expression )* ;

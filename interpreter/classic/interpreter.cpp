@@ -771,3 +771,8 @@ void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statemen
 {
 
 }
+
+evaluating_result interpreter::visit_lambda_expression(const std::shared_ptr< lambda_expression>& ptr)
+{
+	return clox::interpreting::classic::evaluating_result();
+}

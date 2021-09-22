@@ -195,6 +195,31 @@
       ]
     },
     {
+      "name": "lambda_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "lparen_"
+        },
+        {
+          "type": "std::vector<std::pair<clox::scanning::token,std::shared_ptr<type_expression>>>",
+          "name": "params_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "return_type_expr_"
+        },
+        {
+          "type": "std::vector<std::shared_ptr<statement>>",
+          "name": "body_"
+        }
+      ]
+    },
+    {
       "name": "var_expression",
       "base": [
         1,

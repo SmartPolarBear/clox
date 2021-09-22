@@ -69,6 +69,7 @@ if (TemporaryFixStdFormat)
             PRIVATE /std:c++latest)
 
     target_compile_definitions(clox
+            PRIVATE -D_STL_COMPILER_PREPROCESSOR
             PRIVATE -D__cpp_lib_format
             PRIVATE -D__cpp_lib_ranges)
 
