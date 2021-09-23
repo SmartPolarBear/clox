@@ -16,6 +16,8 @@ endif ()
 
 
 add_executable(clox main.cpp)
+target_compile_options(clox
+        PUBLIC /std:c++latest)
 
 add_dependencies(clox parser_classes_inc)
 

@@ -52,7 +52,7 @@ using namespace clox::interpreting::vm;
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
-	local_scopes_.push_back(make_unique<local_scope>(local_scope::scope_type::TOP)); // this scope may never be used.
+	scope_begin(local_scope::scope_type::TOP); // this scope may never be used.
 	function_push(heap_->allocate<function_object>("", 0));
 }
 
@@ -568,7 +568,6 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
-
 	scope_begin();
 
 	for (const auto& param: fs->get_params())
@@ -583,7 +582,9 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto func = function_pop();
 
 	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, constant);
+
 	set_constant(constant, func);
+
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
@@ -629,6 +630,12 @@ uint16_t codegen::make_constant(const value& val)
 void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 {
 	current()->constant_at(pos) = val;
+}
+
+
+void codegen::scope_begin()
+{
+	scope_begin(local_scope::scope_type::FUNCTION);
 }
 
 void codegen::scope_begin(local_scope::scope_type type)

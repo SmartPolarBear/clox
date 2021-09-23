@@ -65,6 +65,11 @@ public:
 		~local_scope() = default;
 
 
+		scope_type type() const
+		{
+			return type_;
+		}
+
 		[[nodiscard]] size_t count() const
 		{
 			return count_;
@@ -181,7 +186,9 @@ private:
 
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
-	void scope_begin(local_scope::scope_type type = local_scope::scope_type::FUNCTION);
+	void scope_begin();
+
+	void scope_begin(local_scope::scope_type type);
 
 	void scope_end();
 
