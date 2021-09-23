@@ -176,7 +176,7 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	vm::function_object_raw_pointer top_function();
+	vm::function_object_raw_pointer top_level();
 
 private:
 
@@ -244,7 +244,7 @@ private:
 
 	void emit_return();
 
-	void emit_constant(const vm::value& val);
+	vm::chunk::code_type emit_constant(const vm::value& val);
 
 	vm::chunk::difference_type emit_jump(vm::full_opcode_type jmp);
 
@@ -260,8 +260,8 @@ private:
 
 	vm::full_opcode_type make_function(const std::shared_ptr<parsing::statement>& func);
 
-
-	int64_t current_scope_depth_{ 0 };
+	// To make it right for scope_begin(). because the first scope should have depth 0
+	int64_t current_scope_depth_{ -1 };
 
 	int64_t local_totals_{ 1 }; // first slot is in use
 

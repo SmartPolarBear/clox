@@ -562,7 +562,18 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto constant = make_constant(nullptr);
+	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+
+	// define it as variable to follow the function overloading specification
+	if (current_scope_depth_ == 0)
+	{
+		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
+	}
+	else
+	{
+		declare_local_variable(fs->get_name().lexeme());
+	}
+
 	auto id = make_function(fs);
 	local_scopes_.back()->add_function(fs, id, constant);
 
@@ -615,10 +626,11 @@ void codegen::emit_return()
 	emit_code(V(op_code::RETURN));
 }
 
-void codegen::emit_constant(const value& val)
+vm::chunk::code_type codegen::emit_constant(const value& val)
 {
 	auto constant = make_constant(val);
 	emit_codes(V(op_code::CONSTANT), constant);
+	return constant;
 }
 
 uint16_t codegen::make_constant(const value& val)
@@ -761,7 +773,7 @@ vm::function_object_raw_pointer codegen::function_top()
 	return functions_.back();
 }
 
-vm::function_object_raw_pointer codegen::top_function()
+vm::function_object_raw_pointer codegen::top_level()
 {
 	return function_top();
 }
