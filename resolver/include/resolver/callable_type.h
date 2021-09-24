@@ -133,6 +133,11 @@ public:
 		return all_.end();
 	}
 
+	std::shared_ptr<lox_callable_type> last() const
+	{
+		return last_;
+	}
+
 
 	void put(const std::shared_ptr<parsing::statement>& stmt,
 			const std::shared_ptr<lox_callable_type>& callable);
@@ -181,6 +186,8 @@ private:
 			const std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
 
 	std::shared_ptr<lox_overloaded_node> root_{};
+
+	std::shared_ptr<lox_callable_type> last_{};
 
 	std::vector<std::pair<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>> all_{};
 };

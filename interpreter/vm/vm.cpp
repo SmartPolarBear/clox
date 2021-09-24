@@ -474,11 +474,9 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case V(op_code::CALL):
 	{
-		auto callable_id = next_code();
 		auto arg_count = next_code();
 
-		auto callable = functions_.at(callable_id);
-
+		auto callable = peek(arg_count);
 
 		call_value(callable, arg_count);
 

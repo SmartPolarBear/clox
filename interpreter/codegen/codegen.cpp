@@ -439,7 +439,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 					generate(arg); // push arguments in the stack
 				}
 
-				emit_codes(V(op_code::CALL), id, ce->get_args().size()); // call the function
+				emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
 			}
 		}
 		else
@@ -447,9 +447,17 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			throw internal_codegen_error{ "Function lookup failure" };
 		}
 	}
-	else
+	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
-		throw internal_codegen_error{ "Function lookup failure" };
+		generate(ce->get_callee());
+
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
+
+		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+//		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
 

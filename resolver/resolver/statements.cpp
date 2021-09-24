@@ -294,9 +294,22 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 	declare_name(stmt->get_name());
 
 	shared_ptr<lox_type> initializer_type{ nullptr };
+
+
 	if (stmt->get_initializer())
 	{
 		initializer_type = resolve(stmt->get_initializer());
+
+		if (lox_type::is_instance(*initializer_type))
+		{
+			if (auto func_metatype = dynamic_pointer_cast<lox_overloaded_metatype>(
+						dynamic_pointer_cast<lox_instance_type>(initializer_type)->underlying_type()
+				);func_metatype)
+			{
+				// for overloaded function, a variable referring to it in fact refers to the last defined one
+				initializer_type = make_shared<lox_instance_type>(func_metatype->last());
+			}
+		}
 	}
 
 	shared_ptr<lox_type> declared_type{ nullptr };

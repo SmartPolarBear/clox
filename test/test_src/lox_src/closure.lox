@@ -1,4 +1,4 @@
-fun closure()
+/*fun closure()
 {
     var i=0;
     fun count(){
@@ -14,4 +14,15 @@ c();
 c();
 c();
 c();
+c();
+*/
+
+fun closure(){
+    fun p(){
+        print "fuck";
+    }
+    return p;
+}
+
+var c=closure();
 c();
