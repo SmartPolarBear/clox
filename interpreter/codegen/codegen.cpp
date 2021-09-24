@@ -52,8 +52,7 @@ using namespace clox::interpreting::vm;
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
 		: heap_(std::move(heap)), bindings_(std::move(table))
 {
-	local_scopes_.push_back(make_unique<local_scope>()); // this scope may never be used.
-//	current_chunk_ = make_shared<chunk>();
+	scope_begin(local_scope::scope_type::TOP); // this scope may never be used.
 	function_push(heap_->allocate<function_object>("", 0));
 }
 
@@ -563,12 +562,22 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto constant = make_constant(nullptr);
+	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+
+	// define it as variable to follow the function overloading specification
+	if (current_scope_depth_ == 0)
+	{
+		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
+	}
+	else
+	{
+		declare_local_variable(fs->get_name().lexeme());
+	}
+
 	auto id = make_function(fs);
 	local_scopes_.back()->add_function(fs, id, constant);
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
-
 
 	scope_begin();
 
@@ -584,7 +593,9 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto func = function_pop();
 
 	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, constant);
+
 	set_constant(constant, func);
+
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
@@ -615,10 +626,11 @@ void codegen::emit_return()
 	emit_code(V(op_code::RETURN));
 }
 
-void codegen::emit_constant(const value& val)
+vm::chunk::code_type codegen::emit_constant(const value& val)
 {
 	auto constant = make_constant(val);
 	emit_codes(V(op_code::CONSTANT), constant);
+	return constant;
 }
 
 uint16_t codegen::make_constant(const value& val)
@@ -632,10 +644,16 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 	current()->constant_at(pos) = val;
 }
 
+
 void codegen::scope_begin()
 {
+	scope_begin(local_scope::scope_type::FUNCTION);
+}
+
+void codegen::scope_begin(local_scope::scope_type type)
+{
 	current_scope_depth_++;
-	local_scopes_.push_back(make_unique<local_scope>());
+	local_scopes_.push_back(make_unique<local_scope>(type));
 }
 
 void codegen::scope_end()
@@ -755,7 +773,7 @@ vm::function_object_raw_pointer codegen::function_top()
 	return functions_.back();
 }
 
-vm::function_object_raw_pointer codegen::top_function()
+vm::function_object_raw_pointer codegen::top_level()
 {
 	return function_top();
 }
@@ -769,6 +787,11 @@ vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
 
 	functions_ids_.insert_or_assign(func, function_id_counter_);
 	return function_id_counter_++;
+}
+
+void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
+{
+
 }
 
 

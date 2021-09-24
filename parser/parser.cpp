@@ -240,6 +240,88 @@ std::shared_ptr<expression> parser::postfix()
 	return left;
 }
 
+std::shared_ptr<expression> parser::lambda()
+{
+//	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", type));
+//
+//	std::vector<std::pair<clox::scanning::token, std::shared_ptr<type_expression>>> params{};
+//
+//	if (!check(scanning::token_type::RIGHT_PAREN))
+//	{
+//		do
+//		{
+//			if (params.size() >= FUNC_ARG_LIST_MAX)
+//			{
+//				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
+//			}
+//
+//			auto param = consume(scanning::token_type::IDENTIFIER, "Parameter names are expected.");
+//			consume(token_type::COLON, std::format("Type is required for parameter {}", param.lexeme()));
+//			auto param_type = type_expr();
+//
+//			params.emplace_back(param, param_type);
+//		} while (match({ token_type::COMMA }));
+//	}
+//
+//	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", type));
+//
+//	decltype(type_expr()) ret_type{ nullptr };
+//	if (peek().type() == token_type::COLON)
+//	{
+//		consume(token_type::COLON, std::format("Return type is required for callable {}", name.lexeme()));
+//		ret_type = type_expr();
+//	}
+//
+//	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", type));
+//
+//	auto body = block();
+//
+//	return make_shared<function_statement>(name, type, params, ret_type, body);
+	if (match({ token_type::FUN }))
+	{
+		auto lparen = consume(token_type::LEFT_PAREN, "'(' is expected after fun keyword in lambda expression.");
+
+		std::vector<std::pair<clox::scanning::token, std::shared_ptr<type_expression>>> params{};
+
+		if (!check(scanning::token_type::RIGHT_PAREN))
+		{
+			do
+			{
+				if (params.size() >= FUNC_ARG_LIST_MAX)
+				{
+					error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
+				}
+
+				auto param = consume(scanning::token_type::IDENTIFIER, "Parameter names are expected.");
+				consume(token_type::COLON, std::format("Type is required for parameter {}", param.lexeme()));
+				auto param_type = type_expr();
+
+				params.emplace_back(param, param_type);
+			} while (match({ token_type::COMMA }));
+		}
+
+		consume(token_type::RIGHT_PAREN, std::format("')' is expected after lambda parameters."));
+
+		decltype(type_expr()) ret_type{ nullptr };
+		if (peek().type() == token_type::COLON)
+		{
+			consume(token_type::COLON, std::format("Return type is required here for lambda"));
+			ret_type = type_expr();
+		}
+
+		consume(token_type::LEFT_BRACE,
+				std::format("'{{' is expected after lambda declaration and before its body."));
+
+		auto body = block(); // it will eat the '}' token
+
+		return make_shared<lambda_expression>(lparen, params, ret_type, body);
+	}
+	else
+	{
+		return call();
+	}
+}
+
 std::shared_ptr<expression> parser::call()
 {
 	auto expr = primary();

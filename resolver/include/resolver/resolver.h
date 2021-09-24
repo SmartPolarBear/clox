@@ -119,6 +119,8 @@ public:
 	std::shared_ptr<lox_type>
 	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
 
+	std::shared_ptr<lox_type> visit_lambda_expression(const std::shared_ptr<parsing::lambda_expression>& ptr) override;
+
 	// statements
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
@@ -138,7 +140,7 @@ public:
 
 	void visit_class_statement(const std::shared_ptr<parsing::class_statement>& ptr) override;
 
-	void visit_foreach_statement(const std::shared_ptr<parsing:: foreach_statement>& ptr) override;
+	void visit_foreach_statement(const std::shared_ptr<parsing::foreach_statement>& ptr) override;
 
 	// type expressions
 

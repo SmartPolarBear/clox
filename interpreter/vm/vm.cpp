@@ -96,7 +96,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto ret = pop();
 
-//		while (stack_.size() > top_call_frame().stack_offset() + 1) // pop function's value
 		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
 		{
 			stack_.pop_back();

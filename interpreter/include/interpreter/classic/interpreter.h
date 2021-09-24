@@ -118,6 +118,8 @@ public:
 	evaluating_result
 	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
 
+	evaluating_result visit_lambda_expression(const std::shared_ptr<parsing::lambda_expression>& ptr) override;
+
 	void visit_foreach_statement(const std::shared_ptr<parsing::foreach_statement>& ptr) override;
 
 public:
@@ -149,6 +151,7 @@ private:
 	static bool is_equal(const scanning::token& op, evaluating_result lhs, evaluating_result rhs);
 
 	static bool is_truthy(evaluating_result res);
+
 
 	mutable bool repl_{ false };
 

@@ -45,6 +45,76 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
+	class local_scope
+	{
+	public:
+		enum class scope_type
+		{
+			TOP, FUNCTION
+		};
+
+		using slot_type = int64_t;
+		static inline constexpr slot_type GLOBAL_SLOT = -1;
+	public:
+		explicit local_scope(scope_type t)
+				: type_(t)
+		{
+			locals_.insert_or_assign("", 0); // VM's slot 0 is for internal usage.
+		}
+
+		~local_scope() = default;
+
+
+		scope_type type() const
+		{
+			return type_;
+		}
+
+		[[nodiscard]] size_t count() const
+		{
+			return count_;
+		}
+
+		void declare(const std::string& name, slot_type slot)
+		{
+			locals_.insert_or_assign(name, slot);
+			count_++;
+		}
+
+		[[nodiscard]] std::optional<slot_type> find(const std::string& name)
+		{
+			if (!locals_.contains(name))
+			{
+				return std::nullopt;
+			}
+
+			return locals_.at(name);
+		}
+
+		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type id,
+				vm::chunk::code_type constant)
+		{
+			function_map_[stmt] = std::make_pair(id, constant);
+		}
+
+		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.contains(stmt);
+		}
+
+		std::tuple<vm::chunk::code_type, vm::chunk::code_type> find(const std::shared_ptr<parsing::statement>& stmt)
+		{
+			return function_map_.at(stmt);
+		}
+
+	private:
+		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
+
+		std::unordered_map<std::string, slot_type> locals_{};
+		size_t count_{ 0 };
+
+		scope_type type_{};
+	};
 
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
 public:
@@ -81,6 +151,8 @@ public:
 
 	void visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
 
+	void visit_lambda_expression(const std::shared_ptr<parsing::lambda_expression>& ptr) override;
+
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
 
 	void visit_print_statement(const std::shared_ptr<parsing::print_statement>& ptr) override;
@@ -104,7 +176,7 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	vm::function_object_raw_pointer top_function();
+	vm::function_object_raw_pointer top_level();
 
 private:
 
@@ -115,6 +187,8 @@ private:
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
 	void scope_begin();
+
+	void scope_begin(local_scope::scope_type type);
 
 	void scope_end();
 
@@ -170,7 +244,7 @@ private:
 
 	void emit_return();
 
-	void emit_constant(const vm::value& val);
+	vm::chunk::code_type emit_constant(const vm::value& val);
 
 	vm::chunk::difference_type emit_jump(vm::full_opcode_type jmp);
 
@@ -186,66 +260,8 @@ private:
 
 	vm::full_opcode_type make_function(const std::shared_ptr<parsing::statement>& func);
 
-	class local_scope
-	{
-	public:
-		using slot_type = int64_t;
-		static inline constexpr slot_type GLOBAL_SLOT = -1;
-	public:
-		local_scope()
-		{
-			locals_.insert_or_assign("", 0); // VM's slot 0 is for internal usage.
-		}
-
-		~local_scope() = default;
-
-
-		[[nodiscard]] size_t count() const
-		{
-			return count_;
-		}
-
-		void declare(const std::string& name, slot_type slot)
-		{
-			locals_.insert_or_assign(name, slot);
-			count_++;
-		}
-
-		[[nodiscard]] std::optional<slot_type> find(const std::string& name)
-		{
-			if (!locals_.contains(name))
-			{
-				return std::nullopt;
-			}
-
-			return locals_.at(name);
-		}
-
-		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type id,
-				vm::chunk::code_type constant)
-		{
-			function_map_[stmt] = std::make_pair(id, constant);
-		}
-
-		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
-		{
-			return function_map_.contains(stmt);
-		}
-
-		std::tuple<vm::chunk::code_type, vm::chunk::code_type> find(const std::shared_ptr<parsing::statement>& stmt)
-		{
-			return function_map_.at(stmt);
-		}
-
-	private:
-		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
-
-		std::unordered_map<std::string, slot_type> locals_{};
-		size_t count_{ 0 };
-
-	};
-
-	int64_t current_scope_depth_{ 0 };
+	// To make it right for scope_begin(). because the first scope should have depth 0
+	int64_t current_scope_depth_{ -1 };
 
 	int64_t local_totals_{ 1 }; // first slot is in use
 

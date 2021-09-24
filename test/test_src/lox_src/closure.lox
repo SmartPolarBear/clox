@@ -1,4 +1,4 @@
-fun closure():void
+fun closure()
 {
     var i=0;
     fun count(){

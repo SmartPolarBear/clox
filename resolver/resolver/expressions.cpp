@@ -382,4 +382,10 @@ resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_li
 	return make_shared<initializer_list_type>(items);
 }
 
+shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<struct lambda_expression>& ptr)
+{
+	// TODO
+	return std::shared_ptr<lox_type>();
+}
+
 
