@@ -30,6 +30,7 @@
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/opcode.h>
+#include <interpreter/vm/closure_object.h>
 
 #include <interpreter/codegen/exceptions.h>
 
@@ -176,7 +177,7 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	vm::function_object_raw_pointer top_level();
+	vm::closure_object_raw_pointer top_level();
 
 private:
 

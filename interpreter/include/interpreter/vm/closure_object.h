@@ -19,55 +19,42 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/24/2021.
 //
 
 #pragma once
 
 #include <scanner/scanner.h>
 
+#include <interpreter/vm/object.h>
+#include <interpreter/vm/function_object.h>
+
 #include <variant>
 #include <string>
-#include <string_view>
 
 #include <memory>
 #include <map>
 
 namespace clox::interpreting::vm
 {
-enum class object_type
+class closure_object final
+		: public object
 {
-	STRING,
-	FUNCTION,
-	CLOSURE
-};
-
-
-class object
-		: public helper::printable
-{
-
 public:
-	static inline bool is_string(const object& obj)
+	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
+
+	std::string printable_string() override;
+
+	[[nodiscard]] object_type type() const noexcept override;
+
+	[[nodiscard]] function_object_raw_pointer function()const
 	{
-		return obj.type() == object_type::STRING;
+		return function_;
 	}
 
-	static bool pointer_equal(const object* lhs, const object* rhs);
-
-
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
+private:
+	function_object_raw_pointer function_{};
 };
 
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
-
-template<class T>
-concept object_pointer=
-requires(T t){
-	std::is_pointer_v<T>;
-	std::derived_from<std::decay_t<decltype(*t)>, object>;
-};
-
+using closure_object_raw_pointer = closure_object*;
 }

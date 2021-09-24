@@ -29,8 +29,11 @@
 #include <interpreter/vm/exceptions.h>
 #include <interpreter/vm/opcode.h>
 
-#include <gsl/gsl>
 #include <interpreter/vm/string_object.h>
+#include <interpreter/vm/closure_object.h>
+
+#include <gsl/gsl>
+
 
 using namespace std;
 using namespace gsl;
@@ -472,13 +475,23 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case V(op_code::CLOSURE):
+	{
+		auto func = peek_object<function_object_raw_pointer>();
+
+		auto closure = heap_->allocate<closure_object>(func);
+		pop();
+		push(closure);
+		break;
+	}
+
 	case V(op_code::CALL):
 	{
 		auto arg_count = next_code();
 
-		auto callable = peek(arg_count);
+		auto closure = peek(arg_count);
 
-		call_value(callable, arg_count);
+		call_value(closure, arg_count);
 
 		break;
 	}
@@ -560,14 +573,11 @@ std::string virtual_machine::next_variable_name()
 }
 
 // TODO: change it to accept function_object
-virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
+virtual_machine_status virtual_machine::run(closure_object_raw_pointer closure)
 {
-	push(func);
+	push(closure);
 
-	push_call_frame(func, func->body()->begin(), 0);
-
-//	chunk_ = func;
-//	ip_ = chunk_->begin();
+	push_call_frame(closure, closure->function()->body()->begin(), 0);
 
 	return run();
 }
@@ -581,10 +591,10 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 	auto obj = get<object_raw_pointer>(val);
 
-	if (obj->type() == object_type::FUNCTION)
+	if (obj->type() == object_type::CLOSURE)
 	{
-		auto func = dynamic_cast<function_object_raw_pointer> (obj);
-		call(func, arg_count);
+		auto closure = dynamic_cast<closure_object_raw_pointer> (obj);
+		call(closure, arg_count);
 	}
 	else
 	{
@@ -592,18 +602,18 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 	}
 }
 
-void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
+void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 {
 	if (configurable_configuration_instance().dump_assembly())
 	{
-		func->body()->disassemble(*cons_);
+		closure->function()->body()->disassemble(*cons_);
 	}
 
 	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
 	assert(stack_offset >= 0);
 
-	push_call_frame(func,
-			func->body()->begin(),
+	push_call_frame(closure,
+			closure->function()->body()->begin(),
 			stack_offset);
 }
 

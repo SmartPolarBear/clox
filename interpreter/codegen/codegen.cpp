@@ -433,6 +433,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			{
 				auto[id, constant]=func_lookup_ret.value();
 				emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id);
+				emit_code(V(op_code::CLOSURE));
 
 				for (const auto& arg: ce->get_args())
 				{
@@ -450,6 +451,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
 		generate(ce->get_callee());
+
+		emit_code(V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
@@ -571,6 +574,7 @@ void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
 	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
 	if (current_scope_depth_ == 0)
@@ -781,9 +785,9 @@ vm::function_object_raw_pointer codegen::function_top()
 	return functions_.back();
 }
 
-vm::function_object_raw_pointer codegen::top_level()
+vm::closure_object_raw_pointer codegen::top_level()
 {
-	return function_top();
+	return heap_->allocate<closure_object>(function_top());
 }
 
 vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)

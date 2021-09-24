@@ -27,9 +27,11 @@
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
 #include <interpreter/vm/heap.h>
+#include <interpreter/vm/exceptions.h>
 
 #include <memory>
 #include "string_object.h"
+#include "closure_object.h"
 
 namespace clox::interpreting::vm
 {
@@ -58,8 +60,8 @@ public:
 
 	public:
 
-		explicit call_frame(function_object_raw_pointer func, ip_type ip, size_t offset)
-				: function_(func), ip_(ip), stack_offset_(offset)
+		explicit call_frame(closure_object_raw_pointer closure, ip_type ip, size_t offset)
+				: closure_(closure), ip_(ip), stack_offset_(offset)
 		{
 		}
 
@@ -70,7 +72,12 @@ public:
 
 		[[nodiscard]] function_object_raw_pointer function() const
 		{
-			return function_;
+			return closure_->function();
+		}
+
+		[[nodiscard]] closure_object_raw_pointer closure() const
+		{
+			return closure_;
 		}
 
 		[[nodiscard]] ip_type& ip()
@@ -80,7 +87,7 @@ public:
 
 
 	private:
-		function_object_raw_pointer function_{};
+		closure_object_raw_pointer closure_{};
 		ip_type ip_{};
 		size_t stack_offset_{};
 	};
@@ -95,7 +102,7 @@ public:
 	explicit virtual_machine(helper::console& cons,
 			std::shared_ptr<object_heap> heap);
 
-	virtual_machine_status run(function_object_raw_pointer func);
+	virtual_machine_status run(clox::interpreting::vm::closure_object* closure);
 
 private:
 	virtual_machine_status run();
@@ -154,7 +161,7 @@ private:
 
 	void call_value(const value& val, size_t arg_count);
 
-	void call(function_object_raw_pointer func, size_t arg_count);
+	void call(closure_object_raw_pointer closure, size_t arg_count);
 
 	bool is_false(const value& val);
 
@@ -165,6 +172,31 @@ private:
 
 	// stack modification
 	void reset_stack();
+
+
+	template<object_pointer T>
+	T peek_object(size_t offset = 0)
+	{
+		return std::visit([](auto&& val) -> T
+		{
+			using TV = std::decay_t<decltype(val)>;
+			if constexpr (std::is_same_v<TV, object_raw_pointer>)
+			{
+				if (auto func = dynamic_cast<T>(val);func)
+				{
+					return func;
+				}
+				else
+				{
+					throw invalid_value{ val };
+				}
+			}
+			else
+			{
+				throw invalid_value{ val };
+			}
+		}, peek(offset));
+	}
 
 	value peek(size_t offset = 0);
 
@@ -191,9 +223,9 @@ private:
 		return *call_frames_.rbegin();
 	}
 
-	void push_call_frame(function_object_raw_pointer func, chunk::iterator_type ip, size_t stack_offset)
+	void push_call_frame(closure_object_raw_pointer closure, chunk::iterator_type ip, size_t stack_offset)
 	{
-		call_frames_.emplace_back(func, ip, stack_offset);
+		call_frames_.emplace_back(closure, ip, stack_offset);
 	}
 
 	void pop_call_frame()
