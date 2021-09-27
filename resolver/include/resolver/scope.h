@@ -89,5 +89,9 @@ private:
 	mutable name_table_type names_{};
 
 	mutable type_table_type types_{};
+
+	mutable std::vector<std::shared_ptr<scope>> children_{};
+
+	mutable std::weak_ptr<scope> parent_{};
 };
 }
