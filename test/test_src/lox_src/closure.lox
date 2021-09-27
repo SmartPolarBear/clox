@@ -15,3 +15,26 @@ c();
 c();
 c();
 c();
+
+/*
+fun closure(){
+    fun p(i:integer){
+        print i;
+    }
+
+    fun p(){
+        print "fuck";
+    }
+    return p;
+}
+
+
+// TODO: argument check
+var c=closure();
+c();
+
+// FIXME: these should be wrong
+c(1);
+c("a");
+*/
+

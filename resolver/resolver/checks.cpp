@@ -392,9 +392,10 @@ resolver::check_type_call_expression(const shared_ptr<parsing::call_expression>&
 
 			return { resolve_ret, true };
 		}
-		else
+		else if (callee->id() == TYPE_ID_FUNC)
 		{
-			throw logic_error{ "All functions put into symbol table should be overloaded_func" };
+			return { callee, true };
+//			throw logic_error{ "All functions put into symbol table should be overloaded_func" };
 		}
 	}
 

@@ -29,8 +29,11 @@
 #include <interpreter/vm/exceptions.h>
 #include <interpreter/vm/opcode.h>
 
-#include <gsl/gsl>
 #include <interpreter/vm/string_object.h>
+#include <interpreter/vm/closure_object.h>
+
+#include <gsl/gsl>
+
 
 using namespace std;
 using namespace gsl;
@@ -90,9 +93,11 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 std::tuple<std::optional<virtual_machine_status>, bool>
 virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 {
-	switch (V(main_op_code_of(instruction)))
+	switch (main_op_code_of(instruction))
 	{
-	case V(op_code::RETURN):
+		using enum op_code;
+
+	case RETURN:
 	{
 		auto ret = pop();
 
@@ -112,7 +117,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::PUSH):
+	case PUSH:
 	{
 		auto secondary = secondary_op_code_of(instruction);
 
@@ -129,13 +134,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::POP):
+	case POP:
 	{
 		pop();
 		break;
 	}
 
-	case V(op_code::POP_N):
+	case POP_N:
 	{
 		const auto count = static_cast<size_t>(next_code());
 		for (size_t i = 0; i < count; i++)
@@ -145,30 +150,30 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::CONSTANT):
+	case CONSTANT:
 	{
 		auto constant = next_constant();
 		push(constant);
 		break;
 	}
-	case V(op_code::CONSTANT_NIL):
+	case CONSTANT_NIL:
 	{
 		push(scanning::nil_value_tag);
 		break;
 	}
-	case V(op_code::CONSTANT_TRUE):
+	case CONSTANT_TRUE:
 	{
 		push(true);
 		break;
 	}
-	case V(op_code::CONSTANT_FALSE):
+	case CONSTANT_FALSE:
 	{
 		push(false);
 		break;
 	}
 
 
-	case V(op_code::NEGATE):
+	case NEGATE:
 	{
 		push(std::visit([](auto&& val) -> value
 		{
@@ -184,13 +189,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::NOT):
+	case NOT:
 	{
 		push(is_false(pop()));
 		break;
 	}
 
-	case V(op_code::ADD):
+	case ADD:
 	{
 		if (is_string_value(peek(1)))
 		{
@@ -208,7 +213,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		}
 		break;
 	}
-	case V(op_code::SUBTRACT):
+	case SUBTRACT:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -216,7 +221,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::MULTIPLY):
+	case MULTIPLY:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -224,7 +229,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::DIVIDE):
+	case DIVIDE:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -232,7 +237,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::POW):
+	case POW:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -241,7 +246,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::LESS):
+	case LESS:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -249,7 +254,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::LESS_EQUAL):
+	case LESS_EQUAL:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -257,7 +262,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::GREATER):
+	case GREATER:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -265,7 +270,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::GREATER_EQUAL):
+	case GREATER_EQUAL:
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 		{
@@ -273,7 +278,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		});
 		break;
 	}
-	case V(op_code::EQUAL):
+	case EQUAL:
 	{
 		auto right = peek(0);
 		auto left = peek(1);
@@ -283,13 +288,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::PRINT):
+	case PRINT:
 	{
 		cons_->out() << visit(value_stringify_visitor{ false }, pop()) << endl;
 		break;
 	}
 
-	case V(op_code::GET):
+	case GET:
 	{
 		auto secondary = secondary_op_code_of(instruction);
 		if (secondary & SEC_OP_GLOBAL)
@@ -313,7 +318,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 
 
-	case V(op_code::SET):
+	case SET:
 	{
 
 		auto secondary = secondary_op_code_of(instruction);
@@ -338,7 +343,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 
 
-	case V(op_code::DEFINE):
+	case DEFINE:
 	{
 		auto secondary = secondary_op_code_of(instruction);
 		if (secondary & SEC_OP_GLOBAL)
@@ -363,8 +368,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 
 
-	case V(op_code::INC):
-	case V(op_code::DEC):
+	case INC:
+	case DEC:
 	{
 		auto secondary = secondary_op_code_of(instruction);
 
@@ -448,14 +453,14 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::JUMP):
+	case JUMP:
 	{
 		auto offset = next_code();
 		frame.ip() += offset;
 		break;
 	}
 
-	case V(op_code::JUMP_IF_FALSE):
+	case JUMP_IF_FALSE:
 	{
 		auto offset = next_code();
 		if (is_false(peek(0)))
@@ -465,22 +470,30 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-	case V(op_code::LOOP):
+	case LOOP:
 	{
 		auto offset = next_code();
 		frame.ip() -= offset;
 		break;
 	}
 
-	case V(op_code::CALL):
+	case CLOSURE:
 	{
-		auto callable_id = next_code();
+		auto func = peek_object<function_object_raw_pointer>();
+
+		auto closure = heap_->allocate<closure_object>(func);
+		pop();
+		push(closure);
+		break;
+	}
+
+	case CALL:
+	{
 		auto arg_count = next_code();
 
-		auto callable = functions_.at(callable_id);
+		auto closure = peek(arg_count);
 
-
-		call_value(callable, arg_count);
+		call_value(closure, arg_count);
 
 		break;
 	}
@@ -562,14 +575,11 @@ std::string virtual_machine::next_variable_name()
 }
 
 // TODO: change it to accept function_object
-virtual_machine_status virtual_machine::run(function_object_raw_pointer func)
+virtual_machine_status virtual_machine::run(closure_object_raw_pointer closure)
 {
-	push(func);
+	push(closure);
 
-	push_call_frame(func, func->body()->begin(), 0);
-
-//	chunk_ = func;
-//	ip_ = chunk_->begin();
+	push_call_frame(closure, closure->function()->body()->begin(), 0);
 
 	return run();
 }
@@ -583,10 +593,10 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 	auto obj = get<object_raw_pointer>(val);
 
-	if (obj->type() == object_type::FUNCTION)
+	if (obj->type() == object_type::CLOSURE)
 	{
-		auto func = dynamic_cast<function_object_raw_pointer> (obj);
-		call(func, arg_count);
+		auto closure = dynamic_cast<closure_object_raw_pointer> (obj);
+		call(closure, arg_count);
 	}
 	else
 	{
@@ -594,18 +604,18 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 	}
 }
 
-void virtual_machine::call(function_object_raw_pointer func, size_t arg_count)
+void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 {
 	if (configurable_configuration_instance().dump_assembly())
 	{
-		func->body()->disassemble(*cons_);
+		closure->function()->body()->disassemble(*cons_);
 	}
 
 	int64_t stack_offset = static_cast<int64_t>(stack_.size()) - arg_count - 1;
 	assert(stack_offset >= 0);
 
-	push_call_frame(func,
-			func->body()->begin(),
+	push_call_frame(closure,
+			closure->function()->body()->begin(),
 			stack_offset);
 }
 

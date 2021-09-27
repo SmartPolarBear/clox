@@ -30,6 +30,7 @@
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/opcode.h>
+#include <interpreter/vm/closure_object.h>
 
 #include <interpreter/codegen/exceptions.h>
 
@@ -45,6 +46,22 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
+	enum class variable_type
+	{
+		LOCAL, UP_VALUE, GLOBAL,
+
+		FAILURE
+	};
+
+	class upvalue
+	{
+		friend class codegen;
+
+	public:
+
+	private:
+	};
+
 	class local_scope
 	{
 	public:
@@ -52,6 +69,7 @@ public:
 		{
 			TOP, FUNCTION
 		};
+
 
 		using slot_type = int64_t;
 		static inline constexpr slot_type GLOBAL_SLOT = -1;
@@ -65,7 +83,7 @@ public:
 		~local_scope() = default;
 
 
-		scope_type type() const
+		[[nodiscard]] scope_type type() const
 		{
 			return type_;
 		}
@@ -111,9 +129,13 @@ public:
 		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
 
 		std::unordered_map<std::string, slot_type> locals_{};
+
+		std::vector<upvalue> upvalues_{};
+
 		size_t count_{ 0 };
 
 		scope_type type_{};
+
 	};
 
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
@@ -176,7 +198,7 @@ public:
 public:
 	void generate(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
 
-	vm::function_object_raw_pointer top_level();
+	vm::closure_object_raw_pointer top_level();
 
 private:
 
@@ -204,32 +226,31 @@ private:
 
 	///
 	/// \param name
-	/// \return {optional<slot>, is global}
-	std::tuple<std::optional<vm::chunk::code_type>, bool> variable_lookup(const std::string& name);
+	/// \return {optional<slot>, type}
+	using variable_lookup_result = std::tuple<std::optional<vm::chunk::code_type>, variable_type>;
 
-	static inline bool is_variable_lookup_failure(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
+	variable_lookup_result variable_lookup(const std::string& name);
+
+	static inline constexpr bool
+	is_variable_lookup_failure(const variable_lookup_result& rets)
 	{
-		const auto&[slot, global]=rets;
-		return !slot && !global;
+		const auto&[slot, type]=rets;
+		return !slot && type == variable_type::FAILURE;
 	}
 
-	static inline vm::chunk::code_type variable_slot(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
+	static inline constexpr vm::chunk::code_type
+	variable_slot(const variable_lookup_result& rets)
 	{
 		const auto&[slot, global]=rets;
 		return slot.value();
 	}
 
-	static inline vm::chunk::code_type
-	is_global_variable(const std::tuple<std::optional<vm::chunk::code_type>, bool>& rets)
-	{
-		const auto&[slot, global]=rets;
-		return global;
-	}
 
 	std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>
 	function_lookup(const std::shared_ptr<parsing::statement>& stmt);
 
-	bool is_function_lookup_failure(const std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>& rets)
+	static inline constexpr bool
+	is_function_lookup_failure(const std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>& rets)
 	{
 		return !rets.has_value();
 	}

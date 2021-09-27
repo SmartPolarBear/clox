@@ -19,55 +19,23 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 9/24/2021.
 //
 
-#pragma once
+#include <interpreter/vm/closure_object.h>
 
-#include <scanner/scanner.h>
-
-#include <variant>
-#include <string>
-#include <string_view>
-
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
-{
-enum class object_type
-{
-	STRING,
-	FUNCTION,
-	CLOSURE
-};
-
-
-class object
-		: public helper::printable
+clox::interpreting::vm::closure_object::closure_object(function_object_raw_pointer func)
+		: function_{ func }
 {
 
-public:
-	static inline bool is_string(const object& obj)
-	{
-		return obj.type() == object_type::STRING;
-	}
+}
 
-	static bool pointer_equal(const object* lhs, const object* rhs);
+std::string clox::interpreting::vm::closure_object::printable_string()
+{
+	return function_->printable_string(); // Closure is transparent to user, meaning it is identical to its function
+}
 
-
-public:
-	[[nodiscard]]virtual object_type type() const noexcept = 0;
-};
-
-/// \brief object raw pointer will be used frequently because memory reclaim will be done by GC
-using object_raw_pointer = object*;
-
-template<class T>
-concept object_pointer=
-requires(T t){
-	std::is_pointer_v<T>;
-	std::derived_from<std::decay_t<decltype(*t)>, object>;
-};
-
+clox::interpreting::vm::object_type clox::interpreting::vm::closure_object::type() const noexcept
+{
+	return object_type::CLOSURE;
 }

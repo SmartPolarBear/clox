@@ -195,6 +195,7 @@ void lox_overloaded_metatype::put(const std::shared_ptr<parsing::statement>& stm
 	node->callable_ = callable;
 
 	all_.emplace_back(stmt, callable);
+	last_ = callable;
 }
 
 std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>

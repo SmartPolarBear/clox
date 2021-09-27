@@ -325,20 +325,34 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	auto name = ve->get_name();
 	auto lookup_ret = variable_lookup(name.lexeme());
 
-	if (is_variable_lookup_failure(lookup_ret))
+	if (!is_variable_lookup_failure(lookup_ret))
+	{
+		auto[slot, type]=lookup_ret;
+		// See opcode.h for the design here in details
+		switch (type)
+		{
+			using enum variable_type;
+
+		case GLOBAL:
+			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+			break;
+
+		case UP_VALUE:
+
+			break;
+
+		default:
+		case LOCAL:
+			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
+			break;
+		}
+	}
+	else
 	{
 		throw internal_codegen_error{ "Name lookup failure" };
 	}
 
-	// See opcode.h for the design here in details
-	if (is_global_variable(lookup_ret))
-	{
-		emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
-	}
-	else
-	{
-		emit_codes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
-	}
+
 }
 
 void
@@ -433,13 +447,14 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			{
 				auto[id, constant]=func_lookup_ret.value();
 				emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id);
+				emit_code(V(op_code::CLOSURE));
 
 				for (const auto& arg: ce->get_args())
 				{
 					generate(arg); // push arguments in the stack
 				}
 
-				emit_codes(V(op_code::CALL), id, ce->get_args().size()); // call the function
+				emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
 			}
 		}
 		else
@@ -447,9 +462,19 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			throw internal_codegen_error{ "Function lookup failure" };
 		}
 	}
-	else
+	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
-		throw internal_codegen_error{ "Function lookup failure" };
+		generate(ce->get_callee());
+
+		emit_code(V(op_code::CLOSURE));
+
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
+
+		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+//		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
 
@@ -563,6 +588,7 @@ void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
 	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
 	if (current_scope_depth_ == 0)
@@ -687,8 +713,9 @@ uint16_t codegen::identifier_constant(const token& identifier)
 	return make_constant(identifier.lexeme());
 }
 
-std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(const string& name)
+codegen::variable_lookup_result codegen::variable_lookup(const string& name)
 {
+	auto type = variable_type::LOCAL;
 	for (const auto& scope: local_scopes_
 							| ranges::views::reverse)
 	{
@@ -697,12 +724,17 @@ std::tuple<std::optional<vm::chunk::code_type>, bool> codegen::variable_lookup(c
 			auto slot = find_ret.value();
 			if (slot == local_scope::GLOBAL_SLOT)
 			{
-				return make_tuple(nullopt, true);
+				return make_tuple(nullopt, variable_type::GLOBAL);
 			}
-			return make_tuple(static_cast<chunk::code_type>(slot), false);
+			else
+			{
+				return make_tuple(static_cast<chunk::code_type>(slot), type);
+			}
 		}
+
+		type = variable_type::UP_VALUE;
 	}
-	return make_tuple(nullopt, false);
+	return make_tuple(nullopt, variable_type::FAILURE);
 }
 
 std::optional<tuple<chunk::code_type, chunk::code_type>>
@@ -773,9 +805,9 @@ vm::function_object_raw_pointer codegen::function_top()
 	return functions_.back();
 }
 
-vm::function_object_raw_pointer codegen::top_level()
+vm::closure_object_raw_pointer codegen::top_level()
 {
-	return function_top();
+	return heap_->allocate<closure_object>(function_top());
 }
 
 vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
