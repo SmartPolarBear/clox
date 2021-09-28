@@ -284,7 +284,17 @@ std::shared_ptr<binding_table> resolver::bindings() const
 	return bindings_;
 }
 
-optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt)
+std::shared_ptr<binding> resolver::binding(const shared_ptr<parsing::expression>& e) const
+{
+	if(!bindings_->contains(e))
+	{
+		return nullptr;
+	}
+
+	return bindings_->get(e);
+}
+
+optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt) const
 {
 	if (function_ids_.contains(stmt))
 	{

@@ -66,20 +66,9 @@ clox::interpreting::classic::interpreter::visit_binary_expression(const std::sha
 {
 	if (locals_->contains(be))
 	{
-		if (auto op_binding_ret = locals_->get(be);op_binding_ret)
+		if (auto op_binding = locals_->get_typed<operator_binding>(be);op_binding)
 		{
-
-			if (auto op_binding = op_binding_ret.value();op_binding->type() !=
-														 resolving::binding_type::BINDING_OPERATOR)
-			{
-				throw clox::interpreting::classic::runtime_error(be->get_op(),
-						std::format("Internal compiler error: wrong binding type."));
-			}
-			else
-			{
-				auto binding = static_pointer_cast<operator_binding>(op_binding);
-				return evaluate(binding->operator_implementation_call());
-			}
+			return evaluate(op_binding->operator_implementation_call());
 		}
 		throw clox::interpreting::classic::runtime_error(be->get_op(),
 				std::format("Internal compiler error: wrong binding."));
@@ -257,7 +246,8 @@ std::string clox::interpreting::classic::interpreter::result_to_string(
 }
 
 void
-clox::interpreting::classic::interpreter::interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts, bool repl)
+clox::interpreting::classic::interpreter::interpret(const std::vector<std::shared_ptr<parsing::statement>>& stmts,
+		bool repl)
 {
 	try
 	{
@@ -299,7 +289,8 @@ clox::interpreting::classic::interpreter::literal_value_to_interpreting_result(c
 	}, value);
 }
 
-clox::interpreting::classic::evaluating_result clox::interpreting::classic::interpreter::evaluate(const shared_ptr<expression>& expr)
+clox::interpreting::classic::evaluating_result
+clox::interpreting::classic::interpreter::evaluate(const shared_ptr<expression>& expr)
 {
 	return accept(*expr, *dynamic_cast<expression_visitor<evaluating_result>*>(this));
 }
@@ -313,7 +304,8 @@ bool clox::interpreting::classic::interpreter::is_truthy(clox::interpreting::cla
 	return true;
 }
 
-bool clox::interpreting::classic::interpreter::is_equal(const token& op, clox::interpreting::classic::evaluating_result lhs,
+bool
+clox::interpreting::classic::interpreter::is_equal(const token& op, clox::interpreting::classic::evaluating_result lhs,
 		clox::interpreting::classic::evaluating_result rhs)
 {
 	if (holds_alternative<nil_value_tag_type>(lhs) && holds_alternative<nil_value_tag_type>(rhs))
@@ -430,7 +422,8 @@ void interpreter::visit_block_statement(const std::shared_ptr<block_statement>& 
 }
 
 void
-interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& stmts, const shared_ptr<classic::environment>& env)
+interpreter::execute_block(const vector<std::shared_ptr<parsing::statement>>& stmts,
+		const shared_ptr<classic::environment>& env)
 {
 	auto prev = this->environment_;
 
@@ -526,15 +519,14 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 	}
 	else if (holds_alternative<overloaded_functions>(callee))
 	{
-		auto binding = locals_->get(ce).value();
-		if (auto func_binding = dynamic_pointer_cast<function_binding>(binding);func_binding)
+		if (auto func_binding = locals_->get_typed<function_binding>(ce);func_binding)
 		{
 			func = get<overloaded_functions>(callee).at(func_binding->statement());
 		}
 		else if (!func_binding)
 		{
 			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
-													 "Internal: function binding required." };
+															  "Internal: function binding required." };
 		}
 	}
 
@@ -566,25 +558,13 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
-	auto local = locals_->get(expr);
-	if (!local.has_value())
+	auto local = locals_->get_typed<variable_binding>(expr);
+	if (!local)
 	{
 		return globals_->get(tk);
 	}
 
-	auto binding = local.value();
-
-	int64_t dist = -1;
-	if (binding->type() != binding_type::BINDING_VARIABLE)
-	{
-		throw clox::interpreting::classic::runtime_error{ tk,
-												 std::format("{} is not a variable.",
-														 tk.lexeme()) };
-	}
-	else
-	{
-		dist = static_pointer_cast<variable_binding>(binding)->depth();
-	}
+	int64_t dist = local->depth();
 
 	if (dist != -1)
 	{
@@ -599,25 +579,15 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 void
 interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
 {
-	auto local = locals_->get(expr);
-	if (!local.has_value())
+	auto local = locals_->get_typed<variable_binding>(expr);
+	if (!local)
 	{
 		globals_->assign(tk, val);
 	}
 
-	auto binding = local.value();
 
-	int64_t dist = -1;
-	if (binding->type() != resolving::binding_type::BINDING_VARIABLE)
-	{
-		throw clox::interpreting::classic::runtime_error{ tk,
-												 std::format("{} is not a variable.",
-														 tk.lexeme()) };
-	}
-	else
-	{
-		dist = static_pointer_cast<variable_binding>(binding)->depth();
-	}
+	int64_t dist = local->depth();
+
 
 	if (dist != -1)
 	{
@@ -642,8 +612,8 @@ void interpreter::visit_class_statement(const std::shared_ptr<class_statement>& 
 			!(base = dynamic_pointer_cast<lox_class>(get<shared_ptr<callable>>(base_val))))
 		{
 			throw clox::interpreting::classic::runtime_error{ cls->get_base_class()->get_name(),
-													 std::format("'{}' is not inheritable.",
-															 cls->get_base_class()->get_name().lexeme()) };
+															  std::format("'{}' is not inheritable.",
+																	  cls->get_base_class()->get_name().lexeme()) };
 		}
 	}
 
@@ -684,7 +654,8 @@ evaluating_result interpreter::visit_get_expression(const std::shared_ptr<get_ex
 	}
 
 	throw clox::interpreting::classic::runtime_error{ expr->get_name(),
-											 std::format("Properties access is not allowed except instances") };
+													  std::format(
+															  "Properties access is not allowed except instances") };
 }
 
 evaluating_result interpreter::visit_set_expression(const std::shared_ptr<set_expression>& se)
@@ -694,7 +665,7 @@ evaluating_result interpreter::visit_set_expression(const std::shared_ptr<set_ex
 	if (!holds_alternative<shared_ptr<lox_instance>>(obj))
 	{
 		throw clox::interpreting::classic::runtime_error{ se->get_name(),
-												 std::format("Only instances have fields") };
+														  std::format("Only instances have fields") };
 	}
 
 	auto val = evaluate(se->get_val());
@@ -717,8 +688,8 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
 	// FIXME: should support fields
-	auto symbol = locals_->get(expr).value(); // it must exist granted by the resolver
-	auto dist = static_pointer_cast<variable_binding>(symbol)->depth();
+	auto symbol = locals_->get_typed<variable_binding>(expr); // it must exist granted by the resolver
+	auto dist = symbol->depth();
 
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));
 
@@ -729,7 +700,8 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 	if (!method)
 	{
 		throw clox::interpreting::classic::runtime_error{ expr->get_member(),
-												 std::format("'{}' is undefined.", expr->get_member().lexeme()) };
+														  std::format("'{}' is undefined.",
+																  expr->get_member().lexeme()) };
 	}
 
 	auto bound_methods = method.value();
@@ -772,7 +744,7 @@ void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statemen
 
 }
 
-evaluating_result interpreter::visit_lambda_expression(const std::shared_ptr< lambda_expression>& ptr)
+evaluating_result interpreter::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {
 	return clox::interpreting::classic::evaluating_result();
 }

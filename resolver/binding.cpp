@@ -28,12 +28,12 @@ using namespace std;
 
 using namespace clox::resolving;
 
-std::optional<std::shared_ptr<binding>>
+std::shared_ptr<binding>
 clox::resolving::binding_table::get(const std::shared_ptr<parsing::expression>& e)
 {
 	if (!bindings_.contains(e))
 	{
-		return nullopt;
+		return nullptr;
 	}
 
 	return bindings_.at(e);

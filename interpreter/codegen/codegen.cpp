@@ -117,18 +117,14 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	if (resolver_->bindings()->contains(be))
+	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
 	{
-		if (auto binding_ret = resolver_->bindings()->get(be);binding_ret && binding_ret.value()->type() ==
-																 resolving::binding_type::BINDING_OPERATOR)
-		{
-			generate(static_pointer_cast<operator_binding>(binding_ret.value())->operator_implementation_call());
-			return;
-		}
-		else
-		{
-			throw internal_codegen_error{ "Invalid binding type" };
-		}
+		generate(binding->operator_implementation_call());
+		return;
+	}
+	else
+	{
+		throw internal_codegen_error{ "Invalid binding type" };
 	}
 
 	generate(be->get_left());
@@ -434,33 +430,18 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding_ret = resolver_->bindings()->get(ce);binding_ret)
+	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
 	{
-		if (auto binding = binding_ret.value();binding->type() == resolving::binding_type::BINDING_FUNCTION)
-		{
-			auto func_lookup_ret = function_lookup(dynamic_pointer_cast<function_binding>(binding)->statement());
-			if (is_function_lookup_failure(func_lookup_ret))
-			{
-				throw internal_codegen_error{ "Function lookup failure" };
-			}
-			else
-			{
-				auto[id, constant]=func_lookup_ret.value();
-				emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id);
-				emit_code(V(op_code::CLOSURE));
 
-				for (const auto& arg: ce->get_args())
-				{
-					generate(arg); // push arguments in the stack
-				}
+		emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+		emit_code(V(op_code::CLOSURE));
 
-				emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
-			}
-		}
-		else
+		for (const auto& arg: ce->get_args())
 		{
-			throw internal_codegen_error{ "Function lookup failure" };
+			generate(arg); // push arguments in the stack
 		}
+
+		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
@@ -600,8 +581,9 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 		declare_local_variable(fs->get_name().lexeme());
 	}
 
-	auto id = make_function(fs);
-	local_scopes_.back()->add_function(fs, id, constant);
+	auto id_ret = resolver_->function_id(fs);
+
+	assert(id_ret.has_value());
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
@@ -618,7 +600,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	auto func = function_pop();
 
-	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id, constant);
+	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
 
 	set_constant(constant, func);
 
@@ -737,20 +719,6 @@ codegen::variable_lookup_result codegen::variable_lookup(const string& name)
 	return make_tuple(nullopt, variable_type::FAILURE);
 }
 
-std::optional<tuple<chunk::code_type, chunk::code_type>>
-codegen::function_lookup(const std::shared_ptr<parsing::statement>& stmt)
-{
-	for (const auto& scope: local_scopes_
-							| ranges::views::reverse)
-	{
-		if (scope->contains_function(stmt))
-		{
-			return scope->find(stmt);
-		}
-	}
-
-	return nullopt;
-}
 
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 {
@@ -810,16 +778,16 @@ vm::closure_object_raw_pointer codegen::top_level()
 	return heap_->allocate<closure_object>(function_top());
 }
 
-vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
-{
-	if (functions_ids_.contains(func))
-	{
-		return functions_ids_.at(func);
-	}
-
-	functions_ids_.insert_or_assign(func, function_id_counter_);
-	return function_id_counter_++;
-}
+//vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
+//{
+//	if (functions_ids_.contains(func))
+//	{
+//		return functions_ids_.at(func);
+//	}
+//
+//	functions_ids_.insert_or_assign(func, function_id_counter_);
+//	return function_id_counter_++;
+//}
 
 void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {

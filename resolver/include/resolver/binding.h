@@ -176,7 +176,7 @@ struct binding_tag<operator_binding>
 };
 
 template<typename T>
-[[maybe_unused, nodiscard]] static inline std::optional<std::shared_ptr<T>>
+[[maybe_unused, nodiscard]] static inline std::shared_ptr<T>
 downcast_binding(const std::shared_ptr<binding>& binding)
 {
 	if (binding->type() == binding_tag<T>::type) [[likely]]
@@ -185,7 +185,7 @@ downcast_binding(const std::shared_ptr<binding>& binding)
 	}
 	else [[unlikely]]
 	{
-		return std::nullopt;
+		return nullptr;
 	}
 }
 
@@ -206,18 +206,18 @@ public:
 		return bindings_.contains(e);
 	}
 
-	std::optional<std::shared_ptr<binding>> get(const std::shared_ptr<parsing::expression>& e);
+	std::shared_ptr<binding> get(const std::shared_ptr<parsing::expression>& e);
 
 	template<typename T>
-	std::optional<std::shared_ptr<T>> get_typed(const std::shared_ptr<parsing::expression>& e)
+	std::shared_ptr<T> get_typed(const std::shared_ptr<parsing::expression>& e)
 	{
 		auto binding = get(e);
-		if (binding.has_value()) [[likely]]
+		if (binding) [[likely]]
 		{
-			return downcast_binding<T>(binding.value());
+			return downcast_binding<T>(binding);
 		}
 
-		return binding;
+		return nullptr;
 	}
 
 private:

@@ -110,24 +110,7 @@ public:
 			return locals_.at(name);
 		}
 
-		void add_function(const std::shared_ptr<parsing::function_statement>& stmt, vm::chunk::code_type id,
-				vm::chunk::code_type constant)
-		{
-			function_map_[stmt] = std::make_pair(id, constant);
-		}
-
-		bool contains_function(const std::shared_ptr<parsing::statement>& stmt)
-		{
-			return function_map_.contains(stmt);
-		}
-
-		std::tuple<vm::chunk::code_type, vm::chunk::code_type> find(const std::shared_ptr<parsing::statement>& stmt)
-		{
-			return function_map_.at(stmt);
-		}
-
 	private:
-		std::unordered_map<std::shared_ptr<parsing::statement>, std::tuple<vm::chunk::code_type, vm::chunk::code_type> > function_map_{};
 
 		std::unordered_map<std::string, slot_type> locals_{};
 
@@ -247,15 +230,6 @@ private:
 	}
 
 
-	std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>
-	function_lookup(const std::shared_ptr<parsing::statement>& stmt);
-
-	static inline constexpr bool
-	is_function_lookup_failure(const std::optional<std::tuple<vm::chunk::code_type, vm::chunk::code_type>>& rets)
-	{
-		return !rets.has_value();
-	}
-
 	void emit_code(vm::full_opcode_type byte);
 
 	template<std::convertible_to<vm::full_opcode_type> ...Args>
@@ -280,8 +254,6 @@ private:
 
 	uint16_t make_constant(const vm::value& val);
 
-	vm::full_opcode_type make_function(const std::shared_ptr<parsing::statement>& func);
-
 	// To make it right for scope_begin(). because the first scope should have depth 0
 	int64_t current_scope_depth_{ -1 };
 
@@ -290,10 +262,6 @@ private:
 	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
 
 	std::vector<vm::function_object_raw_pointer> functions_{};
-
-	std::unordered_map<std::shared_ptr<parsing::statement>, vm::full_opcode_type> functions_ids_{};
-
-	size_t function_id_counter_{ 1 };
 
 	std::shared_ptr<vm::object_heap> heap_{};
 

@@ -45,22 +45,13 @@ lox_class::call(interpreter* the_interpreter,
 	if (auto ctor_ret = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor_ret)
 	{
 		auto ctor = ctor_ret.value();
-		if (auto binding_ret = the_interpreter->locals_->get(caller);binding_ret.has_value())
+		if (auto binding = the_interpreter->locals_->get_typed<resolving::function_binding>(caller);binding)
 		{
-			auto binding = binding_ret.value();
-			if (binding->type() == resolving::binding_type::BINDING_FUNCTION)
-			{
-				static_pointer_cast<lox_function>(
-						ctor.at(static_pointer_cast<resolving::function_binding>(binding)->statement()))->bind(
-						inst)->call(
-						the_interpreter, caller, args);
-			}
-			else
-			{
-				throw runtime_error{
-						dynamic_pointer_cast<parsing::call_expression>(caller)->get_paren(),
-						"Calling non-function object" };
-			}
+			static_pointer_cast<lox_function>(
+					ctor.at(static_pointer_cast<resolving::function_binding>(binding)->statement()))->bind(
+					inst)->call(
+					the_interpreter, caller, args);
+
 		}
 		else
 		{
