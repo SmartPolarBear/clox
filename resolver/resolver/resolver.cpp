@@ -73,7 +73,7 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, 
 
 void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
 {
-	for (const auto& stmt:stmts)
+	for (const auto& stmt: stmts)
 	{
 		resolve(stmt);
 	}
@@ -131,15 +131,25 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 }
 
 
-void resolver::declare_function_name(const clox::scanning::token& t, size_t dist)
+void resolver::declare_function(const shared_ptr<function_statement>& fs, size_t dist)
 {
 	if (scopes_.empty())return;
 
 	auto top = scope_top(dist);
 
-	if (!top->contains_name(t.lexeme()))
+	if (!top->contains_name(fs->get_name().lexeme()))
 	{
-		top->names()[t.lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+		top->names()[fs->get_name().lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+	}
+
+	if (!function_ids_.contains(fs))
+	{
+		function_ids_.insert_or_assign(fs, function_id_counter_++);
+	}
+
+	if (function_id_counter_ >= FUNCTION_ID_MAX)
+	{
+		logger::instance().error(fs->get_name(), std::format("Too many functions have been declared"));
 	}
 }
 
@@ -172,7 +182,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 {
 	int64_t depth = 0;
 
-	for (const auto& s:scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
+	for (const auto& s: scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
@@ -188,7 +198,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 
 std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 {
-	for (auto& scoop:scopes_)
+	for (auto& scoop: scopes_)
 	{
 		if (scoop->contains_type(tk.lexeme()))
 		{
@@ -249,7 +259,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 {
 	vector<shared_ptr<lox_type>> args{};
 
-	for (const auto& arg:call->get_args())
+	for (const auto& arg: call->get_args())
 	{
 		auto type = resolve(arg);
 		args.push_back(type);
@@ -264,7 +274,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	auto[stmt, callable]=resolve_ret.value();
 
 	bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-			static_pointer_cast<statement>(stmt));
+			static_pointer_cast<statement>(stmt), function_ids_.at(stmt));
 
 	return callable;
 }
@@ -274,5 +284,14 @@ std::shared_ptr<binding_table> resolver::bindings() const
 	return bindings_;
 }
 
+optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt)
+{
+	if (function_ids_.contains(stmt))
+	{
+		return function_ids_.at(stmt);
+	}
+
+	return std::nullopt;
+}
 
 

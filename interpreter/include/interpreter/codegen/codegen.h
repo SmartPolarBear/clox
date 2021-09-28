@@ -35,6 +35,7 @@
 #include <interpreter/codegen/exceptions.h>
 
 #include <resolver/binding.h>
+#include <resolver/resolver.h>
 
 #include <concepts>
 #include <string>
@@ -140,7 +141,7 @@ public:
 
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
 public:
-	explicit codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table);
+	explicit codegen(std::shared_ptr<vm::object_heap> heap,const resolving::resolver& rsv);
 
 
 	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
@@ -296,7 +297,7 @@ private:
 
 	std::shared_ptr<vm::object_heap> heap_{};
 
-	std::shared_ptr<resolving::binding_table> bindings_{};
+	const resolving::resolver *resolver_;
 };
 
 }

@@ -33,6 +33,7 @@
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/binding.h>
+#include <resolver/function.h>
 
 #include <resolver/scope.h>
 
@@ -71,14 +72,14 @@ class resolver final
 		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>,
 		  public parsing::statement_visitor<void>
 {
+
+
 public:
 
 
 	explicit resolver();
 
 	~resolver() = default;
-
-	[[nodiscard]] std::shared_ptr<binding_table> bindings() const;
 
 	// expression
 
@@ -165,6 +166,9 @@ public:
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
+	[[nodiscard]] std::shared_ptr<binding_table> bindings() const;
+
+	[[nodiscard]] std::optional<function_id_type> function_id(const std::shared_ptr<parsing::statement>& stmt);
 
 private:
 
@@ -242,7 +246,7 @@ private:
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
-	void declare_function_name(const scanning::token& t, size_t dist = 0);
+	void declare_function(const std::shared_ptr<parsing::function_statement>& fs, size_t dist = 0);
 
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 
@@ -312,5 +316,8 @@ private:
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
 	std::shared_ptr<binding_table> bindings_{ nullptr };
+
+	std::unordered_map<std::shared_ptr<parsing::statement>, function_id_type> function_ids_;
+	function_id_type function_id_counter_{ 1 };
 };
 }

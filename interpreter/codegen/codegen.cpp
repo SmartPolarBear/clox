@@ -49,8 +49,8 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
-codegen::codegen(std::shared_ptr<vm::object_heap> heap, std::shared_ptr<resolving::binding_table> table)
-		: heap_(std::move(heap)), bindings_(std::move(table))
+codegen::codegen(std::shared_ptr<vm::object_heap> heap, const resolving::resolver& rsv)
+		: heap_(std::move(heap)), resolver_(&rsv)
 {
 	scope_begin(local_scope::scope_type::TOP); // this scope may never be used.
 	function_push(heap_->allocate<function_object>("", 0));
@@ -103,23 +103,23 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 	}
 
 	// See opcode.h for the design here in details
-	if (is_global_variable(lookup_ret))
-	{
-		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
-	}
-	else
-	{
-		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), variable_slot(lookup_ret));
-	}
+//	if (is_global_variable(lookup_ret))
+//	{
+//		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+//	}
+//	else
+//	{
+//		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), variable_slot(lookup_ret));
+//	}
 
 }
 
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	if (bindings_->contains(be))
+	if (resolver_->bindings()->contains(be))
 	{
-		if (auto binding_ret = bindings_->get(be);binding_ret && binding_ret.value()->type() ==
+		if (auto binding_ret = resolver_->bindings()->get(be);binding_ret && binding_ret.value()->type() ==
 																 resolving::binding_type::BINDING_OPERATOR)
 		{
 			generate(static_pointer_cast<operator_binding>(binding_ret.value())->operator_implementation_call());
@@ -434,7 +434,7 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding_ret = bindings_->get(ce);binding_ret)
+	if (auto binding_ret = resolver_->bindings()->get(ce);binding_ret)
 	{
 		if (auto binding = binding_ret.value();binding->type() == resolving::binding_type::BINDING_FUNCTION)
 		{
