@@ -122,10 +122,7 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 		generate(binding->operator_implementation_call());
 		return;
 	}
-	else
-	{
-		throw internal_codegen_error{ "Invalid binding type" };
-	}
+
 
 	generate(be->get_left());
 

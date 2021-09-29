@@ -57,6 +57,13 @@ class variable_binding
 		: public binding
 {
 public:
+	enum class variable_type
+	{
+		GLOBAL,
+		LOCAL,
+		UPVALUE,
+	};
+public:
 	variable_binding() = default;
 
 	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d)
@@ -82,6 +89,8 @@ public:
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	int64_t depth_{ 0 };
+
+	variable_type type_{};
 };
 
 
