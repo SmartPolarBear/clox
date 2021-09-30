@@ -27,6 +27,8 @@
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
 
+#include <resolver/function.h>
+
 #include <parser/parser.h>
 
 #include <vector>
@@ -106,6 +108,7 @@ private:
 	std::string name_{};
 
 	return_type_variant return_type_{};
+
 	param_list_type params_{};
 };
 
@@ -183,7 +186,7 @@ private:
 
 	std::shared_ptr<lox_overloaded_metatype::lox_overloaded_node>
 	overloading_resolve(std::vector<std::shared_ptr<lox_type>>::iterator param_iter,
-			const std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
+			std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
 
 	std::shared_ptr<lox_overloaded_node> root_{};
 

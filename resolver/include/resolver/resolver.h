@@ -51,27 +51,27 @@ namespace clox::resolving
 // tuple{result type for assignment,compatible,narrowing}
 using type_compatibility = std::tuple<std::shared_ptr<lox_type>, bool, bool>;
 
-enum class [[clang::enum_extensibility(closed)]] env_function_type
-{
-	FT_NONE,
-	FT_METHOD,
-	FT_CTOR,
-	FT_FUNCTION,
-};
-
-enum class [[clang::enum_extensibility(closed)]] env_class_type
-{
-	CT_NONE,
-	CT_CLASS,
-	CT_INHERITED_CLASS
-};
-
 
 class resolver final
 		: public parsing::expression_visitor<std::shared_ptr<lox_type>>,
 		  public parsing::type_expression_visitor<std::shared_ptr<lox_type>>,
 		  public parsing::statement_visitor<void>
 {
+public:
+	enum class [[clang::enum_extensibility(closed)]] env_function_type
+	{
+		FT_NONE,
+		FT_METHOD,
+		FT_CTOR,
+		FT_FUNCTION,
+	};
+
+	enum class [[clang::enum_extensibility(closed)]] env_class_type
+	{
+		CT_NONE,
+		CT_CLASS,
+		CT_INHERITED_CLASS
+	};
 
 
 public:
@@ -255,7 +255,7 @@ private:
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
-	void declare_function(const std::shared_ptr<parsing::function_statement>& fs, size_t dist = 0);
+	function_id_type declare_function(const std::shared_ptr<parsing::function_statement>& fs, size_t dist = 0);
 
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 

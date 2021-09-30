@@ -53,7 +53,7 @@ public:
 	[[nodiscard]] virtual binding_type type() const = 0;
 };
 
-class variable_binding
+class variable_binding final
 		: public binding
 {
 public:
@@ -66,8 +66,8 @@ public:
 public:
 	variable_binding() = default;
 
-	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d)
-			: expr_(std::move(e)), depth_(d)
+	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, variable_type t)
+			: expr_(std::move(e)), depth_(d), type_(t)
 	{
 	}
 
@@ -86,6 +86,11 @@ public:
 		return depth_;
 	}
 
+	[[nodiscard]] variable_type var_type() const
+	{
+		return type_;
+	}
+
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	int64_t depth_{ 0 };
@@ -100,7 +105,7 @@ struct binding_tag<variable_binding>
 	static constexpr binding_type type = binding_type::BINDING_VARIABLE;
 };
 
-class function_binding
+class function_binding final
 		: public binding
 {
 public:
@@ -147,7 +152,7 @@ struct binding_tag<function_binding>
 };
 
 
-class operator_binding
+class operator_binding final
 		: public binding
 {
 public:

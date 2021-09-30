@@ -131,9 +131,15 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 }
 
 
-void resolver::declare_function(const shared_ptr<function_statement>& fs, size_t dist)
+function_id_type resolver::declare_function(const shared_ptr<function_statement>& fs, size_t dist)
 {
-	if (scopes_.empty())return;
+	if (scopes_.empty())return FUNCTION_ID_INVALID;
+
+	if (function_id_counter_ >= FUNCTION_ID_MAX)
+	{
+		logger::instance().error(fs->get_name(), std::format("Too many functions have been declared"));
+		return FUNCTION_ID_INVALID; //TODO: may need to throw a exception
+	}
 
 	auto top = scope_top(dist);
 
@@ -142,15 +148,13 @@ void resolver::declare_function(const shared_ptr<function_statement>& fs, size_t
 		top->names()[fs->get_name().lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 	}
 
+	function_id_type id = function_id_counter_++;
 	if (!function_ids_.contains(fs))
 	{
-		function_ids_.insert_or_assign(fs, function_id_counter_++);
+		function_ids_.insert_or_assign(fs, id);
 	}
 
-	if (function_id_counter_ >= FUNCTION_ID_MAX)
-	{
-		logger::instance().error(fs->get_name(), std::format("Too many functions have been declared"));
-	}
+	return id;
 }
 
 
@@ -186,7 +190,18 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
-			bindings_->put<variable_binding>(expr, expr, depth);
+			variable_binding::variable_type type{ variable_binding::variable_type::LOCAL };
+			if (s == global_scope_)
+			{
+				type = variable_binding::variable_type::GLOBAL;
+			}
+			else
+			{
+
+			}
+
+			bindings_->put<variable_binding>(expr, expr, depth, type);
+
 			return s->name(tk.lexeme());
 		}
 		depth++;
@@ -286,7 +301,7 @@ std::shared_ptr<binding_table> resolver::bindings() const
 
 std::shared_ptr<binding> resolver::binding(const shared_ptr<parsing::expression>& e) const
 {
-	if(!bindings_->contains(e))
+	if (!bindings_->contains(e))
 	{
 		return nullptr;
 	}

@@ -389,9 +389,7 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
-	declare_function(stmt);
-
-
+	auto id = declare_function(stmt);
 
 	if (stmt->get_func_type() == function_statement_type::FST_OPERATOR)
 	{
