@@ -119,7 +119,11 @@ void resolver::scope_begin(function_id_type func_id)
 
 void resolver::scope_end()
 {
+	auto top = scopes_.top();
+	slots_in_use_ -= top->names().size();
+
 	scopes_.pop();
+
 }
 
 void resolver::declare_name(const clox::scanning::token& t, size_t dist)
@@ -179,7 +183,16 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 {
 	if (scopes_.empty())return;
 
-	scopes_.peek(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
+	auto target = scopes_.peek(dist);
+
+	if (target->is_global())
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type);
+	}
+	else
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type, false, slots_in_use_++);
+	}
 }
 
 

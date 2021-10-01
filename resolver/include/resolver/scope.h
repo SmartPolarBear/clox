@@ -61,12 +61,12 @@ public:
 
 	scope() = delete;
 
-	explicit scope(std::shared_ptr<scope> parent)
+	explicit scope(const std::shared_ptr<scope>& parent)
 			: parent_(parent), belonging_func_(parent->belonging_func_)
 	{
 	}
 
-	explicit scope(std::shared_ptr<scope> parent, function_id_type id)
+	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id)
 			: parent_(parent), belonging_func_(id)
 	{
 	}
@@ -104,6 +104,11 @@ public:
 	[[nodiscard]]function_id_type belongs_to() const
 	{
 		return belonging_func_;
+	}
+
+	[[nodiscard]] bool is_global() const
+	{
+		return belonging_func_ == FUNCTION_ID_GLOBAL;
 	}
 
 private:

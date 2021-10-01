@@ -263,6 +263,7 @@ private:
 
 	void scope_end();
 
+
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
 	function_id_type declare_function(const std::shared_ptr<parsing::function_statement>& fs, size_t dist = 0);
@@ -310,6 +311,8 @@ private:
 	std::shared_ptr<scope> global_scope_{ nullptr };
 
 	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
+
+	size_t slots_in_use_{ 1 }; // first slot is always in use
 
 	std::stack<env_function_type> cur_func_{};
 	std::stack<env_class_type> cur_class_{};

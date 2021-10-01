@@ -74,7 +74,13 @@ public:
 
 	~named_symbol() = default;
 
-	explicit named_symbol(std::string name, std::shared_ptr<lox_type> type);
+	/// Create a named symbol, it is by default an global
+	/// \param name
+	/// \param type
+	[[nodiscard]] explicit named_symbol(std::string name, std::shared_ptr<lox_type> type);
+
+	[[nodiscard]] explicit named_symbol(std::string name, std::shared_ptr<lox_type> type,
+			bool is_global,int64_t slot_index);
 
 	[[nodiscard]] resolving::symbol_type symbol_type() const override;
 
@@ -83,6 +89,10 @@ public:
 private:
 	std::string name_{};
 	std::shared_ptr<lox_type> type_{};
+
+	bool is_global_{ true };
+
+	int64_t slot_index_{ -1 };
 };
 
 

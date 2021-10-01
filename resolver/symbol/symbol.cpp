@@ -41,7 +41,11 @@ std::shared_ptr<lox_type> named_symbol::type() const
 named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
 		: name_(std::move(name)), type_(std::move(type))
 {
+}
 
+named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type, bool is_global, int64_t slot_index)
+		: name_(std::move(name)), type_(std::move(type)), is_global_(is_global), slot_index_(slot_index)
+{
 }
 
 symbol_type function_multi_symbol::symbol_type() const
