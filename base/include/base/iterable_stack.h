@@ -61,7 +61,10 @@ public:
 	using reverse_iterator = typename Container::reverse_iterator;
 	using const_reverse_iterator = typename Container::const_reverse_iterator;
 
-	typename base_type::reference top_n(typename base_type::size_type n)
+	/// peek the member which has a offset of n from top. Assert peek(0) is the same of top()
+	/// \param n offset
+	/// \return reference to the member
+	typename base_type::reference peek(typename base_type::size_type n)
 	{
 		return *(rbegin() + n);
 	}

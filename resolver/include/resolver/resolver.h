@@ -292,7 +292,7 @@ private:
 
 	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
-		auto top = scopes_.top_n(dist);
+		auto top = scopes_.peek(dist);
 		if (!top->contains_name(key))return std::nullopt;
 		else
 		{

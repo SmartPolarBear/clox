@@ -127,7 +127,7 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 {
 	if (scopes_.empty())return;
 
-	auto top = scopes_.top_n(dist);
+	auto top = scopes_.peek(dist);
 
 	if (top->contains_name(lexeme))
 	{
@@ -148,7 +148,7 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 		return FUNCTION_ID_INVALID; //TODO: may need to throw a exception
 	}
 
-	auto top = scopes_.top_n(dist);
+	auto top = scopes_.peek(dist);
 
 	if (!top->contains_name(fs->get_name().lexeme()))
 	{
@@ -174,7 +174,7 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 {
 	if (scopes_.empty())return;
 
-	scopes_.top_n(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
+	scopes_.peek(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
 }
 
 
@@ -186,7 +186,7 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	}
 
 	if (scopes_.empty())return;
-	scopes_.top_n(dist)->types()[tk.lexeme()] = type;
+	scopes_.peek(dist)->types()[tk.lexeme()] = type;
 }
 
 std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
@@ -245,7 +245,7 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 	if (scopes_.empty())return;
 
 	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
-	auto s = scopes_.top_n(dist);
+	auto s = scopes_.peek(dist);
 
 	if (s->names().at(lexeme))
 	{
