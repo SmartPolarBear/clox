@@ -32,6 +32,7 @@
 #include <resolver/callable_type.h>
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/function.h>
 
 #include <vector>
 #include <stack>
@@ -49,6 +50,7 @@ class scope final
 {
 public:
 	friend class scope_iterator;
+
 	friend class resolver;
 
 	using name_table_type = std::unordered_map<std::string, std::shared_ptr<symbol>>;
@@ -57,7 +59,17 @@ public:
 
 	friend class resolver;
 
-	scope() = default;
+	scope() = delete;
+
+	explicit scope(std::shared_ptr<scope> parent)
+			: parent_(parent), belonging_func_(parent->belonging_func_)
+	{
+	}
+
+	explicit scope(std::shared_ptr<scope> parent, function_id_type id)
+			: parent_(parent), belonging_func_(id)
+	{
+	}
 
 	[[nodiscard]] bool contains_name(const std::string& name) const
 	{
@@ -84,10 +96,14 @@ public:
 		return names_;
 	}
 
-
 	[[nodiscard]]type_table_type& types()
 	{
 		return types_;
+	}
+
+	[[nodiscard]]function_id_type belongs_to() const
+	{
+		return belonging_func_;
 	}
 
 private:
@@ -102,6 +118,8 @@ private:
 	mutable std::weak_ptr<scope> parent_{};
 
 	mutable size_t visit_count_{ 0 };
+
+	mutable function_id_type belonging_func_{};
 };
 
 

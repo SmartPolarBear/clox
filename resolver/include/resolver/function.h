@@ -28,7 +28,11 @@
 
 namespace clox::resolving
 {
-	using function_id_type = int32_t;
-	static inline function_id_type FUNCTION_ID_INVALID = std::numeric_limits<function_id_type>::min();
-	static inline function_id_type FUNCTION_ID_MAX = std::numeric_limits<function_id_type>::max();
+using function_id_type = int32_t;
+
+static inline function_id_type FUNCTION_ID_GLOBAL = 0;
+static inline function_id_type FUNCTION_ID_BEGIN = 1;
+
+static inline function_id_type FUNCTION_ID_INVALID = std::numeric_limits<function_id_type>::min();
+static inline function_id_type FUNCTION_ID_MAX = std::numeric_limits<function_id_type>::max();
 }

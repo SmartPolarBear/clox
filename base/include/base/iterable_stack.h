@@ -35,6 +35,7 @@ template<typename T, typename TVal>
 concept IterableContainer=
 requires(T c, TVal v)
 {
+	// Requirements for random access
 	c.begin();
 	c.end();
 	c.cbegin();
@@ -44,6 +45,7 @@ requires(T c, TVal v)
 	c.crbegin();
 	c.crend();
 
+	// Requirements for stack<TVal,T>
 	{ c.back() }->std::convertible_to<TVal&>;
 	{ c.push_back(v) };
 	{ c.pop_back() };

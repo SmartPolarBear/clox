@@ -180,6 +180,10 @@ public:
 		return bindings_->get_typed<T>(e);
 	}
 
+	[[nodiscard]] std::shared_ptr<scope> global_scope()
+	{
+		return global_scope_;
+	}
 
 	[[nodiscard]] std::optional<function_id_type> function_id(const std::shared_ptr<parsing::statement>& stmt) const;
 
@@ -255,6 +259,8 @@ private:
 
 	void scope_begin();
 
+	void scope_begin(function_id_type func_id);
+
 	void scope_end();
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
@@ -309,11 +315,13 @@ private:
 	std::stack<env_class_type> cur_class_{};
 
 	std::stack<std::shared_ptr<lox_callable_type>> cur_func_type_{};
+	std::stack<function_id_type> cur_func_id_{};
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
 	std::shared_ptr<binding_table> bindings_{ nullptr };
 
 	std::unordered_map<std::shared_ptr<parsing::statement>, function_id_type> function_ids_;
-	function_id_type function_id_counter_{ 1 };
+
+	function_id_type function_id_counter_{ FUNCTION_ID_BEGIN };
 };
 }
