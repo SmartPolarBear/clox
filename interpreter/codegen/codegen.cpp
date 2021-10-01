@@ -50,9 +50,8 @@ using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, const resolving::resolver& rsv)
-		: heap_(std::move(heap)), resolver_(&rsv)
+		: heap_(std::move(heap)), scopes_(rsv.global_scope()), scope_iterator_(scopes_.begin()), resolver_(&rsv)
 {
-	scope_begin(local_scope::scope_type::TOP); // this scope may never be used.
 	function_push(heap_->allocate<function_object>("", 0));
 }
 
@@ -75,6 +74,16 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 	}
 }
 
+void codegen::scope_begin()
+{
+	scope_iterator_++;
+}
+
+void codegen::scope_end()
+{
+	scope_iterator_--;
+}
+
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		const std::shared_ptr<assignment_expression>& ae)
 {
@@ -95,22 +104,22 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 	generate(ae->get_value());
 
 	auto name = ae->get_name();
-	auto lookup_ret = variable_lookup(name.lexeme());
+	auto symbol = variable_lookup(name.lexeme());
 
-	if (is_variable_lookup_failure(lookup_ret))
+	if (!symbol)
 	{
 		throw internal_codegen_error{ "Name lookup failure" };
 	}
 
 	// See opcode.h for the design here in details
-//	if (is_global_variable(lookup_ret))
-//	{
-//		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
-//	}
-//	else
-//	{
-//		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), variable_slot(lookup_ret));
-//	}
+	if (symbol->is_global())
+	{
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+	}
+	else
+	{
+		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
+	}
 
 }
 
@@ -316,27 +325,26 @@ void clox::interpreting::compiling::codegen::visit_grouping_expression(
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
 {
 	auto name = ve->get_name();
-	auto lookup_ret = variable_lookup(name.lexeme());
+	auto symbol = variable_lookup(name.lexeme());
 
-	if (!is_variable_lookup_failure(lookup_ret))
+	if (symbol)
 	{
-		auto[slot, type]=lookup_ret;
 		// See opcode.h for the design here in details
-		switch (type)
+		switch (symbol->get_named_symbol_type())
 		{
-			using enum variable_type;
+			using enum named_symbol::named_symbol_type;
 
 		case GLOBAL:
 			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 			break;
 
-		case UP_VALUE:
+		case UPVALUE:
 
 			break;
 
 		default:
 		case LOCAL:
-			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), variable_slot(lookup_ret));
+			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
 			break;
 		}
 	}
@@ -491,7 +499,8 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 		emit_code(V(op_code::CONSTANT_NIL));
 	}
 
-	if (current_scope_depth_ == 0)
+
+	if (auto symbol = (*scope_iterator_)->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()));
 	}
@@ -569,7 +578,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
-	if (current_scope_depth_ == 0)
+	if (auto symbol = (*scope_iterator_)->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
 	}
@@ -650,41 +659,16 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 }
 
 
-void codegen::scope_begin()
-{
-	scope_begin(local_scope::scope_type::FUNCTION);
-}
-
-void codegen::scope_begin(local_scope::scope_type type)
-{
-	current_scope_depth_++;
-	local_scopes_.push_back(make_unique<local_scope>(type));
-}
-
-void codegen::scope_end()
-{
-	auto count = local_scopes_.back()->count();
-
-	emit_codes(
-			V(op_code::POP_N),
-			static_cast<chunk::code_type>(count)
-	);
-
-	local_totals_ -= count;
-	local_scopes_.pop_back();
-	current_scope_depth_--;
-}
-
 void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
 {
-	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
+//	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
 	emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
 }
 
 void codegen::declare_local_variable(const string& name, size_t depth)
 {
-	(*(local_scopes_.rbegin() + depth))->declare(name, local_totals_);
-	local_totals_++;
+//	(*(local_scopes_.rbegin() + depth))->declare(name, local_totals_);
+//	local_totals_++;
 }
 
 uint16_t codegen::identifier_constant(const token& identifier)
@@ -692,30 +676,10 @@ uint16_t codegen::identifier_constant(const token& identifier)
 	return make_constant(identifier.lexeme());
 }
 
-codegen::variable_lookup_result codegen::variable_lookup(const string& name)
+shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
-	auto type = variable_type::LOCAL;
-	for (const auto& scope: local_scopes_
-							| ranges::views::reverse)
-	{
-		if (auto find_ret = scope->find(name);find_ret)
-		{
-			auto slot = find_ret.value();
-			if (slot == local_scope::GLOBAL_SLOT)
-			{
-				return make_tuple(nullopt, variable_type::GLOBAL);
-			}
-			else
-			{
-				return make_tuple(static_cast<chunk::code_type>(slot), type);
-			}
-		}
-
-		type = variable_type::UP_VALUE;
-	}
-	return make_tuple(nullopt, variable_type::FAILURE);
+	return (*scope_iterator_)->find_name<named_symbol>(name);
 }
-
 
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 {

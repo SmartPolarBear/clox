@@ -76,11 +76,6 @@ public:
 		return names_.contains(name);
 	}
 
-	[[nodiscard]] name_table_type::value_type::second_type name(const std::string& name) const
-	{
-		return names_.at(name);
-	}
-
 	[[nodiscard]] bool contains_type(const std::string& name) const
 	{
 		return types_.contains(name);
@@ -96,6 +91,31 @@ public:
 		return names_;
 	}
 
+	[[nodiscard]] name_table_type::value_type::second_type name(const std::string& name) const
+	{
+		return names_.at(name);
+	}
+
+	template<std::derived_from<symbol> T>
+	[[nodiscard]] std::shared_ptr<T> name_typed(const std::string& n) const
+	{
+		return std::static_pointer_cast<T>(name(n));
+	}
+
+	template<std::derived_from<symbol> T>
+	std::shared_ptr<T> find_name(const std::string n)
+	{
+		for (auto p = this->parent_.lock(); p; p = p->parent_.lock())
+		{
+			if (p->contains_name(n))
+			{
+				return p->name_typed<T>(n);
+			}
+		}
+		return nullptr;
+	}
+
+
 	[[nodiscard]]type_table_type& types()
 	{
 		return types_;
@@ -110,6 +130,7 @@ public:
 	{
 		return belonging_func_ == FUNCTION_ID_GLOBAL;
 	}
+
 
 private:
 	mutable name_table_type names_{};

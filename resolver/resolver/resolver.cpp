@@ -191,7 +191,8 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	}
 	else
 	{
-		target->names().at(tk) = make_shared<named_symbol>(tk, type, false, slots_in_use_++);
+		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
+				slots_in_use_++);
 	}
 }
 

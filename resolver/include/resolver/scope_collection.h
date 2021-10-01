@@ -72,6 +72,10 @@ class scope_collection final
 public:
 	using iterator = scope_iterator;
 
+	explicit scope_collection(std::shared_ptr<scope> root) : root_(std::move(root))
+	{
+	}
+
 	iterator begin();
 
 	iterator end();

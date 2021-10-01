@@ -47,84 +47,10 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
-	enum class variable_type
-	{
-		LOCAL, UP_VALUE, GLOBAL,
-
-		FAILURE
-	};
-
-	class upvalue
-	{
-		friend class codegen;
-
-	public:
-
-	private:
-	};
-
-	class local_scope
-	{
-	public:
-		enum class scope_type
-		{
-			TOP, FUNCTION
-		};
-
-
-		using slot_type = int64_t;
-		static inline constexpr slot_type GLOBAL_SLOT = -1;
-	public:
-		explicit local_scope(scope_type t)
-				: type_(t)
-		{
-			locals_.insert_or_assign("", 0); // VM's slot 0 is for internal usage.
-		}
-
-		~local_scope() = default;
-
-
-		[[nodiscard]] scope_type type() const
-		{
-			return type_;
-		}
-
-		[[nodiscard]] size_t count() const
-		{
-			return count_;
-		}
-
-		void declare(const std::string& name, slot_type slot)
-		{
-			locals_.insert_or_assign(name, slot);
-			count_++;
-		}
-
-		[[nodiscard]] std::optional<slot_type> find(const std::string& name)
-		{
-			if (!locals_.contains(name))
-			{
-				return std::nullopt;
-			}
-
-			return locals_.at(name);
-		}
-
-	private:
-
-		std::unordered_map<std::string, slot_type> locals_{};
-
-		std::vector<upvalue> upvalues_{};
-
-		size_t count_{ 0 };
-
-		scope_type type_{};
-
-	};
 
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
 public:
-	explicit codegen(std::shared_ptr<vm::object_heap> heap,const resolving::resolver& rsv);
+	explicit codegen(std::shared_ptr<vm::object_heap> heap, const resolving::resolver& rsv);
 
 
 	void visit_assignment_expression(const std::shared_ptr<parsing::assignment_expression>& ptr) override;
@@ -192,12 +118,6 @@ private:
 
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
-	void scope_begin();
-
-	void scope_begin(local_scope::scope_type type);
-
-	void scope_end();
-
 	void define_global_variable([[maybe_unused]]const std::string& name, vm::chunk::code_type global);
 
 	void declare_local_variable(const std::string& name, size_t depth = 0);
@@ -208,27 +128,11 @@ private:
 
 	vm::function_object_raw_pointer function_top();
 
-	///
-	/// \param name
-	/// \return {optional<slot>, type}
-	using variable_lookup_result = std::tuple<std::optional<vm::chunk::code_type>, variable_type>;
+	void scope_begin();
 
-	variable_lookup_result variable_lookup(const std::string& name);
+	void scope_end();
 
-	static inline constexpr bool
-	is_variable_lookup_failure(const variable_lookup_result& rets)
-	{
-		const auto&[slot, type]=rets;
-		return !slot && type == variable_type::FAILURE;
-	}
-
-	static inline constexpr vm::chunk::code_type
-	variable_slot(const variable_lookup_result& rets)
-	{
-		const auto&[slot, global]=rets;
-		return slot.value();
-	}
-
+	std::shared_ptr<resolving::named_symbol> variable_lookup(const std::string& name);
 
 	void emit_code(vm::full_opcode_type byte);
 
@@ -254,18 +158,15 @@ private:
 
 	uint16_t make_constant(const vm::value& val);
 
-	// To make it right for scope_begin(). because the first scope should have depth 0
-	int64_t current_scope_depth_{ -1 };
-
-	int64_t local_totals_{ 1 }; // first slot is in use
-
-	std::vector<std::unique_ptr<local_scope>> local_scopes_{};
-
 	std::vector<vm::function_object_raw_pointer> functions_{};
 
 	std::shared_ptr<vm::object_heap> heap_{};
 
-	const resolving::resolver *resolver_;
+	resolving::scope_collection scopes_;
+
+	resolving::scope_collection::iterator scope_iterator_;
+
+	const resolving::resolver* resolver_;
 };
 
 }

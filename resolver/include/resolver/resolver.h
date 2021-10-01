@@ -180,7 +180,7 @@ public:
 		return bindings_->get_typed<T>(e);
 	}
 
-	[[nodiscard]] std::shared_ptr<scope> global_scope()
+	[[nodiscard]] std::shared_ptr<scope> global_scope() const
 	{
 		return global_scope_;
 	}

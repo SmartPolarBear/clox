@@ -43,8 +43,8 @@ named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
 {
 }
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type, bool is_global, int64_t slot_index)
-		: name_(std::move(name)), type_(std::move(type)), is_global_(is_global), slot_index_(slot_index)
+named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type,named_symbol::named_symbol_type t, int64_t slot_index)
+		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
 {
 }
 
