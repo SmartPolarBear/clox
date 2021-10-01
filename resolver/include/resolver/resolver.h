@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <base/iterable_stack.h>
+
 #include <parser/gen/parser_classes.inc>
 
 #include <interpreter/classic/interpreter.h>
@@ -288,15 +290,9 @@ private:
 
 	void define_type(const scanning::token& tk, const std::shared_ptr<lox_type>& type, uint64_t dist = 0);
 
-	std::shared_ptr<scope> scope_top(size_t dist = 0)
-	{
-		return *(scopes_.rbegin() + dist);
-	}
-
-
 	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
-		auto top = scope_top(dist);
+		auto top = scopes_.top_n(dist);
 		if (!top->contains_name(key))return std::nullopt;
 		else
 		{
@@ -305,20 +301,9 @@ private:
 		}
 	}
 
-	void scope_push(const std::shared_ptr<scope>& s)
-	{
-		scopes_.push_back(s);
-	}
-
-	void scope_pop()
-	{
-		scopes_.pop_back();
-	}
-
-
 	std::shared_ptr<scope> global_scope_{ nullptr };
 
-	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
+	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
 
 	std::stack<env_function_type> cur_func_{};
 	std::stack<env_class_type> cur_class_{};

@@ -45,9 +45,11 @@ namespace clox::resolving
 {
 
 class scope final
+		: public std::enable_shared_from_this<scope>
 {
 public:
 	friend class scope_iterator;
+	friend class resolver;
 
 	using name_table_type = std::unordered_map<std::string, std::shared_ptr<symbol>>;
 	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;

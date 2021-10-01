@@ -61,6 +61,8 @@ resolver::resolver() :
 
 	global_scope_->types()["string"] = lox_object_type::string();
 
+	scopes_.push(global_scope_);
+
 	cur_func_.push(env_function_type::FT_NONE);
 	cur_class_.push(env_class_type::CT_NONE);
 }
@@ -101,13 +103,18 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 
 void resolver::scope_begin()
 {
-	scope_push(make_shared<scope>());
+	auto next = make_shared<scope>();
+
+	scopes_.top()->children_.push_back(next);
+	next->parent_ = scopes_.top();
+
+	scopes_.push(next);
 }
 
 
 void resolver::scope_end()
 {
-	scope_pop();
+	scopes_.pop();
 }
 
 void resolver::declare_name(const clox::scanning::token& t, size_t dist)
@@ -120,7 +127,7 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 {
 	if (scopes_.empty())return;
 
-	auto top = scope_top(dist);
+	auto top = scopes_.top_n(dist);
 
 	if (top->contains_name(lexeme))
 	{
@@ -141,7 +148,7 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 		return FUNCTION_ID_INVALID; //TODO: may need to throw a exception
 	}
 
-	auto top = scope_top(dist);
+	auto top = scopes_.top_n(dist);
 
 	if (!top->contains_name(fs->get_name().lexeme()))
 	{
@@ -167,7 +174,7 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 {
 	if (scopes_.empty())return;
 
-	scope_top(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
+	scopes_.top_n(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
 }
 
 
@@ -179,7 +186,7 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	}
 
 	if (scopes_.empty())return;
-	scope_top(dist)->types()[tk.lexeme()] = type;
+	scopes_.top_n(dist)->types()[tk.lexeme()] = type;
 }
 
 std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
@@ -238,7 +245,7 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 	if (scopes_.empty())return;
 
 	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
-	auto s = scope_top(dist);
+	auto s = scopes_.top_n(dist);
 
 	if (s->names().at(lexeme))
 	{

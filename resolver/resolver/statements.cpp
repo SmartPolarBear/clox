@@ -478,7 +478,7 @@ void resolver::visit_foreach_statement(const std::shared_ptr<foreach_statement>&
 
 	auto element_type = dynamic_pointer_cast<lox_array_type>(iterable_type)->element_type();
 
-	auto var_decl = scope_top()->name(
+	auto var_decl = scopes_.top()->name(
 			dynamic_pointer_cast<variable_statement>(fes->get_var_decl())->get_name().lexeme());
 
 

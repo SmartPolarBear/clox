@@ -33,8 +33,16 @@ std::shared_ptr<scope> clox::resolving::scope_iterator::operator*()
 
 scope_iterator& scope_iterator::operator++()
 {
-	data_ = *(data_->last_++);
-	data_->visit_count_++;
+	if (data_->last_ == data_->children_.end())
+	{
+		data_ = nullptr;
+	}
+	else
+	{
+		data_ = *(data_->last_++);
+		data_->visit_count_++;
+	}
+
 	return *this;
 }
 
