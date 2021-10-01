@@ -47,8 +47,11 @@ namespace clox::resolving
 class scope final
 {
 public:
+	friend class scope_iterator;
+
 	using name_table_type = std::unordered_map<std::string, std::shared_ptr<symbol>>;
 	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
+	using scope_list_type = std::vector<std::shared_ptr<scope>>;
 
 	friend class resolver;
 
@@ -90,8 +93,14 @@ private:
 
 	mutable type_table_type types_{};
 
-	mutable std::vector<std::shared_ptr<scope>> children_{};
+	mutable scope_list_type children_{};
+
+	mutable scope_list_type::iterator last_{};
 
 	mutable std::weak_ptr<scope> parent_{};
+
+	mutable size_t visit_count_{ 0 };
 };
+
+
 }

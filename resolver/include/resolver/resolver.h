@@ -36,6 +36,8 @@
 #include <resolver/function.h>
 
 #include <resolver/scope.h>
+#include <resolver/scope_collection.h>
+
 
 #include <vector>
 #include <stack>
