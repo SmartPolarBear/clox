@@ -19,73 +19,51 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 10/1/2021.
+// Created by cleve on 8/30/2021.
 //
 
-#include <resolver/scope_collection.h>
+#include "helper/enum.h"
+
+#include "resolver/lox_type.h"
+#include "resolver/instance_type.h"
+
+#include <tuple>
+#include <utility>
+#include <format>
+
+using namespace clox;
+
+using namespace clox::helper;
 
 using namespace clox::resolving;
 
-std::shared_ptr<scope> clox::resolving::scope_iterator::operator*()
+uint64_t lox_any_type::flags() const
 {
-	return data_;
+	return TYPE_PRIMITIVE;
 }
 
-scope_iterator& scope_iterator::operator++()
+type_id lox_any_type::id() const
 {
-	if (data_->last() == data_->children_.end())
-	{
-		data_ = nullptr;
-	}
-	else
-	{
-		data_ = *(data_->last()++);
-		data_->visit_count_++;
-	}
-
-	return *this;
+	return PRIMITIVE_TYPE_ID_ANY;
 }
 
-scope_iterator scope_iterator::operator++(int)
+bool lox_any_type::operator<(const lox_type& target) const
 {
-	auto old = *this;
-	operator++();
-	return old;
+	return true;
 }
 
-scope_iterator& scope_iterator::operator--()
+std::string lox_any_type::printable_string()
 {
-	if (auto pa = data_->parent_.lock();pa)
-	{
-		data_ = pa;
-		data_->visit_count_++;
-	}
-	else
-	{
-		this->data_ = nullptr;
-	}
-
-	return *this;
+	return "<any type>";
 }
 
-scope_iterator scope_iterator::operator--(int)
+bool lox_any_type::operator==(const lox_type& t) const
 {
-	auto old = *this;
-	operator--();
-	return old;
+	return true;
 }
 
-bool scope_iterator::operator==(const scope_iterator& another) const
+bool lox_any_type::operator!=(const lox_type& lox_type) const
 {
-	return data_ == another.data_;
+	return false;
 }
 
-scope_collection::iterator scope_collection::begin()
-{
-	return scope_iterator{ root_ };
-}
-
-scope_collection::iterator scope_collection::end()
-{
-	return scope_iterator{ nullptr };
-}
