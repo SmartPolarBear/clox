@@ -105,7 +105,7 @@ public:
 	template<std::derived_from<symbol> T>
 	std::shared_ptr<T> find_name(const std::string n)
 	{
-		for (auto p = this->parent_.lock(); p; p = p->parent_.lock())
+		for (auto p = this->shared_from_this(); p; p = p->parent_.lock())
 		{
 			if (p->contains_name(n))
 			{
@@ -133,13 +133,24 @@ public:
 
 
 private:
+	[[nodiscard]]  scope_list_type::iterator& last() const
+	{
+		if (!last_.has_value())
+		{
+			last_ = children_.begin();
+		}
+
+		return last_.value();
+	}
+
+
 	mutable name_table_type names_{};
 
 	mutable type_table_type types_{};
 
 	mutable scope_list_type children_{};
 
-	mutable scope_list_type::iterator last_{};
+	mutable std::optional<scope_list_type::iterator> last_{};
 
 	mutable std::weak_ptr<scope> parent_{};
 
