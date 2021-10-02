@@ -32,7 +32,9 @@
 #include <resolver/callable_type.h>
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
+
 #include <resolver/function.h>
+#include <resolver/upvalue.h>
 
 #include <vector>
 #include <stack>
@@ -41,6 +43,7 @@
 #include <memory>
 #include <tuple>
 #include <thread>
+#include <variant>
 
 namespace clox::resolving
 {
@@ -51,7 +54,12 @@ struct global_scope_tag_type
 
 static constexpr global_scope_tag_type global_scope_tag{};
 
-class scope final
+enum class scope_types
+{
+	SCOPE = 1, FUNCTION_SCOPE
+};
+
+class scope
 		: public std::enable_shared_from_this<scope>
 {
 public:
@@ -87,6 +95,10 @@ public:
 	{
 	}
 
+	[[nodiscard]] virtual scope_types scope_type() noexcept
+	{
+		return scope_types::SCOPE;
+	}
 
 	[[nodiscard]] bool contains_name(const std::string& name) const
 	{
@@ -150,7 +162,7 @@ public:
 
 
 private:
-	[[nodiscard]]  scope_list_type::iterator& last() const
+	[[nodiscard]] scope_list_type::iterator& last() const
 	{
 		if (!last_.has_value())
 		{
@@ -160,10 +172,15 @@ private:
 		return last_.value();
 	}
 
+	mutable function_id_type container_func_{};
 
 	mutable name_table_type names_{};
 
 	mutable type_table_type types_{};
+
+	mutable size_t visit_count_{ 0 };
+
+	mutable bool is_global_{ false };
 
 	mutable scope_list_type children_{};
 
@@ -171,12 +188,53 @@ private:
 
 	mutable std::weak_ptr<scope> parent_{};
 
-	mutable size_t visit_count_{ 0 };
-
-	mutable bool is_global_{ false };
-
-	mutable function_id_type container_func_{};
 };
 
+class function_scope
+		: public scope
+{
+public:
+	friend class scope_iterator;
+
+	friend class resolver;
+
+public:
+	explicit function_scope(const std::shared_ptr<scope>& parent, const std::shared_ptr<function_scope>& fparent,
+			function_id_type id)
+			: scope(parent, id), parent_function_(fparent)
+	{
+	}
+
+	explicit function_scope(const std::shared_ptr<scope>& parent, const std::shared_ptr<function_scope>& fparent,
+			function_id_type id, global_scope_tag_type)
+			: scope(parent, id, global_scope_tag), parent_function_(fparent)
+	{
+	}
+
+	[[nodiscard]] scope_types scope_type() noexcept override
+	{
+		return scope_types::FUNCTION_SCOPE;
+	}
+
+private:
+
+	[[nodiscard]] scope_list_type::iterator& last_function() const
+	{
+		if (!last_function_.has_value())
+		{
+			last_function_ = child_functions_.begin();
+		}
+
+		return last_function_.value();
+	}
+
+	std::vector<upvalue> upvalues_{};
+
+	mutable scope_list_type child_functions_{};
+
+	mutable std::weak_ptr<scope> parent_function_{};
+
+	mutable std::optional<scope_list_type::iterator> last_function_{};
+};
 
 }

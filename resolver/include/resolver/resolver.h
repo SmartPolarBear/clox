@@ -308,9 +308,12 @@ private:
 		}
 	}
 
-	std::shared_ptr<scope> global_scope_{ nullptr };
+	std::shared_ptr<function_scope> global_scope_{ nullptr };
 
 	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
+	base::iterable_stack<std::shared_ptr<function_scope>> function_scopes_{};
+
+	std::unordered_map<function_id_type ,std::shared_ptr<scope>> function_id_to_scopes_{};
 
 	size_t slots_in_use_{ 1 }; // first slot is always in use
 

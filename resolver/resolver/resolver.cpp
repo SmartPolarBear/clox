@@ -47,7 +47,7 @@ using namespace std;
 using namespace gsl;
 
 resolver::resolver() :
-		global_scope_{ std::make_shared<scope>(nullptr, FUNCTION_ID_GLOBAL, global_scope_tag) },
+		global_scope_{ std::make_shared<function_scope>(nullptr, nullptr, FUNCTION_ID_GLOBAL, global_scope_tag) },
 		bindings_(make_shared<binding_table>())
 {
 	global_scope_->types()["void"] = make_shared<lox_void_type>();
@@ -62,6 +62,10 @@ resolver::resolver() :
 	global_scope_->types()["string"] = lox_object_type::string();
 
 	scopes_.push(global_scope_);
+
+	function_scopes_.push(global_scope_);
+	function_id_to_scopes_[FUNCTION_ID_GLOBAL] = global_scope_;
+
 	cur_func_id_.push(FUNCTION_ID_GLOBAL);
 
 	cur_func_.push(env_function_type::FT_NONE);
@@ -109,11 +113,17 @@ void resolver::scope_begin()
 
 void resolver::scope_begin(function_id_type func_id)
 {
-	auto next = make_shared<scope>(scopes_.top(), func_id);
+	auto next = make_shared<function_scope>(scopes_.top(), function_scopes_.top(), func_id);
 
 	scopes_.top()->children_.push_back(next);
 
 	scopes_.push(next);
+
+	// it is a new function scoop
+
+	function_scopes_.top()->child_functions_.push_back(next);
+
+	function_scopes_.push(next);
 }
 
 
