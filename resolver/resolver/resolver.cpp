@@ -217,7 +217,11 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 		if (s->contains_name(tk.lexeme()))
 		{
 			auto ret = s->name_typed<named_symbol>(tk.lexeme());
-//			ret->set_named_symbol_type(named_symbol::named_symbol_type::UPVALUE);
+
+			if (s->container_function() != scopes_.top()->container_function())
+			{
+				ret->set_named_symbol_type(named_symbol::named_symbol_type::UPVALUE);
+			}
 
 			bindings_->put<variable_binding>(expr, expr, depth, ret);
 
