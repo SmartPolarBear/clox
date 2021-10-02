@@ -70,19 +70,60 @@ class named_symbol
 		: public symbol
 {
 public:
+	enum named_symbol_type
+	{
+		GLOBAL, LOCAL, UPVALUE
+	};
+public:
 	named_symbol() = default;
 
 	~named_symbol() = default;
 
-	explicit named_symbol(std::string name, std::shared_ptr<lox_type> type);
+	/// Create a named symbol, it is by default an global
+	/// \param name
+	/// \param type
+	[[nodiscard]] explicit named_symbol(std::string name, std::shared_ptr<lox_type> type);
+
+	[[nodiscard]] explicit named_symbol(std::string name, std::shared_ptr<lox_type> type,
+			named_symbol_type t, int64_t slot_index);
 
 	[[nodiscard]] resolving::symbol_type symbol_type() const override;
 
 	[[nodiscard]] std::shared_ptr<lox_type> type() const override;
 
+	[[nodiscard]] bool is_global() const
+	{
+		return symbol_type_ == named_symbol_type::GLOBAL;
+	}
+
+	[[nodiscard]] bool is_local() const
+	{
+		return symbol_type_ == named_symbol_type::LOCAL;
+	}
+
+	[[nodiscard]] bool is_upvalue() const
+	{
+		return symbol_type_ == named_symbol_type::UPVALUE;
+	}
+
+	[[nodiscard]] named_symbol_type get_named_symbol_type() const
+	{
+		return symbol_type_;
+	}
+
+
+	[[nodiscard]] int64_t slot_index() const
+	{
+		return slot_index_;
+	}
+
 private:
 	std::string name_{};
 	std::shared_ptr<lox_type> type_{};
+
+	named_symbol_type symbol_type_{ named_symbol_type::GLOBAL };
+
+	int64_t slot_index_{ -1 };
 };
 
 

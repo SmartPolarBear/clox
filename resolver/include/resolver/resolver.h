@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <base/iterable_stack.h>
+
 #include <parser/gen/parser_classes.inc>
 
 #include <interpreter/classic/interpreter.h>
@@ -33,8 +35,11 @@
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/binding.h>
+#include <resolver/function.h>
 
 #include <resolver/scope.h>
+#include <resolver/scope_collection.h>
+
 
 #include <vector>
 #include <stack>
@@ -50,21 +55,6 @@ namespace clox::resolving
 // tuple{result type for assignment,compatible,narrowing}
 using type_compatibility = std::tuple<std::shared_ptr<lox_type>, bool, bool>;
 
-enum class [[clang::enum_extensibility(closed)]] env_function_type
-{
-	FT_NONE,
-	FT_METHOD,
-	FT_CTOR,
-	FT_FUNCTION,
-};
-
-enum class [[clang::enum_extensibility(closed)]] env_class_type
-{
-	CT_NONE,
-	CT_CLASS,
-	CT_INHERITED_CLASS
-};
-
 
 class resolver final
 		: public parsing::expression_visitor<std::shared_ptr<lox_type>>,
@@ -72,13 +62,28 @@ class resolver final
 		  public parsing::statement_visitor<void>
 {
 public:
+	enum class [[clang::enum_extensibility(closed)]] env_function_type
+	{
+		FT_NONE,
+		FT_METHOD,
+		FT_CTOR,
+		FT_FUNCTION,
+	};
+
+	enum class [[clang::enum_extensibility(closed)]] env_class_type
+	{
+		CT_NONE,
+		CT_CLASS,
+		CT_INHERITED_CLASS
+	};
+
+
+public:
 
 
 	explicit resolver();
 
 	~resolver() = default;
-
-	[[nodiscard]] std::shared_ptr<binding_table> bindings() const;
 
 	// expression
 
@@ -165,6 +170,22 @@ public:
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
+	[[nodiscard, deprecated("This gives out too many information")]] std::shared_ptr<binding_table> bindings() const;
+
+	[[nodiscard]]std::shared_ptr<binding> binding(const std::shared_ptr<parsing::expression>& e) const;
+
+	template<typename T>
+	[[nodiscard]] std::shared_ptr<T> binding_typed(const std::shared_ptr<parsing::expression>& e) const
+	{
+		return bindings_->get_typed<T>(e);
+	}
+
+	[[nodiscard]] std::shared_ptr<scope> global_scope() const
+	{
+		return global_scope_;
+	}
+
+	[[nodiscard]] std::optional<function_id_type> function_id(const std::shared_ptr<parsing::statement>& stmt) const;
 
 private:
 
@@ -238,11 +259,14 @@ private:
 
 	void scope_begin();
 
+	void scope_begin(function_id_type func_id);
+
 	void scope_end();
+
 
 	void declare_name(const scanning::token& t, size_t dist = 0);
 
-	void declare_function_name(const scanning::token& t, size_t dist = 0);
+	function_id_type declare_function(const std::shared_ptr<parsing::function_statement>& fs, size_t dist = 0);
 
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 
@@ -273,15 +297,9 @@ private:
 
 	void define_type(const scanning::token& tk, const std::shared_ptr<lox_type>& type, uint64_t dist = 0);
 
-	std::shared_ptr<scope> scope_top(size_t dist = 0)
-	{
-		return *(scopes_.rbegin() + dist);
-	}
-
-
 	std::optional<bool> scope_top_find(const std::string& key, size_t dist = 0)
 	{
-		auto top = scope_top(dist);
+		auto top = scopes_.peek(dist);
 		if (!top->contains_name(key))return std::nullopt;
 		else
 		{
@@ -290,27 +308,23 @@ private:
 		}
 	}
 
-	void scope_push(const std::shared_ptr<scope>& s)
-	{
-		scopes_.push_back(s);
-	}
-
-	void scope_pop()
-	{
-		scopes_.pop_back();
-	}
-
-
 	std::shared_ptr<scope> global_scope_{ nullptr };
 
-	std::vector<std::shared_ptr<scope>> scopes_{ global_scope_ };
+	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
+
+	size_t slots_in_use_{ 1 }; // first slot is always in use
 
 	std::stack<env_function_type> cur_func_{};
 	std::stack<env_class_type> cur_class_{};
 
 	std::stack<std::shared_ptr<lox_callable_type>> cur_func_type_{};
+	std::stack<function_id_type> cur_func_id_{};
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
 	std::shared_ptr<binding_table> bindings_{ nullptr };
+
+	std::unordered_map<std::shared_ptr<parsing::statement>, function_id_type> function_ids_;
+
+	function_id_type function_id_counter_{ FUNCTION_ID_BEGIN };
 };
 }

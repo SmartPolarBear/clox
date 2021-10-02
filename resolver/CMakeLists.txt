@@ -15,6 +15,7 @@ target_sources(clox
         PRIVATE array_type.cpp
         PRIVATE any_type.cpp
         PRIVATE void_type.cpp
+        PRIVATE scope_collection.cpp
         PRIVATE initializer_list_type.cpp
         PRIVATE binding.cpp)
 
@@ -31,6 +32,7 @@ target_sources(clox_test
         PRIVATE array_type.cpp
         PRIVATE any_type.cpp
         PRIVATE void_type.cpp
+        PRIVATE scope_collection.cpp
         PRIVATE initializer_list_type.cpp
         PRIVATE binding.cpp)
 

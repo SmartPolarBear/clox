@@ -84,7 +84,7 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 				vector<shared_ptr<expression>>{ expr->get_right() });
 
 		bindings_->put<operator_binding>(expr, expr, call_expr);
-		bindings_->put<function_binding>(call_expr, call_expr, stmt);
+		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt));
 
 	}
 
@@ -118,19 +118,19 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 		{
 			return static_pointer_cast<lox_type>(lox_object_type::integer());
 		}
-		else if constexpr (std::is_same_v<T,long double>)
+		else if constexpr (std::is_same_v<T, long double>)
 		{
 			return static_pointer_cast<lox_type>(lox_object_type::floating());
 		}
-		else if constexpr (std::is_same_v<T,bool>)
+		else if constexpr (std::is_same_v<T, bool>)
 		{
 			return static_pointer_cast<lox_type>(lox_object_type::boolean());
 		}
-		else if constexpr (std::is_same_v<T,scanning::nil_value_tag_type>)
+		else if constexpr (std::is_same_v<T, scanning::nil_value_tag_type>)
 		{
 			return static_pointer_cast<lox_type>(lox_object_type::nil());
 		}
-		else if constexpr (std::is_same_v<T,std::string>)
+		else if constexpr (std::is_same_v<T, std::string>)
 		{
 			return static_pointer_cast<lox_type>(lox_object_type::string());
 		}
@@ -387,5 +387,9 @@ shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<str
 	// TODO
 	return std::shared_ptr<lox_type>();
 }
+
+
+
+
 
 

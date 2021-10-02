@@ -32,6 +32,7 @@
 #include <resolver/callable_type.h>
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
+#include <resolver/function.h>
 
 #include <vector>
 #include <stack>
@@ -45,23 +46,34 @@ namespace clox::resolving
 {
 
 class scope final
+		: public std::enable_shared_from_this<scope>
 {
 public:
-	using name_table_type = std::unordered_map<std::string, std::shared_ptr<symbol>>;
-	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
+	friend class scope_iterator;
 
 	friend class resolver;
 
-	scope() = default;
+	using name_table_type = std::unordered_map<std::string, std::shared_ptr<symbol>>;
+	using type_table_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
+	using scope_list_type = std::vector<std::shared_ptr<scope>>;
+
+	friend class resolver;
+
+	scope() = delete;
+
+	explicit scope(const std::shared_ptr<scope>& parent)
+			: parent_(parent), belonging_func_(parent->belonging_func_)
+	{
+	}
+
+	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id)
+			: parent_(parent), belonging_func_(id)
+	{
+	}
 
 	[[nodiscard]] bool contains_name(const std::string& name) const
 	{
 		return names_.contains(name);
-	}
-
-	[[nodiscard]] name_table_type::value_type::second_type name(const std::string& name) const
-	{
-		return names_.at(name);
 	}
 
 	[[nodiscard]] bool contains_type(const std::string& name) const
@@ -79,19 +91,73 @@ public:
 		return names_;
 	}
 
+	[[nodiscard]] name_table_type::value_type::second_type name(const std::string& name) const
+	{
+		return names_.at(name);
+	}
+
+	template<std::derived_from<symbol> T>
+	[[nodiscard]] std::shared_ptr<T> name_typed(const std::string& n) const
+	{
+		return std::static_pointer_cast<T>(name(n));
+	}
+
+	template<std::derived_from<symbol> T>
+	std::shared_ptr<T> find_name(const std::string n)
+	{
+		for (auto p = this->shared_from_this(); p; p = p->parent_.lock())
+		{
+			if (p->contains_name(n))
+			{
+				return p->name_typed<T>(n);
+			}
+		}
+		return nullptr;
+	}
+
 
 	[[nodiscard]]type_table_type& types()
 	{
 		return types_;
 	}
 
+	[[nodiscard]]function_id_type belongs_to() const
+	{
+		return belonging_func_;
+	}
+
+	[[nodiscard]] bool is_global() const
+	{
+		return belonging_func_ == FUNCTION_ID_GLOBAL;
+	}
+
+
 private:
+	[[nodiscard]]  scope_list_type::iterator& last() const
+	{
+		if (!last_.has_value())
+		{
+			last_ = children_.begin();
+		}
+
+		return last_.value();
+	}
+
+
 	mutable name_table_type names_{};
 
 	mutable type_table_type types_{};
 
-	mutable std::vector<std::shared_ptr<scope>> children_{};
+	mutable scope_list_type children_{};
+
+	mutable std::optional<scope_list_type::iterator> last_{};
 
 	mutable std::weak_ptr<scope> parent_{};
+
+	mutable size_t visit_count_{ 0 };
+
+	mutable function_id_type belonging_func_{};
 };
+
+
 }

@@ -19,41 +19,70 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/4/2021.
+// Created by cleve on 10/1/2021.
 //
 
-#include <resolver/symbol.h>
+#pragma once
 
+#include <resolver/scope.h>
 
-using namespace clox::resolving;
-
-
-symbol_type named_symbol::symbol_type() const
+namespace clox::resolving
 {
-	return resolving::symbol_type::ST_NAMED;
-}
 
-std::shared_ptr<lox_type> named_symbol::type() const
-{
-	return type_;
-}
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
-		: name_(std::move(name)), type_(std::move(type))
+class scope_iterator
 {
-}
+public:
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type,named_symbol::named_symbol_type t, int64_t slot_index)
-		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
-{
-}
+	friend class scope_collection;
 
-symbol_type function_multi_symbol::symbol_type() const
-{
-	return resolving::symbol_type::ST_FUNCTION;
-}
+	scope_iterator() = delete;
 
-std::shared_ptr<lox_type> function_multi_symbol::type() const
+	explicit scope_iterator(std::shared_ptr<scope> s) : data_(std::move(s))
+	{
+	}
+
+	~scope_iterator() = default;
+
+	scope_iterator(scope_iterator&&) = default;
+
+	scope_iterator(const scope_iterator&) = default;
+
+	scope_iterator& operator=(const scope_iterator&) = default;
+
+	std::shared_ptr<scope> operator*();
+
+	scope_iterator& operator++();
+
+	scope_iterator operator++(int);
+
+	scope_iterator& operator--();
+
+	scope_iterator operator--(int);
+
+	bool operator==(const scope_iterator& another) const;
+
+private:
+	std::shared_ptr<scope> data_;
+
+};
+
+class scope_collection final
 {
-	throw std::logic_error{ "function_multi_symbol should not use type()" };
+public:
+	using iterator = scope_iterator;
+
+	explicit scope_collection(std::shared_ptr<scope> root) : root_(std::move(root))
+	{
+	}
+
+	iterator begin();
+
+	iterator end();
+
+private:
+	std::shared_ptr<scope> root_{};
+};
+
+
 }

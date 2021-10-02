@@ -47,7 +47,7 @@ using namespace std;
 using namespace gsl;
 
 resolver::resolver() :
-		global_scope_{ std::make_shared<scope>() },
+		global_scope_{ std::make_shared<scope>(nullptr, FUNCTION_ID_GLOBAL) },
 		bindings_(make_shared<binding_table>())
 {
 	global_scope_->types()["void"] = make_shared<lox_void_type>();
@@ -61,6 +61,9 @@ resolver::resolver() :
 
 	global_scope_->types()["string"] = lox_object_type::string();
 
+	scopes_.push(global_scope_);
+	cur_func_id_.push(FUNCTION_ID_GLOBAL);
+
 	cur_func_.push(env_function_type::FT_NONE);
 	cur_class_.push(env_class_type::CT_NONE);
 }
@@ -73,7 +76,7 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, 
 
 void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
 {
-	for (const auto& stmt:stmts)
+	for (const auto& stmt: stmts)
 	{
 		resolve(stmt);
 	}
@@ -101,13 +104,26 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 
 void resolver::scope_begin()
 {
-	scope_push(make_shared<scope>());
+	scope_begin(scopes_.top()->belongs_to());
+}
+
+void resolver::scope_begin(function_id_type func_id)
+{
+	auto next = make_shared<scope>(scopes_.top(), func_id);
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
 }
 
 
 void resolver::scope_end()
 {
-	scope_pop();
+	auto top = scopes_.top();
+	slots_in_use_ -= top->names().size();
+
+	scopes_.pop();
+
 }
 
 void resolver::declare_name(const clox::scanning::token& t, size_t dist)
@@ -120,7 +136,7 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 {
 	if (scopes_.empty())return;
 
-	auto top = scope_top(dist);
+	auto top = scopes_.peek(dist);
 
 	if (top->contains_name(lexeme))
 	{
@@ -131,16 +147,30 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 }
 
 
-void resolver::declare_function_name(const clox::scanning::token& t, size_t dist)
+function_id_type resolver::declare_function(const shared_ptr<function_statement>& fs, size_t dist)
 {
-	if (scopes_.empty())return;
+	if (scopes_.empty())return FUNCTION_ID_INVALID;
 
-	auto top = scope_top(dist);
-
-	if (!top->contains_name(t.lexeme()))
+	if (function_id_counter_ >= FUNCTION_ID_MAX)
 	{
-		top->names()[t.lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+		logger::instance().error(fs->get_name(), std::format("Too many functions have been declared"));
+		return FUNCTION_ID_INVALID; //TODO: may need to throw a exception
 	}
+
+	auto top = scopes_.peek(dist);
+
+	if (!top->contains_name(fs->get_name().lexeme()))
+	{
+		top->names()[fs->get_name().lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+	}
+
+	function_id_type id = function_id_counter_++;
+	if (!function_ids_.contains(fs))
+	{
+		function_ids_.insert_or_assign(fs, id);
+	}
+
+	return id;
 }
 
 
@@ -153,7 +183,17 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 {
 	if (scopes_.empty())return;
 
-	scope_top(dist)->names().at(tk) = make_shared<named_symbol>(tk, type);
+	auto target = scopes_.peek(dist);
+
+	if (target->is_global())
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type);
+	}
+	else
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
+				slots_in_use_++);
+	}
 }
 
 
@@ -165,18 +205,29 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	}
 
 	if (scopes_.empty())return;
-	scope_top(dist)->types()[tk.lexeme()] = type;
+	scopes_.peek(dist)->types()[tk.lexeme()] = type;
 }
 
 std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
 {
 	int64_t depth = 0;
 
-	for (const auto& s:scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
+	for (const auto& s: scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
-			bindings_->put<variable_binding>(expr, expr, depth);
+			variable_binding::variable_type type{ variable_binding::variable_type::LOCAL };
+			if (s == global_scope_)
+			{
+				type = variable_binding::variable_type::GLOBAL;
+			}
+			else
+			{
+
+			}
+
+			bindings_->put<variable_binding>(expr, expr, depth, type);
+
 			return s->name(tk.lexeme());
 		}
 		depth++;
@@ -188,7 +239,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 
 std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 {
-	for (auto& scoop:scopes_)
+	for (auto& scoop: scopes_)
 	{
 		if (scoop->contains_type(tk.lexeme()))
 		{
@@ -213,7 +264,7 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 	if (scopes_.empty())return;
 
 	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
-	auto s = scope_top(dist);
+	auto s = scopes_.peek(dist);
 
 	if (s->names().at(lexeme))
 	{
@@ -249,7 +300,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 {
 	vector<shared_ptr<lox_type>> args{};
 
-	for (const auto& arg:call->get_args())
+	for (const auto& arg: call->get_args())
 	{
 		auto type = resolve(arg);
 		args.push_back(type);
@@ -264,7 +315,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	auto[stmt, callable]=resolve_ret.value();
 
 	bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-			static_pointer_cast<statement>(stmt));
+			static_pointer_cast<statement>(stmt), function_ids_.at(stmt));
 
 	return callable;
 }
@@ -274,5 +325,24 @@ std::shared_ptr<binding_table> resolver::bindings() const
 	return bindings_;
 }
 
+std::shared_ptr<binding> resolver::binding(const shared_ptr<parsing::expression>& e) const
+{
+	if (!bindings_->contains(e))
+	{
+		return nullptr;
+	}
+
+	return bindings_->get(e);
+}
+
+optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt) const
+{
+	if (function_ids_.contains(stmt))
+	{
+		return function_ids_.at(stmt);
+	}
+
+	return std::nullopt;
+}
 
 

@@ -95,7 +95,7 @@ void resolver::resolve_function_body(const shared_ptr<parsing::function_statemen
 	auto func_type = cur_func_type_.top();
 
 	cur_func_.push(type);
-	scope_begin();
+	scope_begin(cur_func_id_.top());
 
 	auto _ = finally([this]
 	{
@@ -262,6 +262,7 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 				cur_func_type_.pop();
 			});
 
+			//FIXME: allocate a function id;
 			resolve_function_body(method, decl);
 
 			if (!func_type->return_type_deduced())
@@ -389,7 +390,7 @@ void resolver::visit_if_statement(const std::shared_ptr<parsing::if_statement>& 
 
 void resolver::visit_function_statement(const std::shared_ptr<parsing::function_statement>& stmt)
 {
-	declare_function_name(stmt->get_name());
+	auto id = declare_function(stmt);
 
 	if (stmt->get_func_type() == function_statement_type::FST_OPERATOR)
 	{
@@ -407,10 +408,12 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 	define_function_name(stmt->get_name(), stmt, func_type); // use special define_name
 
 	cur_func_type_.push(func_type);
+	cur_func_id_.push(id);
 
 	auto _ = gsl::finally([this]
 	{
 		cur_func_type_.pop();
+		cur_func_id_.pop();
 	});
 
 	resolve_function_body(stmt, env_function_type::FT_FUNCTION);
@@ -478,7 +481,7 @@ void resolver::visit_foreach_statement(const std::shared_ptr<foreach_statement>&
 
 	auto element_type = dynamic_pointer_cast<lox_array_type>(iterable_type)->element_type();
 
-	auto var_decl = scope_top()->name(
+	auto var_decl = scopes_.top()->name(
 			dynamic_pointer_cast<variable_statement>(fes->get_var_decl())->get_name().lexeme());
 
 

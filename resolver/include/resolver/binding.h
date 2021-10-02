@@ -27,6 +27,7 @@
 #include <parser/gen/parser_classes.inc>
 
 #include <resolver/lox_type.h>
+#include <resolver/function.h>
 
 #include <memory>
 #include <optional>
@@ -41,6 +42,9 @@ enum class binding_type
 	BINDING_OPERATOR,
 };
 
+template<typename T>
+struct binding_tag;
+
 class binding
 {
 public:
@@ -49,14 +53,21 @@ public:
 	[[nodiscard]] virtual binding_type type() const = 0;
 };
 
-class variable_binding
+class variable_binding final
 		: public binding
 {
 public:
+	enum class variable_type
+	{
+		GLOBAL,
+		LOCAL,
+		UPVALUE,
+	};
+public:
 	variable_binding() = default;
 
-	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d)
-			: expr_(std::move(e)), depth_(d)
+	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, variable_type t)
+			: expr_(std::move(e)), depth_(d), type_(t)
 	{
 	}
 
@@ -75,12 +86,26 @@ public:
 		return depth_;
 	}
 
+	[[nodiscard]] variable_type var_type() const
+	{
+		return type_;
+	}
+
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	int64_t depth_{ 0 };
+
+	variable_type type_{};
 };
 
-class function_binding
+
+template<>
+struct binding_tag<variable_binding>
+{
+	static constexpr binding_type type = binding_type::BINDING_VARIABLE;
+};
+
+class function_binding final
 		: public binding
 {
 public:
@@ -91,8 +116,9 @@ public:
 
 	function_binding() = default;
 
-	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s)
-			: expr_(std::move(e)), stmt_(std::move(s))
+	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
+			function_id_type id)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id)
 	{
 	}
 
@@ -106,13 +132,27 @@ public:
 		return stmt_;
 	}
 
+	[[nodiscard]] function_id_type id() const
+	{
+		return id_;
+	}
 
 private:
 	std::shared_ptr<parsing::call_expression> expr_{ nullptr };
+
 	std::shared_ptr<parsing::statement> stmt_{ nullptr };
+
+	function_id_type id_{ FUNCTION_ID_INVALID };
 };
 
-class operator_binding
+template<>
+struct binding_tag<function_binding>
+{
+	static constexpr binding_type type = binding_type::BINDING_FUNCTION;
+};
+
+
+class operator_binding final
 		: public binding
 {
 public:
@@ -143,6 +183,26 @@ private:
 	std::shared_ptr<parsing::call_expression> call_expr_{ nullptr };
 };
 
+template<>
+struct binding_tag<operator_binding>
+{
+	static constexpr binding_type type = binding_type::BINDING_OPERATOR;
+};
+
+template<typename T>
+[[maybe_unused, nodiscard]] static inline std::shared_ptr<T>
+downcast_binding(const std::shared_ptr<binding>& binding)
+{
+	if (binding->type() == binding_tag<T>::type) [[likely]]
+	{
+		return std::static_pointer_cast<T>(binding);
+	}
+	else [[unlikely]]
+	{
+		return nullptr;
+	}
+}
+
 class binding_table
 {
 public:
@@ -160,10 +220,23 @@ public:
 		return bindings_.contains(e);
 	}
 
-	std::optional<std::shared_ptr<binding>> get(const std::shared_ptr<parsing::expression>& e);
+	std::shared_ptr<binding> get(const std::shared_ptr<parsing::expression>& e);
+
+	template<typename T>
+	std::shared_ptr<T> get_typed(const std::shared_ptr<parsing::expression>& e)
+	{
+		auto binding = get(e);
+		if (binding) [[likely]]
+		{
+			return downcast_binding<T>(binding);
+		}
+
+		return nullptr;
+	}
 
 private:
 	std::unordered_map<std::shared_ptr<parsing::expression>, std::shared_ptr<binding>> bindings_{};
 };
+
 
 }

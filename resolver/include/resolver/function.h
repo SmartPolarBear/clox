@@ -19,41 +19,20 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/4/2021.
+// Created by cleve on 9/28/2021.
 //
 
-#include <resolver/symbol.h>
+#pragma once
 
+#include <limits>
 
-using namespace clox::resolving;
-
-
-symbol_type named_symbol::symbol_type() const
+namespace clox::resolving
 {
-	return resolving::symbol_type::ST_NAMED;
-}
+using function_id_type = int32_t;
 
-std::shared_ptr<lox_type> named_symbol::type() const
-{
-	return type_;
-}
+static inline function_id_type FUNCTION_ID_GLOBAL = 0;
+static inline function_id_type FUNCTION_ID_BEGIN = 1;
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
-		: name_(std::move(name)), type_(std::move(type))
-{
-}
-
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type,named_symbol::named_symbol_type t, int64_t slot_index)
-		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
-{
-}
-
-symbol_type function_multi_symbol::symbol_type() const
-{
-	return resolving::symbol_type::ST_FUNCTION;
-}
-
-std::shared_ptr<lox_type> function_multi_symbol::type() const
-{
-	throw std::logic_error{ "function_multi_symbol should not use type()" };
+static inline function_id_type FUNCTION_ID_INVALID = std::numeric_limits<function_id_type>::min();
+static inline function_id_type FUNCTION_ID_MAX = std::numeric_limits<function_id_type>::max();
 }

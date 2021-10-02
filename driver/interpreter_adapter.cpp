@@ -75,7 +75,7 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	codegen gen_{ heap_, rsv.bindings() };
+	codegen gen_{ heap_, rsv };
 	gen_.generate(stmts);
 
 	if (logger::instance().has_errors())return 65;
@@ -102,7 +102,7 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	codegen gen_{ heap_, repl_resolver_.bindings() };
+	codegen gen_{ heap_, repl_resolver_ };
 	gen_.generate(stmts);
 
 	if (configurable_configuration_instance().dump_assembly())

@@ -19,41 +19,73 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/4/2021.
+// Created by cleve on 10/1/2021.
 //
 
-#include <resolver/symbol.h>
-
+#include <resolver/scope_collection.h>
 
 using namespace clox::resolving;
 
-
-symbol_type named_symbol::symbol_type() const
+std::shared_ptr<scope> clox::resolving::scope_iterator::operator*()
 {
-	return resolving::symbol_type::ST_NAMED;
+	return data_;
 }
 
-std::shared_ptr<lox_type> named_symbol::type() const
+scope_iterator& scope_iterator::operator++()
 {
-	return type_;
+	if (data_->last() == data_->children_.end())
+	{
+		data_ = nullptr;
+	}
+	else
+	{
+		data_ = *(data_->last()++);
+		data_->visit_count_++;
+	}
+
+	return *this;
 }
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
-		: name_(std::move(name)), type_(std::move(type))
+scope_iterator scope_iterator::operator++(int)
 {
+	auto old = *this;
+	operator++();
+	return old;
 }
 
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type,named_symbol::named_symbol_type t, int64_t slot_index)
-		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
+scope_iterator& scope_iterator::operator--()
 {
+	if (auto pa = data_->parent_.lock();pa)
+	{
+		data_ = pa;
+		data_->visit_count_++;
+	}
+	else
+	{
+		this->data_ = nullptr;
+	}
+
+	return *this;
 }
 
-symbol_type function_multi_symbol::symbol_type() const
+scope_iterator scope_iterator::operator--(int)
 {
-	return resolving::symbol_type::ST_FUNCTION;
+	auto old = *this;
+	operator--();
+	return old;
 }
 
-std::shared_ptr<lox_type> function_multi_symbol::type() const
+bool scope_iterator::operator==(const scope_iterator& another) const
 {
-	throw std::logic_error{ "function_multi_symbol should not use type()" };
+	return data_ == another.data_;
+}
+
+scope_collection::iterator scope_collection::begin()
+{
+	return scope_iterator{ root_ };
+}
+
+scope_collection::iterator scope_collection::end()
+{
+	return scope_iterator{ nullptr };
 }
