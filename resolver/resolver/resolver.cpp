@@ -220,7 +220,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 
 			if (s->container_function() != scopes_.top()->container_function())
 			{
-				ret->set_named_symbol_type(named_symbol::named_symbol_type::UPVALUE);
+				//TODO
 			}
 
 			bindings_->put<variable_binding>(expr, expr, depth, ret);

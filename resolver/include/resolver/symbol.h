@@ -44,8 +44,12 @@ namespace clox::resolving
 enum class symbol_type
 {
 	ST_NAMED = 1,
-	ST_FUNCTION
+	ST_FUNCTION,
+	ST_UPVALUE,
 };
+
+template<typename T>
+struct symbol_tag;
 
 class symbol
 {
@@ -57,7 +61,7 @@ public:
 
 // TODO: add function_symbol or something likely
 
-class function_multi_symbol
+class function_multi_symbol final
 		: public symbol
 {
 public:
@@ -66,13 +70,19 @@ public:
 	[[nodiscard]] std::shared_ptr<lox_type> type() const override;
 };
 
-class named_symbol
+template<>
+struct symbol_tag<function_multi_symbol>
+{
+	static constexpr symbol_type type = symbol_type::ST_FUNCTION;
+};
+
+class named_symbol final
 		: public symbol
 {
 public:
 	enum class named_symbol_type
 	{
-		GLOBAL, LOCAL, UPVALUE
+		GLOBAL, LOCAL
 	};
 public:
 	named_symbol() = default;
@@ -101,19 +111,14 @@ public:
 		return symbol_type_ == named_symbol_type::LOCAL;
 	}
 
-	[[nodiscard]] bool is_upvalue() const
+	[[nodiscard]] bool is_captured() const
 	{
-		return symbol_type_ == named_symbol_type::UPVALUE;
+		return is_captured_;
 	}
 
-	[[nodiscard]] named_symbol_type get_named_symbol_type() const
+	void capture()
 	{
-		return symbol_type_;
-	}
-
-	void set_named_symbol_type(named_symbol_type val)
-	{
-		symbol_type_ = val;
+		is_captured_ = true;
 	}
 
 
@@ -128,8 +133,31 @@ private:
 
 	named_symbol_type symbol_type_{ named_symbol_type::GLOBAL };
 
+	bool is_captured_{ false };
+
 	int64_t slot_index_{ -1 };
 };
+
+template<>
+struct symbol_tag<named_symbol>
+{
+	static constexpr symbol_type type = symbol_type::ST_NAMED;
+};
+
+
+template<typename T>
+[[maybe_unused, nodiscard]] static inline std::shared_ptr<T>
+downcast_symbol(const std::shared_ptr<symbol>& symbol)
+{
+	if (symbol->symbol_type() == symbol_tag<T>::type) [[likely]]
+	{
+		return std::static_pointer_cast<T>(symbol);
+	}
+	else [[unlikely]]
+	{
+		return nullptr;
+	}
+}
 
 
 }

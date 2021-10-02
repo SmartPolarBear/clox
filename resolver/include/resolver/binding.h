@@ -38,7 +38,7 @@ namespace clox::resolving
 
 enum class binding_type
 {
-	BINDING_VARIABLE,
+	BINDING_VARIABLE = 1,
 	BINDING_FUNCTION,
 	BINDING_OPERATOR,
 };
@@ -80,7 +80,7 @@ public:
 		return depth_;
 	}
 
-	[[nodiscard]] std::shared_ptr<named_symbol> symbol()const
+	[[nodiscard]] std::shared_ptr<named_symbol> symbol() const
 	{
 		return symbol_;
 	}

@@ -116,7 +116,7 @@ public:
 	template<std::derived_from<symbol> T>
 	[[nodiscard]] std::shared_ptr<T> name_typed(const std::string& n) const
 	{
-		return std::static_pointer_cast<T>(name(n));
+		return downcast_symbol<T>(name(n));
 	}
 
 	template<std::derived_from<symbol> T>

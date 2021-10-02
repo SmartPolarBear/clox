@@ -334,23 +334,14 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	{
 		auto symbol = binding->symbol();
 
-		// See opcode.h for the design here in details
-		switch (symbol->get_named_symbol_type())
+		if(symbol->is_global())
 		{
-			using enum named_symbol::named_symbol_type;
-
-		case GLOBAL:
 			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
-			break;
-
-//		case UPVALUE:
-//
-//			break;
-
-		default:
-		case LOCAL:
+		}
+		else if(symbol->is_local())
+		{
 			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
-			break;
+
 		}
 	}
 	else
