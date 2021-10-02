@@ -104,12 +104,14 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 	generate(ae->get_value());
 
 	auto name = ae->get_name();
-	auto symbol = variable_lookup(name.lexeme());
+	auto binding = variable_lookup(ae);
 
-	if (!symbol)
+	if (!binding)
 	{
 		throw internal_codegen_error{ "Name lookup failure" };
 	}
+
+	auto symbol = binding->symbol();
 
 	// See opcode.h for the design here in details
 	if (symbol->is_global())
@@ -325,10 +327,13 @@ void clox::interpreting::compiling::codegen::visit_grouping_expression(
 void clox::interpreting::compiling::codegen::visit_var_expression(const std::shared_ptr<var_expression>& ve)
 {
 	auto name = ve->get_name();
-	auto symbol = variable_lookup(name.lexeme());
 
-	if (symbol)
+	auto binding = variable_lookup(ve);
+
+	if (binding)
 	{
+		auto symbol = binding->symbol();
+
 		// See opcode.h for the design here in details
 		switch (symbol->get_named_symbol_type())
 		{
@@ -338,9 +343,9 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 			break;
 
-		case UPVALUE:
-
-			break;
+//		case UPVALUE:
+//
+//			break;
 
 		default:
 		case LOCAL:
@@ -578,7 +583,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
-	if (auto symbol =  current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
+	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
 	}
@@ -677,7 +682,13 @@ uint16_t codegen::identifier_constant(const token& identifier)
 
 shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
-	return  current_scope()->find_name<named_symbol>(name);
+	return current_scope()->find_name<named_symbol>(name);
+}
+
+std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
+{
+	auto binding = resolver_->binding_typed<variable_binding>(expr);
+	return binding;
 }
 
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
@@ -758,5 +769,6 @@ std::shared_ptr<resolving::scope> codegen::current_scope()
 {
 	return *scope_iterator_;
 }
+
 
 

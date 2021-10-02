@@ -70,7 +70,7 @@ class named_symbol
 		: public symbol
 {
 public:
-	enum named_symbol_type
+	enum class named_symbol_type
 	{
 		GLOBAL, LOCAL, UPVALUE
 	};
@@ -109,6 +109,11 @@ public:
 	[[nodiscard]] named_symbol_type get_named_symbol_type() const
 	{
 		return symbol_type_;
+	}
+
+	void set_named_symbol_type(named_symbol_type val)
+	{
+		symbol_type_ = val;
 	}
 
 

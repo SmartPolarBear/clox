@@ -47,7 +47,7 @@ using namespace std;
 using namespace gsl;
 
 resolver::resolver() :
-		global_scope_{ std::make_shared<scope>(nullptr, FUNCTION_ID_GLOBAL) },
+		global_scope_{ std::make_shared<scope>(nullptr, FUNCTION_ID_GLOBAL, global_scope_tag) },
 		bindings_(make_shared<binding_table>())
 {
 	global_scope_->types()["void"] = make_shared<lox_void_type>();
@@ -104,7 +104,7 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 
 void resolver::scope_begin()
 {
-	scope_begin(scopes_.top()->belongs_to());
+	scope_begin(scopes_.top()->container_function());
 }
 
 void resolver::scope_begin(function_id_type func_id)
@@ -216,19 +216,12 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
-			variable_binding::variable_type type{ variable_binding::variable_type::LOCAL };
-			if (s == global_scope_)
-			{
-				type = variable_binding::variable_type::GLOBAL;
-			}
-			else
-			{
+			auto ret = s->name_typed<named_symbol>(tk.lexeme());
+//			ret->set_named_symbol_type(named_symbol::named_symbol_type::UPVALUE);
 
-			}
+			bindings_->put<variable_binding>(expr, expr, depth, ret);
 
-			bindings_->put<variable_binding>(expr, expr, depth, type);
-
-			return s->name(tk.lexeme());
+			return ret;
 		}
 		depth++;
 	}

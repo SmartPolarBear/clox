@@ -28,6 +28,7 @@
 
 #include <resolver/lox_type.h>
 #include <resolver/function.h>
+#include <resolver/symbol.h>
 
 #include <memory>
 #include <optional>
@@ -57,17 +58,10 @@ class variable_binding final
 		: public binding
 {
 public:
-	enum class variable_type
-	{
-		GLOBAL,
-		LOCAL,
-		UPVALUE,
-	};
-public:
 	variable_binding() = default;
 
-	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, variable_type t)
-			: expr_(std::move(e)), depth_(d), type_(t)
+	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, std::shared_ptr<named_symbol> symbol)
+			: expr_(std::move(e)), depth_(d), symbol_(std::move(symbol))
 	{
 	}
 
@@ -86,16 +80,17 @@ public:
 		return depth_;
 	}
 
-	[[nodiscard]] variable_type var_type() const
+	[[nodiscard]] std::shared_ptr<named_symbol> symbol()const
 	{
-		return type_;
+		return symbol_;
 	}
 
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	int64_t depth_{ 0 };
 
-	variable_type type_{};
+	std::shared_ptr<named_symbol> symbol_{ nullptr };
+
 };
 
 

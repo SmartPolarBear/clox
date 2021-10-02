@@ -45,6 +45,12 @@
 namespace clox::resolving
 {
 
+struct global_scope_tag_type
+{
+};
+
+static constexpr global_scope_tag_type global_scope_tag{};
+
 class scope final
 		: public std::enable_shared_from_this<scope>
 {
@@ -62,14 +68,25 @@ public:
 	scope() = delete;
 
 	explicit scope(const std::shared_ptr<scope>& parent)
-			: parent_(parent), belonging_func_(parent->belonging_func_)
+			: parent_(parent), container_func_(parent->container_func_)
+	{
+	}
+
+	explicit scope(const std::shared_ptr<scope>& parent, global_scope_tag_type)
+			: parent_(parent), container_func_(parent->container_func_), is_global_(true)
 	{
 	}
 
 	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id)
-			: parent_(parent), belonging_func_(id)
+			: parent_(parent), container_func_(id)
 	{
 	}
+
+	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id, global_scope_tag_type)
+			: parent_(parent), container_func_(id), is_global_(true)
+	{
+	}
+
 
 	[[nodiscard]] bool contains_name(const std::string& name) const
 	{
@@ -121,14 +138,14 @@ public:
 		return types_;
 	}
 
-	[[nodiscard]]function_id_type belongs_to() const
+	[[nodiscard]]function_id_type container_function() const
 	{
-		return belonging_func_;
+		return container_func_;
 	}
 
 	[[nodiscard]] bool is_global() const
 	{
-		return belonging_func_ == FUNCTION_ID_GLOBAL;
+		return is_global_;
 	}
 
 
@@ -156,7 +173,9 @@ private:
 
 	mutable size_t visit_count_{ 0 };
 
-	mutable function_id_type belonging_func_{};
+	mutable bool is_global_{ false };
+
+	mutable function_id_type container_func_{};
 };
 
 
