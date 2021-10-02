@@ -196,9 +196,9 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	case scanning::token_type::PLUS_PLUS:
 	case scanning::token_type::MINUS_MINUS:
 	{
-		if (!is_patchable(current()->peek(1)))
+		if (!is_patchable(current_chunk()->peek(1)))
 		{
-			throw invalid_opcode(current()->peek(1));
+			throw invalid_opcode(current_chunk()->peek(1));
 		}
 
 		op_code op = op_code::INC;
@@ -211,13 +211,13 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 			op = vm::op_code::DEC;
 		}
 
-		if (!is_patchable(current()->peek(1)))
+		if (!is_patchable(current_chunk()->peek(1)))
 		{
-			throw invalid_opcode(current()->peek(1));
+			throw invalid_opcode(current_chunk()->peek(1));
 		}
 
-		auto unpatched = current()->peek(1);
-		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
+		auto unpatched = current_chunk()->peek(1);
+		current_chunk()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
 
 
 		break;
@@ -255,9 +255,9 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 	case scanning::token_type::PLUS_PLUS:
 	case scanning::token_type::MINUS_MINUS:
 	{
-		if (!is_patchable(current()->peek(1)))
+		if (!is_patchable(current_chunk()->peek(1)))
 		{
-			throw invalid_opcode(current()->peek(1));
+			throw invalid_opcode(current_chunk()->peek(1));
 		}
 
 		op_code op = op_code::INC;
@@ -270,13 +270,13 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 			op = vm::op_code::DEC;
 		}
 
-		if (!is_patchable(current()->peek(1)))
+		if (!is_patchable(current_chunk()->peek(1)))
 		{
-			throw invalid_opcode(current()->peek(1));
+			throw invalid_opcode(current_chunk()->peek(1));
 		}
 
-		auto unpatched = current()->peek(1);
-		current()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
+		auto unpatched = current_chunk()->peek(1);
+		current_chunk()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_POSTFIX, op), 1);
 		break;
 	}
 	default:
@@ -500,7 +500,7 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 	}
 
 
-	if (auto symbol = (*scope_iterator_)->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
+	if (auto symbol = current_scope()->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()));
 	}
@@ -525,7 +525,7 @@ void clox::interpreting::compiling::codegen::visit_block_statement(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr<while_statement>& ws)
 {
-	auto last_op = current()->count(); // it will be the index of first instruction for cond. Prepared for LOOP instruction
+	auto last_op = current_chunk()->count(); // it will be the index of first instruction for cond. Prepared for LOOP instruction
 
 	generate(ws->get_cond());
 
@@ -578,7 +578,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
-	if (auto symbol = (*scope_iterator_)->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
+	if (auto symbol =  current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
 	}
@@ -623,15 +623,14 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 }
 
-std::shared_ptr<vm::chunk> codegen::current()
+std::shared_ptr<vm::chunk> codegen::current_chunk()
 {
-//	return current_chunk_;
 	return functions_.back()->body();
 }
 
 void codegen::emit_code(vm::full_opcode_type byte)
 {
-	current()->write(byte);
+	current_chunk()->write(byte);
 }
 
 void codegen::emit_return()
@@ -649,13 +648,13 @@ vm::chunk::code_type codegen::emit_constant(const value& val)
 
 uint16_t codegen::make_constant(const value& val)
 {
-	auto idx = current()->add_constant(val);
+	auto idx = current_chunk()->add_constant(val);
 	return idx;
 }
 
 void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 {
-	current()->constant_at(pos) = val;
+	current_chunk()->constant_at(pos) = val;
 }
 
 
@@ -678,7 +677,7 @@ uint16_t codegen::identifier_constant(const token& identifier)
 
 shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
-	return (*scope_iterator_)->find_name<named_symbol>(name);
+	return  current_scope()->find_name<named_symbol>(name);
 }
 
 vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
@@ -686,23 +685,23 @@ vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
 	emit_code(jmp);
 	emit_code(PATCHABLE_PLACEHOLDER);
 
-	return current()->count() - 1;
+	return current_chunk()->count() - 1;
 }
 
 void codegen::patch_jump(vm::chunk::difference_type pos)
 {
-	auto dist = current()->count() - 1 - pos;
+	auto dist = current_chunk()->count() - 1 - pos;
 	if (dist > numeric_limits<full_opcode_type>::max())
 	{
 		throw jump_too_long{ static_cast<size_t>(dist) };
 	}
 
-	current()->patch_begin(dist, pos);
+	current_chunk()->patch_begin(dist, pos);
 }
 
 void codegen::emit_loop(vm::chunk::difference_type pos)
 {
-	auto dist = current()->count() - pos + 2;
+	auto dist = current_chunk()->count() - pos + 2;
 	if (dist > numeric_limits<full_opcode_type>::max())
 	{
 		throw jump_too_long{ static_cast<size_t>(dist) };
@@ -753,6 +752,11 @@ vm::closure_object_raw_pointer codegen::top_level()
 void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {
 
+}
+
+std::shared_ptr<resolving::scope> codegen::current_scope()
+{
+	return *scope_iterator_;
 }
 
 

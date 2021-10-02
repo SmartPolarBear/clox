@@ -112,7 +112,9 @@ public:
 
 private:
 
-	std::shared_ptr<vm::chunk> current();
+	std::shared_ptr<vm::chunk> current_chunk();
+
+	std::shared_ptr<resolving::scope> current_scope();
 
 	void generate(const std::shared_ptr<parsing::statement>& s);
 
