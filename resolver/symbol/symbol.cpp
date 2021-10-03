@@ -24,6 +24,8 @@
 
 #include <resolver/symbol.h>
 
+#include <resolver/upvalue.h>
+
 
 using namespace clox::resolving;
 
@@ -47,6 +49,11 @@ named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type, nam
 		int64_t slot_index)
 		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
 {
+}
+
+std::shared_ptr< upvalue> named_symbol::capture()
+{
+	return std::make_shared<upvalue>(this->shared_from_this());
 }
 
 symbol_type function_multi_symbol::symbol_type() const

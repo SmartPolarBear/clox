@@ -77,6 +77,11 @@ void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 void codegen::scope_begin()
 {
 	scope_iterator_++;
+
+	if (auto scope = *scope_iterator_;scope->scope_type() == resolving::scope_types::FUNCTION_SCOPE)
+	{
+
+	}
 }
 
 void codegen::scope_end()
@@ -334,11 +339,11 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	{
 		auto symbol = binding->symbol();
 
-		if(symbol->is_global())
+		if (symbol->is_global())
 		{
 			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 		}
-		else if(symbol->is_local())
+		else if (symbol->is_local())
 		{
 			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
 

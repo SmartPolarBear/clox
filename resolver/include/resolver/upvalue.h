@@ -34,6 +34,12 @@ namespace clox::resolving
 class upvalue final
 {
 public:
+	friend class function_scope;
+
+	using index_type = int64_t;
+
+	static inline constexpr index_type INVALID_INDEX = -1;
+
 	using symbol_type = std::shared_ptr<symbol>;
 	using upvalue_type = std::shared_ptr<upvalue>;
 public:
@@ -64,8 +70,15 @@ public:
 		return get<T>(capture_object_);
 	}
 
+	index_type index() const
+	{
+		return index_;
+	}
+
 private:
 	std::variant<symbol_type, upvalue_type> capture_object_{};
+
+	index_type index_{ INVALID_INDEX };
 };
 
 }

@@ -77,7 +77,8 @@ struct symbol_tag<function_multi_symbol>
 };
 
 class named_symbol final
-		: public symbol
+		: public symbol,
+		  public std::enable_shared_from_this<named_symbol>
 {
 public:
 	enum class named_symbol_type
@@ -116,13 +117,9 @@ public:
 		return is_captured_;
 	}
 
-	void capture(const std::shared_ptr<class upvalue> upval)
-	{
-		is_captured_ = true;
-		upvalue_ = upval;
-	}
+	std::shared_ptr<class upvalue> capture();
 
-	[[nodiscard]] std::shared_ptr<class upvalue> upvalue() const
+	[[nodiscard]] std::shared_ptr<class upvalue> get_upvalue() const
 	{
 		return upvalue_;
 	}

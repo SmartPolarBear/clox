@@ -229,16 +229,12 @@ resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_pt
 	{
 		if (auto named = downcast_symbol<named_symbol>(sym);named->is_captured())
 		{
-			return named->upvalue();
+			return named->get_upvalue();
 		}
 		else
 		{
-			auto ret = make_shared<upvalue>(sym);
-
-			named->capture(ret);
-			cur->put_upvalue(make_shared<upvalue>(sym));
-
-			return ret;
+			cur->put_upvalue(named->capture());
+			return named->get_upvalue();
 		}
 	}
 
