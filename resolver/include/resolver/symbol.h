@@ -116,11 +116,16 @@ public:
 		return is_captured_;
 	}
 
-	void capture()
+	void capture(const std::shared_ptr<class upvalue> upval)
 	{
 		is_captured_ = true;
+		upvalue_ = upval;
 	}
 
+	[[nodiscard]] std::shared_ptr<class upvalue> upvalue() const
+	{
+		return upvalue_;
+	}
 
 	[[nodiscard]] int64_t slot_index() const
 	{
@@ -134,6 +139,8 @@ private:
 	named_symbol_type symbol_type_{ named_symbol_type::GLOBAL };
 
 	bool is_captured_{ false };
+
+	std::shared_ptr<class upvalue> upvalue_{};
 
 	int64_t slot_index_{ -1 };
 };

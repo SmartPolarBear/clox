@@ -38,6 +38,16 @@ public:
 	using upvalue_type = std::shared_ptr<upvalue>;
 public:
 
+	explicit upvalue(symbol_type symbol)
+			: capture_object_(symbol)
+	{
+	}
+
+	explicit upvalue(upvalue_type upvalue)
+			: capture_object_(upvalue)
+	{
+	}
+
 	[[nodiscard]] bool has_symbol() const
 	{
 		return std::holds_alternative<symbol_type>(capture_object_);
@@ -46,6 +56,12 @@ public:
 	[[nodiscard]] bool has_upvalue() const
 	{
 		return std::holds_alternative<upvalue_type>(capture_object_);
+	}
+
+	template<typename T>
+	T& get_object()
+	{
+		return get<T>(capture_object_);
 	}
 
 private:

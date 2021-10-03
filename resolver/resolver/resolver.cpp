@@ -64,7 +64,7 @@ resolver::resolver() :
 	scopes_.push(global_scope_);
 
 	function_scopes_.push(global_scope_);
-	function_id_to_scopes_[FUNCTION_ID_GLOBAL] = global_scope_;
+	function_scope_ids_[FUNCTION_ID_GLOBAL] = global_scope_;
 
 	cur_func_id_.push(FUNCTION_ID_GLOBAL);
 
@@ -124,6 +124,8 @@ void resolver::scope_begin(function_id_type func_id)
 	function_scopes_.top()->child_functions_.push_back(next);
 
 	function_scopes_.push(next);
+
+	function_scope_ids_[func_id] = next;
 }
 
 
@@ -218,6 +220,35 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	scopes_.peek(dist)->types()[tk.lexeme()] = type;
 }
 
+
+std::shared_ptr<upvalue>
+resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_ptr<function_scope>& bottom,
+		const shared_ptr<symbol>& sym)
+{
+	if (cur == bottom)
+	{
+		if (auto named = downcast_symbol<named_symbol>(sym);named->is_captured())
+		{
+			return named->upvalue();
+		}
+		else
+		{
+			auto ret = make_shared<upvalue>(sym);
+
+			named->capture(ret);
+			cur->put_upvalue(make_shared<upvalue>(sym));
+
+			return ret;
+		}
+	}
+
+	auto pa = cur->parent_function_.lock();
+	auto parent_upvalue = resolve_upvalue(pa, bottom, sym);
+	cur->put_upvalue(make_shared<upvalue>(parent_upvalue));
+
+	return parent_upvalue;
+}
+
 std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)
 {
 	int64_t depth = 0;
@@ -230,7 +261,8 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 
 			if (s->container_function() != scopes_.top()->container_function())
 			{
-				//TODO
+				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
+				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);
 			}
 
 			bindings_->put<variable_binding>(expr, expr, depth, ret);

@@ -198,6 +198,8 @@ public:
 
 	friend class resolver;
 
+	using upvalue_list_type = std::vector<std::shared_ptr<upvalue>>;
+
 public:
 	explicit function_scope(const std::shared_ptr<scope>& parent, const std::shared_ptr<function_scope>& fparent,
 			function_id_type id)
@@ -216,6 +218,11 @@ public:
 		return scope_types::FUNCTION_SCOPE;
 	}
 
+	void put_upvalue(const std::shared_ptr<upvalue> &upvalue)
+	{
+		upvalues_.push_back(upvalue);
+	}
+
 private:
 
 	[[nodiscard]] scope_list_type::iterator& last_function() const
@@ -228,11 +235,11 @@ private:
 		return last_function_.value();
 	}
 
-	std::vector<upvalue> upvalues_{};
+	upvalue_list_type upvalues_{};
 
 	mutable scope_list_type child_functions_{};
 
-	mutable std::weak_ptr<scope> parent_function_{};
+	mutable std::weak_ptr<function_scope> parent_function_{};
 
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
