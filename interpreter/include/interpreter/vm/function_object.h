@@ -42,6 +42,8 @@ class function_object final
 		: public object
 {
 public:
+	friend class closure_object;
+
 	explicit function_object(std::string name, size_t arity);
 
 	[[nodiscard]] object_type type() const noexcept override;
@@ -61,6 +63,11 @@ public:
 		return body_;
 	}
 
+	[[nodiscard]] auto wrapper_closure() const
+	{
+		return wrapper_closure_;
+	}
+
 private:
 public:
 	std::string printable_string() override;
@@ -68,7 +75,10 @@ public:
 private:
 	std::string name_{};
 	size_t arity_{};
+	size_t upvalue_count_{};
 	std::shared_ptr<class chunk /* to avoid header circular dependency*/ > body_{};
+
+	class closure_object* wrapper_closure_{ nullptr };
 };
 
 using function_object_raw_pointer = function_object*;

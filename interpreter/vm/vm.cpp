@@ -481,9 +481,15 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto func = peek_object<function_object_raw_pointer>();
 
-		auto closure = heap_->allocate<closure_object>(func);
+		auto closure = func->wrapper_closure();
+		if (!closure)
+		{
+			closure = heap_->allocate<closure_object>(func);
+		}
+
 		pop();
 		push(closure);
+
 		break;
 	}
 

@@ -19,23 +19,15 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/3/2021.
 //
 
-#include <interpreter/vm/closure_object.h>
+#pragma once
 
-clox::interpreting::vm::closure_object::closure_object(function_object_raw_pointer func)
-		: function_{ func }
+namespace clox::interpreting::vm
 {
-	func->wrapper_closure_ = this;
-}
-
-std::string clox::interpreting::vm::closure_object::printable_string()
+class upvalue final
 {
-	return function_->printable_string(); // Closure is transparent to user, meaning it is identical to its function
-}
-
-clox::interpreting::vm::object_type clox::interpreting::vm::closure_object::type() const noexcept
-{
-	return object_type::CLOSURE;
+	
+};
 }

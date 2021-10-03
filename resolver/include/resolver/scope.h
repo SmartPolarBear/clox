@@ -224,6 +224,11 @@ public:
 		upvalues_.push_back(upvalue);
 	}
 
+	upvalue_list_type& upvalues()
+	{
+		return upvalues_;
+	}
+
 private:
 
 	[[nodiscard]] scope_list_type::iterator& last_function() const

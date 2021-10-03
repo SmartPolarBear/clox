@@ -54,12 +54,12 @@ public:
 	{
 	}
 
-	[[nodiscard]] bool has_symbol() const
+	[[nodiscard]] bool holds_symbol() const
 	{
 		return std::holds_alternative<symbol_type>(capture_object_);
 	}
 
-	[[nodiscard]] bool has_upvalue() const
+	[[nodiscard]] bool holds_upvalue() const
 	{
 		return std::holds_alternative<upvalue_type>(capture_object_);
 	}
@@ -70,9 +70,20 @@ public:
 		return get<T>(capture_object_);
 	}
 
-	index_type index() const
+	[[nodiscard]] index_type access_index()
 	{
-		return index_;
+		return std::visit([](auto&& val) -> index_type
+		{
+			using T = std::decay_t<decltype(val)>;
+			if constexpr(std::is_same_v<T, symbol_type>)
+			{
+				return downcast_symbol<named_symbol>(val)->slot_index();
+			}
+			else
+			{
+				return val->index_;
+			}
+		}, capture_object_);
 	}
 
 private:

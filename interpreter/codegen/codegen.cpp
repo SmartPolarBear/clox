@@ -80,7 +80,11 @@ void codegen::scope_begin()
 
 	if (auto scope = *scope_iterator_;scope->scope_type() == resolving::scope_types::FUNCTION_SCOPE)
 	{
-
+		auto func = static_pointer_cast<function_scope>(scope);
+		for (const auto& upval: func->upvalues())
+		{
+			emit_codes(upval->holds_symbol() /*it is a local variable */, upval->access_index());
+		}
 	}
 }
 
@@ -576,7 +580,6 @@ void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
 	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
-	emit_code(V(op_code::CLOSURE));
 
 	// define it as variable to follow the function overloading specification
 	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
@@ -591,6 +594,8 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto id_ret = resolver_->function_id(fs);
 
 	assert(id_ret.has_value());
+
+	emit_code(V(op_code::CLOSURE));
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
