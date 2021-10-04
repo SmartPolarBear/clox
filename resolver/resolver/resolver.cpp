@@ -233,16 +233,14 @@ resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_pt
 		}
 		else
 		{
-			cur->put_upvalue(named->capture());
-			return named->get_upvalue();
+			return cur->put_upvalue(named->capture());
 		}
 	}
 
 	auto pa = cur->parent_function_.lock();
-	auto parent_upvalue = resolve_upvalue(pa, bottom, sym);
-	cur->put_upvalue(make_shared<upvalue>(parent_upvalue));
+	auto new_upvalue = cur->put_upvalue(make_shared<upvalue>(resolve_upvalue(pa, bottom, sym)));
 
-	return parent_upvalue;
+	return new_upvalue;
 }
 
 std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& expr, const clox::scanning::token& tk)

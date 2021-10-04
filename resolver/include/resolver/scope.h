@@ -218,10 +218,20 @@ public:
 		return scope_types::FUNCTION_SCOPE;
 	}
 
-	void put_upvalue(const std::shared_ptr<upvalue>& upvalue)
+	std::shared_ptr<upvalue> put_upvalue(const std::shared_ptr<upvalue>& upvalue)
 	{
+		for (const auto& item: upvalues_)
+		{
+			if (item == upvalue)
+			{
+				return item;
+			}
+		}
+
 		upvalue->index_ = upvalues_.size();
 		upvalues_.push_back(upvalue);
+
+		return upvalue;
 	}
 
 	upvalue_list_type& upvalues()

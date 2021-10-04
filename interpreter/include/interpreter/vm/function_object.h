@@ -35,6 +35,10 @@
 #include <memory>
 #include <map>
 
+namespace clox::interpreting::compiling // to avoid header circular dependency
+{
+class codegen;
+}
 
 namespace clox::interpreting::vm
 {
@@ -43,6 +47,8 @@ class function_object final
 {
 public:
 	friend class closure_object;
+
+	friend class compiling::codegen;
 
 	explicit function_object(std::string name, size_t arity);
 
@@ -68,8 +74,11 @@ public:
 		return wrapper_closure_;
 	}
 
-private:
-public:
+	[[nodiscard]] size_t upvalue_count() const
+	{
+		return upvalue_count_;
+	}
+
 	std::string printable_string() override;
 
 private:

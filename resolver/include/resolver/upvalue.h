@@ -32,6 +32,7 @@ namespace clox::resolving
 {
 
 class upvalue final
+		: std::enable_shared_from_this<upvalue>
 {
 public:
 	friend class function_scope;
@@ -84,6 +85,12 @@ public:
 				return val->index_;
 			}
 		}, capture_object_);
+	}
+
+
+	bool operator==(const upvalue& another)
+	{
+		return capture_object_ == another.capture_object_;
 	}
 
 private:

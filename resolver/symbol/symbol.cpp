@@ -51,9 +51,12 @@ named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type, nam
 {
 }
 
-std::shared_ptr< upvalue> named_symbol::capture()
+std::shared_ptr<upvalue> named_symbol::capture()
 {
-	return std::make_shared<upvalue>(this->shared_from_this());
+	is_captured_ = true;
+	upvalue_ = std::make_shared<upvalue>(this->shared_from_this());
+
+	return upvalue_;
 }
 
 symbol_type function_multi_symbol::symbol_type() const

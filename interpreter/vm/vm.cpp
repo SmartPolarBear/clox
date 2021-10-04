@@ -490,6 +490,14 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		pop();
 		push(closure);
 
+		auto secondary = secondary_op_code_of(instruction);
+
+		if (secondary & SEC_OP_CAPTURE)
+		{
+			auto count = next_code();
+
+		}
+
 		break;
 	}
 

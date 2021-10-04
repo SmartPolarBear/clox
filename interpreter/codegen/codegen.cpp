@@ -81,6 +81,8 @@ void codegen::scope_begin()
 	if (auto scope = *scope_iterator_;scope->scope_type() == resolving::scope_types::FUNCTION_SCOPE)
 	{
 		auto func = static_pointer_cast<function_scope>(scope);
+		function_top()->upvalue_count_ = func->upvalues().size();
+		emit_code(func->upvalues().size());
 		for (const auto& upval: func->upvalues())
 		{
 			emit_codes(upval->holds_symbol() /*it is a local variable */, upval->access_index());
@@ -91,6 +93,11 @@ void codegen::scope_begin()
 void codegen::scope_end()
 {
 	scope_iterator_--;
+}
+
+std::shared_ptr<resolving::scope> codegen::current_scope()
+{
+	return *scope_iterator_;
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
@@ -595,7 +602,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	assert(id_ret.has_value());
 
-	emit_code(V(op_code::CLOSURE));
+	emit_code(VC(SEC_OP_CAPTURE, op_code::CLOSURE));
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
@@ -765,11 +772,4 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
-
-std::shared_ptr<resolving::scope> codegen::current_scope()
-{
-	return *scope_iterator_;
-}
-
-
 
