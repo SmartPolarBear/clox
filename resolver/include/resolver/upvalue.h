@@ -66,7 +66,7 @@ public:
 	}
 
 	template<typename T>
-	T& get_object()
+	T& get_object() const
 	{
 		return get<T>(capture_object_);
 	}
@@ -88,13 +88,20 @@ public:
 	}
 
 
-	bool operator==(const upvalue& another)
+	bool operator==(const upvalue& another) const
 	{
-		return capture_object_ == another.capture_object_;
+		if (holds_symbol())
+		{
+			return another.holds_symbol() && get_object<symbol_type>().get() == another.get_object<symbol_type>().get();
+		}
+		else
+		{
+			return another.holds_upvalue() && get_object<upvalue_type>().get() == another.get_object<upvalue_type>().get();
+		}
 	}
 
 private:
-	std::variant<symbol_type, upvalue_type> capture_object_{};
+	mutable std::variant<symbol_type, upvalue_type> capture_object_{};
 
 	index_type index_{ INVALID_INDEX };
 };

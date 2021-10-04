@@ -152,14 +152,17 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	{
 		if (secondary & SEC_OP_CAPTURE)
 		{
+			offset++;
 			auto count = codes_[offset++];
 			for (int i = 0; i < count; i++)
 			{
 				auto local = codes_[offset++];
 				auto index = codes_[offset++];
-				out.out() << std::format("{} {}",
-						local ? "Local" : "Upvalue", index) << endl;
+				out.out() << std::format(" {} {}{}",
+						local ? "Local" : "Upvalue", index, i == count - 1 ? "" : ",");
 			}
+			out.out() << endl;
+			return offset;
 		}
 		else
 		{

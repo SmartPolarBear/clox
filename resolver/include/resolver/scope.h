@@ -222,7 +222,7 @@ public:
 	{
 		for (const auto& item: upvalues_)
 		{
-			if (item == upvalue)
+			if (*item == *upvalue)
 			{
 				return item;
 			}

@@ -604,9 +604,9 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	emit_code(VC(SEC_OP_CAPTURE, op_code::CLOSURE));
 
-	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
-
 	scope_begin();
+
+	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
 	for (const auto& param: fs->get_params())
 	{
