@@ -193,6 +193,9 @@ private:
 
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
+	std::shared_ptr<upvalue>
+	resolve_upvalue(const std::shared_ptr<function_scope> &cur,const std::shared_ptr<function_scope> &bottom,const std::shared_ptr<symbol> &sym);
+
 	std::shared_ptr<lox_type> resolve_function_call(const std::shared_ptr<parsing::call_expression>& call,
 			const std::shared_ptr<lox_overloaded_metatype>& callee);
 
@@ -308,9 +311,12 @@ private:
 		}
 	}
 
-	std::shared_ptr<scope> global_scope_{ nullptr };
+	std::shared_ptr<function_scope> global_scope_{ nullptr };
 
 	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
+	base::iterable_stack<std::shared_ptr<function_scope>> function_scopes_{};
+
+	std::unordered_map<function_id_type ,std::shared_ptr<function_scope>> function_scope_ids_{};
 
 	size_t slots_in_use_{ 1 }; // first slot is always in use
 

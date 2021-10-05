@@ -19,24 +19,73 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/19/2021.
+// Created by cleve on 10/1/2021.
 //
 
-#include <resolver/binding.h>
-
-using namespace std;
+#include "resolver/scope_collection.h"
 
 using namespace clox::resolving;
 
-std::shared_ptr<binding>
-clox::resolving::binding_table::get(const std::shared_ptr<parsing::expression>& e)
+std::shared_ptr<scope> clox::resolving::scope_iterator::operator*()
 {
-	if (!bindings_.contains(e))
-	{
-		return nullptr;
-	}
-
-	return bindings_.at(e);
+	return data_;
 }
 
+scope_iterator& scope_iterator::operator++()
+{
+	if (data_->last() == data_->children_.end())
+	{
+		data_ = nullptr;
+	}
+	else
+	{
+		data_ = *(data_->last()++);
+		data_->visit_count_++;
+	}
 
+	return *this;
+}
+
+scope_iterator scope_iterator::operator++(int)
+{
+	auto old = *this;
+	operator++();
+	return old;
+}
+
+scope_iterator& scope_iterator::operator--()
+{
+	if (auto pa = data_->parent_.lock();pa)
+	{
+		data_ = pa;
+		data_->visit_count_++;
+	}
+	else
+	{
+		this->data_ = nullptr;
+	}
+
+	return *this;
+}
+
+scope_iterator scope_iterator::operator--(int)
+{
+	auto old = *this;
+	operator--();
+	return old;
+}
+
+bool scope_iterator::operator==(const scope_iterator& another) const
+{
+	return data_ == another.data_;
+}
+
+scope_collection::iterator scope_collection::begin()
+{
+	return scope_iterator{ root_ };
+}
+
+scope_collection::iterator scope_collection::end()
+{
+	return scope_iterator{ nullptr };
+}

@@ -148,6 +148,29 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 				codes_[offset + 1]) << endl;
 		return offset + 2;
 
+	case op_code::CLOSURE:
+	{
+		if (secondary & SEC_OP_CAPTURE)
+		{
+			offset++;
+			auto count = codes_[offset++];
+			for (int i = 0; i < count; i++)
+			{
+				auto local = codes_[offset++];
+				auto index = codes_[offset++];
+				out.out() << std::format(" {} {}{}",
+						local ? "Local" : "Upvalue", index, i == count - 1 ? "" : ",");
+			}
+			out.out() << endl;
+			return offset;
+		}
+		else
+		{
+			out.out() << " (No captures specified)" << endl;
+			return offset + 1;
+		}
+	}
+
 	default:
 		out.out() << endl;
 		return offset + 1;

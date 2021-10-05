@@ -35,6 +35,10 @@
 #include <memory>
 #include <map>
 
+namespace clox::interpreting::compiling // to avoid header circular dependency
+{
+class codegen;
+}
 
 namespace clox::interpreting::vm
 {
@@ -42,6 +46,10 @@ class function_object final
 		: public object
 {
 public:
+	friend class closure_object;
+
+	friend class compiling::codegen;
+
 	explicit function_object(std::string name, size_t arity);
 
 	[[nodiscard]] object_type type() const noexcept override;
@@ -61,14 +69,25 @@ public:
 		return body_;
 	}
 
-private:
-public:
+	[[nodiscard]] auto wrapper_closure() const
+	{
+		return wrapper_closure_;
+	}
+
+	[[nodiscard]] size_t upvalue_count() const
+	{
+		return upvalue_count_;
+	}
+
 	std::string printable_string() override;
 
 private:
 	std::string name_{};
 	size_t arity_{};
+	size_t upvalue_count_{};
 	std::shared_ptr<class chunk /* to avoid header circular dependency*/ > body_{};
+
+	class closure_object* wrapper_closure_{ nullptr };
 };
 
 using function_object_raw_pointer = function_object*;

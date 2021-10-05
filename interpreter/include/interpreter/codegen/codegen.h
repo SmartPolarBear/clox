@@ -136,6 +136,8 @@ private:
 
 	std::shared_ptr<resolving::named_symbol> variable_lookup(const std::string& name);
 
+	std::shared_ptr<resolving::variable_binding> variable_lookup(const std::shared_ptr<parsing::expression> &expr);
+
 	void emit_code(vm::full_opcode_type byte);
 
 	template<std::convertible_to<vm::full_opcode_type> ...Args>

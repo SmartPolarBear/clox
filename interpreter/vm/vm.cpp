@@ -70,20 +70,20 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 //	for (; ip_ != chunk_->end();)
 	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
-		try
+//		try
+//		{
+		chunk::code_type instruction = *top_call_frame().ip()++;
+		auto[status, exit] = run_code(instruction, top_call_frame());
+		if (exit)
 		{
-			chunk::code_type instruction = *top_call_frame().ip()++;
-			auto[status, exit] = run_code(instruction, top_call_frame());
-			if (exit)
-			{
-				return status.value_or(virtual_machine_status::OK);
-			}
+			return status.value_or(virtual_machine_status::OK);
 		}
-		catch (const exception& e)
-		{
-			runtime_error("{}", e.what());
-			return virtual_machine_status::RUNTIME_ERROR;
-		}
+//		}
+//		catch (const exception& e)
+//		{
+//			runtime_error("{}", e.what());
+//			return virtual_machine_status::RUNTIME_ERROR;
+//		}
 	}
 
 	return virtual_machine_status::OK;
@@ -481,9 +481,29 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto func = peek_object<function_object_raw_pointer>();
 
-		auto closure = heap_->allocate<closure_object>(func);
+		auto closure = func->wrapper_closure();
+		if (!closure)
+		{
+			closure = heap_->allocate<closure_object>(func);
+		}
+
 		pop();
 		push(closure);
+
+		auto secondary = secondary_op_code_of(instruction);
+
+		if (secondary & SEC_OP_CAPTURE)
+		{
+			auto count = next_code();
+			for (int i = 0; i < count; i++)
+			{
+				auto local = next_code();
+				auto index = next_code();
+
+
+			}
+		}
+
 		break;
 	}
 

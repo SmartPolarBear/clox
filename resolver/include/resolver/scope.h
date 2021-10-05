@@ -32,7 +32,9 @@
 #include <resolver/callable_type.h>
 #include <resolver/class_type.h>
 #include <resolver/instance_type.h>
+
 #include <resolver/function.h>
+#include <resolver/upvalue.h>
 
 #include <vector>
 #include <stack>
@@ -41,11 +43,23 @@
 #include <memory>
 #include <tuple>
 #include <thread>
+#include <variant>
 
 namespace clox::resolving
 {
 
-class scope final
+struct global_scope_tag_type
+{
+};
+
+static constexpr global_scope_tag_type global_scope_tag{};
+
+enum class scope_types
+{
+	SCOPE = 1, FUNCTION_SCOPE
+};
+
+class scope
 		: public std::enable_shared_from_this<scope>
 {
 public:
@@ -62,13 +76,28 @@ public:
 	scope() = delete;
 
 	explicit scope(const std::shared_ptr<scope>& parent)
-			: parent_(parent), belonging_func_(parent->belonging_func_)
+			: parent_(parent), container_func_(parent->container_func_)
+	{
+	}
+
+	explicit scope(const std::shared_ptr<scope>& parent, global_scope_tag_type)
+			: parent_(parent), container_func_(parent->container_func_), is_global_(true)
 	{
 	}
 
 	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id)
-			: parent_(parent), belonging_func_(id)
+			: parent_(parent), container_func_(id)
 	{
+	}
+
+	explicit scope(const std::shared_ptr<scope>& parent, function_id_type id, global_scope_tag_type)
+			: parent_(parent), container_func_(id), is_global_(true)
+	{
+	}
+
+	[[nodiscard]] virtual scope_types scope_type() noexcept
+	{
+		return scope_types::SCOPE;
 	}
 
 	[[nodiscard]] bool contains_name(const std::string& name) const
@@ -99,7 +128,7 @@ public:
 	template<std::derived_from<symbol> T>
 	[[nodiscard]] std::shared_ptr<T> name_typed(const std::string& n) const
 	{
-		return std::static_pointer_cast<T>(name(n));
+		return downcast_symbol<T>(name(n));
 	}
 
 	template<std::derived_from<symbol> T>
@@ -121,19 +150,19 @@ public:
 		return types_;
 	}
 
-	[[nodiscard]]function_id_type belongs_to() const
+	[[nodiscard]]function_id_type container_function() const
 	{
-		return belonging_func_;
+		return container_func_;
 	}
 
 	[[nodiscard]] bool is_global() const
 	{
-		return belonging_func_ == FUNCTION_ID_GLOBAL;
+		return is_global_;
 	}
 
 
 private:
-	[[nodiscard]]  scope_list_type::iterator& last() const
+	[[nodiscard]] scope_list_type::iterator& last() const
 	{
 		if (!last_.has_value())
 		{
@@ -143,10 +172,15 @@ private:
 		return last_.value();
 	}
 
+	mutable function_id_type container_func_{};
 
 	mutable name_table_type names_{};
 
 	mutable type_table_type types_{};
+
+	mutable size_t visit_count_{ 0 };
+
+	mutable bool is_global_{ false };
 
 	mutable scope_list_type children_{};
 
@@ -154,10 +188,76 @@ private:
 
 	mutable std::weak_ptr<scope> parent_{};
 
-	mutable size_t visit_count_{ 0 };
-
-	mutable function_id_type belonging_func_{};
 };
 
+class function_scope
+		: public scope
+{
+public:
+	friend class scope_iterator;
+
+	friend class resolver;
+
+	using upvalue_list_type = std::vector<std::shared_ptr<upvalue>>;
+
+public:
+	explicit function_scope(const std::shared_ptr<scope>& parent, const std::shared_ptr<function_scope>& fparent,
+			function_id_type id)
+			: scope(parent, id), parent_function_(fparent)
+	{
+	}
+
+	explicit function_scope(const std::shared_ptr<scope>& parent, const std::shared_ptr<function_scope>& fparent,
+			function_id_type id, global_scope_tag_type)
+			: scope(parent, id, global_scope_tag), parent_function_(fparent)
+	{
+	}
+
+	[[nodiscard]] scope_types scope_type() noexcept override
+	{
+		return scope_types::FUNCTION_SCOPE;
+	}
+
+	std::shared_ptr<upvalue> put_upvalue(const std::shared_ptr<upvalue>& upvalue)
+	{
+		for (const auto& item: upvalues_)
+		{
+			if (*item == *upvalue)
+			{
+				return item;
+			}
+		}
+
+		upvalue->index_ = upvalues_.size();
+		upvalues_.push_back(upvalue);
+
+		return upvalue;
+	}
+
+	upvalue_list_type& upvalues()
+	{
+		return upvalues_;
+	}
+
+private:
+
+	[[nodiscard]] scope_list_type::iterator& last_function() const
+	{
+		if (!last_function_.has_value())
+		{
+			last_function_ = child_functions_.begin();
+		}
+
+		return last_function_.value();
+	}
+
+	upvalue_list_type upvalues_{};
+
+	mutable scope_list_type child_functions_{};
+
+	mutable std::weak_ptr<function_scope> parent_function_{};
+
+	mutable std::optional<scope_list_type::iterator> last_function_{};
+};
 
 }

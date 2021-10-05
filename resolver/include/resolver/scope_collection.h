@@ -67,6 +67,7 @@ private:
 
 };
 
+
 class scope_collection final
 {
 public:

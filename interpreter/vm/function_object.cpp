@@ -36,8 +36,7 @@ clox::interpreting::vm::object_type clox::interpreting::vm::function_object::typ
 }
 
 clox::interpreting::vm::function_object::function_object(std::string name, size_t arity)
-		: name_(std::move(name)), arity_(arity),
-		  body_(make_shared<chunk>())
+		: name_(std::move(name)), arity_(arity), body_(make_shared<chunk>())
 {
 }
 

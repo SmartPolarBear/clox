@@ -28,6 +28,7 @@
 
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/function_object.h>
+#include <interpreter/vm/upvalue.h>
 
 #include <variant>
 #include <string>
@@ -54,6 +55,8 @@ public:
 
 private:
 	function_object_raw_pointer function_{};
+
+	std::vector<upvalue> upvalues_{};
 };
 
 using closure_object_raw_pointer = closure_object*;

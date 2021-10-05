@@ -27,7 +27,7 @@
 clox::interpreting::vm::closure_object::closure_object(function_object_raw_pointer func)
 		: function_{ func }
 {
-
+	func->wrapper_closure_ = this;
 }
 
 std::string clox::interpreting::vm::closure_object::printable_string()

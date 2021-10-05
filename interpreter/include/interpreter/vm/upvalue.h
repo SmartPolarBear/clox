@@ -19,52 +19,15 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/4/2021.
+// Created by cleve on 10/3/2021.
 //
 
-#include <resolver/symbol.h>
+#pragma once
 
-#include <resolver/upvalue.h>
-
-
-using namespace clox::resolving;
-
-
-symbol_type named_symbol::symbol_type() const
+namespace clox::interpreting::vm
 {
-	return resolving::symbol_type::ST_NAMED;
-}
-
-std::shared_ptr<lox_type> named_symbol::type() const
+class upvalue final
 {
-	return type_;
-}
-
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type)
-		: name_(std::move(name)), type_(std::move(type)), symbol_type_(named_symbol_type::GLOBAL)
-{
-}
-
-named_symbol::named_symbol(std::string name, std::shared_ptr<lox_type> type, named_symbol::named_symbol_type t,
-		int64_t slot_index)
-		: name_(std::move(name)), type_(std::move(type)), symbol_type_(t), slot_index_(slot_index)
-{
-}
-
-std::shared_ptr<upvalue> named_symbol::capture()
-{
-	is_captured_ = true;
-	upvalue_ = std::make_shared<upvalue>(this->shared_from_this());
-
-	return upvalue_;
-}
-
-symbol_type function_multi_symbol::symbol_type() const
-{
-	return resolving::symbol_type::ST_FUNCTION;
-}
-
-std::shared_ptr<lox_type> function_multi_symbol::type() const
-{
-	throw std::logic_error{ "function_multi_symbol should not use type()" };
+	
+};
 }
