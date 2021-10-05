@@ -166,6 +166,7 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		}
 		else
 		{
+			out.out() << " (No captures specified)" << endl;
 			return offset + 1;
 		}
 	}

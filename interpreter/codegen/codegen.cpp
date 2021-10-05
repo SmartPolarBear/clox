@@ -357,7 +357,6 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 		else if (symbol->is_local())
 		{
 			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
-
 		}
 	}
 	else
@@ -602,6 +601,10 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	assert(id_ret.has_value());
 
+	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
+
+	emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id_ret.value());
+
 	emit_code(VC(SEC_OP_CAPTURE, op_code::CLOSURE));
 
 	scope_begin();
@@ -618,8 +621,6 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	scope_end();
 
 	auto func = function_pop();
-
-	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
 
 	set_constant(constant, func);
 
