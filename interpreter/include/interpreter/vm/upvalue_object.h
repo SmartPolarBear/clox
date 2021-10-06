@@ -43,6 +43,8 @@ public:
 
 	[[nodiscard]] object_type type() const noexcept override;
 
+	value *get_value() const;
+
 private:
 	value* value_{ nullptr };
 };

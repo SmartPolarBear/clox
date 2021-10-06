@@ -26,10 +26,15 @@
 
 std::string clox::interpreting::vm::upvalue_object::printable_string()
 {
-	return std::string();
+	return std::format("Upvalue to {:x}", (uintptr_t)value_);
 }
 
 clox::interpreting::vm::object_type clox::interpreting::vm::upvalue_object::type() const noexcept
 {
 	return object_type::UPVALUE;
+}
+
+clox::interpreting::vm::value* clox::interpreting::vm::upvalue_object::get_value() const
+{
+	return value_;
 }

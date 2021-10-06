@@ -306,9 +306,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-//			push(stack_[slot]);
 			push(slot_at(frame, slot));
-
+		}
+		else if (secondary & SEC_OP_UPVALUE)
+		{
+			auto slot = next_code();
+			push(*frame.closure()->upvalues()[slot]->get_value());
 		}
 		else
 		{
@@ -332,6 +335,11 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			auto slot = next_code();
 			slot_at(frame, slot) = peek(0);
+		}
+		else if (secondary & SEC_OP_UPVALUE)
+		{
+			auto slot = next_code();
+			*frame.closure()->upvalues()[slot]->get_value() = peek();
 		}
 		else
 		{
