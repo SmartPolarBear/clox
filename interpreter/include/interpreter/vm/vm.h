@@ -216,6 +216,8 @@ private:
 
 	value& slot_at(const call_frame& frame, size_t slot);
 
+	upvalue_object_raw_pointer capture_upvalue(value *val);
+
 	// call frame
 
 	call_frame& top_call_frame()

@@ -19,50 +19,34 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/3/2021.
 //
 
 #pragma once
 
-#include <scanner/scanner.h>
-
 #include <interpreter/vm/object.h>
-#include <interpreter/vm/function_object.h>
-#include <interpreter/vm/upvalue_object.h>
+#include <interpreter/vm/value.h>
 
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
 
 namespace clox::interpreting::vm
 {
-class closure_object final
+class upvalue_object final
 		: public object
 {
 public:
-	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
+	explicit upvalue_object(value* val)
+			: value_(val)
+	{
+	}
 
 	std::string printable_string() override;
 
 	[[nodiscard]] object_type type() const noexcept override;
 
-	[[nodiscard]] function_object_raw_pointer function() const
-	{
-		return function_;
-	}
-
-	[[nodiscard]] std::vector<upvalue_object_raw_pointer>& upvalues() const
-	{
-		return upvalues_;
-	}
-
 private:
-	function_object_raw_pointer function_{};
-
-	mutable std::vector<upvalue_object_raw_pointer> upvalues_{};
+	value* value_{ nullptr };
 };
 
-using closure_object_raw_pointer = closure_object*;
+using upvalue_object_raw_pointer = upvalue_object*;
+
 }

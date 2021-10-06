@@ -39,7 +39,8 @@ enum class object_type
 {
 	STRING,
 	FUNCTION,
-	CLOSURE
+	CLOSURE,
+	UPVALUE,
 };
 
 

@@ -19,15 +19,17 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 10/3/2021.
+// Created by cleve on 10/6/2021.
 //
 
-#pragma once
+#include <interpreter/vm/upvalue_object.h>
 
-namespace clox::interpreting::vm
+std::string clox::interpreting::vm::upvalue_object::printable_string()
 {
-class upvalue final
+	return std::string();
+}
+
+clox::interpreting::vm::object_type clox::interpreting::vm::upvalue_object::type() const noexcept
 {
-	
-};
+	return object_type::UPVALUE;
 }

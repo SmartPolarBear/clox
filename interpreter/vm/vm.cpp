@@ -31,6 +31,7 @@
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
+#include <interpreter/vm/upvalue_object.h>
 
 #include <gsl/gsl>
 
@@ -499,8 +500,14 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			{
 				auto local = next_code();
 				auto index = next_code();
-
-
+				if (local)
+				{
+					closure->upvalues().push_back(capture_upvalue(&slot_at(frame, index)));
+				}
+				else
+				{
+					closure->upvalues().push_back(frame.closure()->upvalues()[index]);
+				}
 			}
 		}
 
@@ -637,5 +644,11 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 	push_call_frame(closure,
 			closure->function()->body()->begin(),
 			stack_offset);
+}
+
+upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val)
+{
+	auto ret = heap_->allocate<upvalue_object>(val);
+	return ret;
 }
 
