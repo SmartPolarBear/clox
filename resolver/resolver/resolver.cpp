@@ -257,9 +257,13 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 			{
 				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
 				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);
+				bindings_->put<variable_binding>(expr, expr, depth, ret, upvalue);
+			}
+			else
+			{
+				bindings_->put<variable_binding>(expr, expr, depth, ret);
 			}
 
-			bindings_->put<variable_binding>(expr, expr, depth, ret);
 
 			return ret;
 		}

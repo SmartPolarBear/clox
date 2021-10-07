@@ -127,18 +127,24 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		throw internal_codegen_error{ "Name lookup failure" };
 	}
 
-	auto symbol = binding->symbol();
-
-	// See opcode.h for the design here in details
-	if (symbol->is_global())
+	if (auto upvalue = binding->upvalue();upvalue)
 	{
-		emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+		emit_codes(VC(SEC_OP_UPVALUE, op_code::SET), upvalue->access_index());
 	}
 	else
 	{
-		emit_codes(VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
-	}
+		auto symbol = binding->symbol();
 
+		// See opcode.h for the design here in details
+		if (symbol->is_global())
+		{
+			emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+		}
+		else
+		{
+			emit_codes(VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
+		}
+	}
 }
 
 void
@@ -348,15 +354,22 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 
 	if (binding)
 	{
-		auto symbol = binding->symbol();
-
-		if (symbol->is_global())
+		if (auto upvalue = binding->upvalue();upvalue)
 		{
-			emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+			emit_codes(VC(SEC_OP_UPVALUE, op_code::GET), upvalue->access_index());
 		}
-		else if (symbol->is_local())
+		else
 		{
-			emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
+			auto symbol = binding->symbol();
+
+			if (symbol->is_global())
+			{
+				emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+			}
+			else if (symbol->is_local())
+			{
+				emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
+			}
 		}
 	}
 	else
