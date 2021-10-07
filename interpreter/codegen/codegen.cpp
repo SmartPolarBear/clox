@@ -92,6 +92,31 @@ void codegen::scope_begin()
 
 void codegen::scope_end()
 {
+	auto scope = *scope_iterator_;
+
+	if(scope->scope_type()==resolving::scope_types::FUNCTION_SCOPE)
+	{
+		for (auto& var: scope->names())
+		{
+			auto named = static_pointer_cast<named_symbol>(var.second);
+			if (named->is_captured())
+			{
+				emit_code(V(op_code::CLOSE_UPVALUE));
+			}
+			else
+			{
+				emit_code(V(op_code::POP));
+			}
+		}
+	}
+	else
+	{
+		emit_codes(
+				V(op_code::POP_N),
+				static_cast<chunk::code_type>(scope->names().size())
+		);
+	}
+
 	scope_iterator_--;
 }
 

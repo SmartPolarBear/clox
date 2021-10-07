@@ -123,6 +123,10 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		{
 			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		}
+		else if (secondary & SEC_OP_UPVALUE)
+		{
+			out.out() << std::format(" Upvalue {}", codes_[offset + 1]) << endl;
+		}
 		else if (secondary & SEC_OP_FUNC)
 		{
 			out.out() << std::format(" ID={}, constant {} '{}'", codes_[offset + 1], codes_[offset + 2],

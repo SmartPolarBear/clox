@@ -11,12 +11,13 @@ fun closure()
 
 var c=closure();
 c();
+/*
 c();
 c();
 c();
 c();
 
-/*
+
 fun closure(){
     fun p(i:integer){
         print i;
