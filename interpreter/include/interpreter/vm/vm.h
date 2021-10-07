@@ -23,15 +23,20 @@
 //
 #pragma once
 
+#include <base/iterable_stack.h>
+
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/exceptions.h>
 
+#include <interpreter/vm/string_object.h>
+#include <interpreter/vm/closure_object.h>
+
 #include <memory>
-#include "string_object.h"
-#include "closure_object.h"
+#include <map>
+
 
 namespace clox::interpreting::vm
 {
@@ -216,7 +221,9 @@ private:
 
 	value& slot_at(const call_frame& frame, size_t slot);
 
-	upvalue_object_raw_pointer capture_upvalue(value *val);
+	upvalue_object_raw_pointer capture_upvalue(value* val);
+
+	void close_upvalues(value *last);
 
 	// call frame
 
@@ -239,10 +246,6 @@ private:
 
 	std::shared_ptr<object_heap> heap_{};
 
-//	std::shared_ptr<chunk> chunk_{};
-
-//	ip_type ip_{};
-
 	value_list_type stack_{};
 
 	global_table_type globals_{};
@@ -250,6 +253,8 @@ private:
 	function_table_type functions_{};
 
 	call_frame_list_type call_frames_{};
+
+	std::map<value*, upvalue_object_raw_pointer> open_upvalues_{}; // it should be ordered
 
 	mutable helper::console* cons_{ nullptr };
 };

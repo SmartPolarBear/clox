@@ -376,6 +376,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case CLOSE_UPVALUE:
+	{
+		close_upvalues(&(*(stack_.rbegin() + 1)));
+		pop();
+		break;
+	}
 
 	case INC:
 	case DEC:
@@ -656,7 +662,21 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 
 upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val)
 {
+	if (open_upvalues_.contains(val))
+	{
+		return open_upvalues_.at(val);
+	}
 	auto ret = heap_->allocate<upvalue_object>(val);
+	open_upvalues_.insert_or_assign(val, ret);
 	return ret;
+}
+
+void virtual_machine::close_upvalues(value* last)
+{
+	const auto begin = open_upvalues_.find(last);
+	for (auto iter = begin; iter != open_upvalues_.end();)
+	{
+		iter = open_upvalues_.erase(iter);
+	}
 }
 

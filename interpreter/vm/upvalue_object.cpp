@@ -38,3 +38,9 @@ clox::interpreting::vm::value* clox::interpreting::vm::upvalue_object::get_value
 {
 	return value_;
 }
+
+void clox::interpreting::vm::upvalue_object::close()
+{
+	closed_ = *value_;
+	value_ = &closed_.value();
+}
