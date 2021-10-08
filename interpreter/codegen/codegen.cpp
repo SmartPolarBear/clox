@@ -647,6 +647,8 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	scope_begin();
 
+	emit_code(V(vm::op_code::POP));
+
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
 	for (const auto& param: fs->get_params())

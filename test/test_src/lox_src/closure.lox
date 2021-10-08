@@ -12,14 +12,15 @@ fun closure()
 // FIXME upvalue is add to wrong scope
 var c=closure();
 print "fuck";
+
 c();
+
+c();
+c();
+c();
+c();
+
 /*
-c();
-c();
-c();
-c();
-
-
 fun closure(){
     fun p(i:integer){
         print i;

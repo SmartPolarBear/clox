@@ -102,9 +102,9 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto ret = pop();
 
-		while (stack_.size() >= top_call_frame().stack_offset()) // pop function's value
+		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
 		{
-			stack_.pop_back();
+			pop();
 		}
 
 		if (call_frames_.empty())
@@ -112,6 +112,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			pop();
 			return { virtual_machine_status::OK, true };
 		}
+
+		close_upvalues(frame.stack_offset());
 
 		push(ret);
 		pop_call_frame();
@@ -198,6 +200,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case ADD:
 	{
+
 		if (is_string_value(peek(1)))
 		{
 			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
@@ -207,11 +210,17 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		}
 		else
 		{
+			assert(!stack_.empty());
+
 			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 			{
 				return l + r;
 			});
+
+			assert(!stack_.empty());
 		}
+
+
 		break;
 	}
 	case SUBTRACT:
@@ -311,7 +320,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		else if (secondary & SEC_OP_UPVALUE)
 		{
 			auto slot = next_code();
-			push(*frame.closure()->upvalues()[slot]->get_value());
+			auto val = *frame.closure()->upvalues()[slot]->get_value();
+			push(val);
 		}
 		else
 		{
@@ -379,7 +389,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		// FIXME: fix the bug that CLOSE_UPVALUE is generated after return so that it will never be executed
 	case CLOSE_UPVALUE:
 	{
-		close_upvalues(&(*(stack_.rbegin())));
+		close_upvalues(stack_.size() - 1);
 		pop();
 		break;
 	}
@@ -517,7 +527,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 				auto index = next_code();
 				if (local)
 				{
-					closure->upvalues().push_back(capture_upvalue(&slot_at(frame, index)));
+					closure->upvalues().push_back(
+							capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
 				}
 				else
 				{
@@ -569,6 +580,7 @@ value virtual_machine::pop()
 {
 	auto ret = stack_.back();
 	stack_.pop_back();
+	assert(!stack_.empty());
 	return ret;
 }
 
@@ -661,20 +673,20 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 			stack_offset);
 }
 
-upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val)
+upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val, index_type stack_index)
 {
-	if (open_upvalues_.contains(val))
+	if (open_upvalues_.contains(stack_index))
 	{
-		return open_upvalues_.at(val);
+		return open_upvalues_.at(stack_index);
 	}
 	auto ret = heap_->allocate<upvalue_object>(val);
-	open_upvalues_.insert_or_assign(val, ret);
+	open_upvalues_.insert_or_assign(stack_index, ret);
 	return ret;
 }
 
-void virtual_machine::close_upvalues(value* last)
+void virtual_machine::close_upvalues(index_type last)
 {
-	const auto begin = open_upvalues_.find(last);
+	const auto begin = open_upvalues_.lower_bound(last);
 	for (auto iter = begin; iter != open_upvalues_.end();)
 	{
 		iter->second->close();
