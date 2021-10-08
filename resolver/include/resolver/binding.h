@@ -32,6 +32,8 @@
 
 #include <memory>
 #include <optional>
+#include <utility>
+#include <variant>
 
 namespace clox::resolving
 {
@@ -60,8 +62,9 @@ class variable_binding final
 public:
 	variable_binding() = default;
 
-	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, std::shared_ptr<named_symbol> symbol)
-			: expr_(std::move(e)), depth_(d), symbol_(std::move(symbol))
+	explicit variable_binding(std::shared_ptr<parsing::expression> e, int64_t d, std::shared_ptr<named_symbol> symbol,
+			std::shared_ptr<clox::resolving::upvalue> upval = nullptr)
+			: expr_(std::move(e)), depth_(d), symbol_(std::move(symbol)), upvalue_(std::move(upval))
 	{
 	}
 
@@ -85,12 +88,18 @@ public:
 		return symbol_;
 	}
 
+	[[nodiscard]] std::shared_ptr<clox::resolving::upvalue> upvalue() const
+	{
+		return upvalue_;
+	}
+
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	int64_t depth_{ 0 };
 
-	std::shared_ptr<named_symbol> symbol_{ nullptr };
+	std::shared_ptr<named_symbol> symbol_{};
 
+	std::shared_ptr<clox::resolving::upvalue> upvalue_{};
 };
 
 

@@ -8,6 +8,7 @@ target_sources(clox
         PRIVATE closure_object.cpp
         PRIVATE heap.cpp
         PRIVATE value.cpp
+        PRIVATE upvalue_object.cpp
         PRIVATE chunk.cpp)
 
 target_sources(clox_test
@@ -18,5 +19,6 @@ target_sources(clox_test
         PRIVATE closure_object.cpp
         PRIVATE heap.cpp
         PRIVATE value.cpp
+        PRIVATE upvalue_object.cpp
         PRIVATE chunk.cpp)
 

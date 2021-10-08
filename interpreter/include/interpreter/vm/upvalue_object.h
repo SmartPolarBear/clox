@@ -24,10 +24,36 @@
 
 #pragma once
 
+#include <interpreter/vm/object.h>
+#include <interpreter/vm/value.h>
+#include <optional>
+
+
 namespace clox::interpreting::vm
 {
-class upvalue final
+class upvalue_object final
+		: public object
 {
-	
+public:
+	explicit upvalue_object(value* val)
+			: value_(val)
+	{
+	}
+
+	std::string printable_string() override;
+
+	[[nodiscard]] object_type type() const noexcept override;
+
+	void close();
+
+	value* get_value() const;
+
+private:
+	value* value_{ nullptr };
+
+	std::optional<value> closed_{ std::nullopt };
 };
+
+using upvalue_object_raw_pointer = upvalue_object*;
+
 }

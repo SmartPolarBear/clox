@@ -225,7 +225,7 @@ std::shared_ptr<upvalue>
 resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_ptr<function_scope>& bottom,
 		const shared_ptr<symbol>& sym)
 {
-	if (cur == bottom)
+	if (auto parent = cur->parent_function_.lock();parent == bottom)
 	{
 		if (auto named = downcast_symbol<named_symbol>(sym);named->is_captured())
 		{
@@ -257,9 +257,13 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 			{
 				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
 				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);
+				bindings_->put<variable_binding>(expr, expr, depth, ret, upvalue);
+			}
+			else
+			{
+				bindings_->put<variable_binding>(expr, expr, depth, ret);
 			}
 
-			bindings_->put<variable_binding>(expr, expr, depth, ret);
 
 			return ret;
 		}

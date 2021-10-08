@@ -23,15 +23,21 @@
 //
 #pragma once
 
+#include <base/iterable_stack.h>
+
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/exceptions.h>
 
+#include <interpreter/vm/string_object.h>
+#include <interpreter/vm/closure_object.h>
+
 #include <memory>
-#include "string_object.h"
-#include "closure_object.h"
+#include <map>
+
+#include <gsl/gsl>
 
 namespace clox::interpreting::vm
 {
@@ -52,6 +58,8 @@ public:
 	using global_table_type = std::unordered_map<std::string, value>;
 	using function_table_type = std::unordered_map<full_opcode_type, value>;
 	using ip_type = chunk::iterator_type;
+
+	using index_type = gsl::index;
 
 	class call_frame final
 	{
@@ -131,14 +139,17 @@ private:
 		{
 			auto l = peek(0), r = peek(1);
 
-			auto right = get_number_promoted(peek(0));
-			auto left = get_number_promoted(peek(1));
+			auto right = get_number_promoted(l);
+
+			auto left = get_number_promoted(r);
 
 			pop_two_and_push(op(left, right));
 		}
 		catch (const std::exception& e)
 		{
+			assert(!stack_.empty());
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			assert(!stack_.empty());
 		}
 	}
 
@@ -148,10 +159,14 @@ private:
 	{
 		try
 		{
+			assert(!stack_.empty());
+
 			auto right = get_string(peek(0));
 			auto left = get_string(peek(1));
 
 			pop_two_and_push(op(left, right));
+
+			assert(!stack_.empty());
 		}
 		catch (const std::exception& e)
 		{
@@ -216,6 +231,10 @@ private:
 
 	value& slot_at(const call_frame& frame, size_t slot);
 
+	upvalue_object_raw_pointer capture_upvalue(value* val, index_type stack_index);
+
+	void close_upvalues(index_type last);
+
 	// call frame
 
 	call_frame& top_call_frame()
@@ -237,10 +256,6 @@ private:
 
 	std::shared_ptr<object_heap> heap_{};
 
-//	std::shared_ptr<chunk> chunk_{};
-
-//	ip_type ip_{};
-
 	value_list_type stack_{};
 
 	global_table_type globals_{};
@@ -248,6 +263,8 @@ private:
 	function_table_type functions_{};
 
 	call_frame_list_type call_frames_{};
+
+	std::map<index_type, upvalue_object_raw_pointer> open_upvalues_{}; // it should be ordered
 
 	mutable helper::console* cons_{ nullptr };
 };

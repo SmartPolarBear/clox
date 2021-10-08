@@ -19,50 +19,28 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/6/2021.
 //
 
-#pragma once
-
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/function_object.h>
 #include <interpreter/vm/upvalue_object.h>
 
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
+std::string clox::interpreting::vm::upvalue_object::printable_string()
 {
-class closure_object final
-		: public object
+	return std::format("Upvalue to {:x}", (uintptr_t)value_);
+}
+
+clox::interpreting::vm::object_type clox::interpreting::vm::upvalue_object::type() const noexcept
 {
-public:
-	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
+	return object_type::UPVALUE;
+}
 
-	std::string printable_string() override;
+clox::interpreting::vm::value* clox::interpreting::vm::upvalue_object::get_value() const
+{
+	return value_;
+}
 
-	[[nodiscard]] object_type type() const noexcept override;
-
-	[[nodiscard]] function_object_raw_pointer function() const
-	{
-		return function_;
-	}
-
-	[[nodiscard]] std::vector<upvalue_object_raw_pointer>& upvalues() const
-	{
-		return upvalues_;
-	}
-
-private:
-	function_object_raw_pointer function_{};
-
-	mutable std::vector<upvalue_object_raw_pointer> upvalues_{};
-};
-
-using closure_object_raw_pointer = closure_object*;
+void clox::interpreting::vm::upvalue_object::close()
+{
+	closed_ = *value_;
+	value_ = &closed_.value();
 }

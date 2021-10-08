@@ -31,6 +31,7 @@
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
+#include <interpreter/vm/upvalue_object.h>
 
 #include <gsl/gsl>
 
@@ -103,7 +104,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
 		{
-			stack_.pop_back();
+			pop();
 		}
 
 		if (call_frames_.empty())
@@ -111,6 +112,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			pop();
 			return { virtual_machine_status::OK, true };
 		}
+
+		close_upvalues(frame.stack_offset());
 
 		push(ret);
 		pop_call_frame();
@@ -197,6 +200,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case ADD:
 	{
+
 		if (is_string_value(peek(1)))
 		{
 			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
@@ -206,11 +210,17 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		}
 		else
 		{
+			assert(!stack_.empty());
+
 			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
 			{
 				return l + r;
 			});
+
+			assert(!stack_.empty());
 		}
+
+
 		break;
 	}
 	case SUBTRACT:
@@ -305,9 +315,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		else if (secondary & SEC_OP_LOCAL)
 		{
 			auto slot = next_code();
-//			push(stack_[slot]);
 			push(slot_at(frame, slot));
-
+		}
+		else if (secondary & SEC_OP_UPVALUE)
+		{
+			auto slot = next_code();
+			auto val = *frame.closure()->upvalues()[slot]->get_value();
+			push(val);
 		}
 		else
 		{
@@ -331,6 +345,11 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			auto slot = next_code();
 			slot_at(frame, slot) = peek(0);
+		}
+		else if (secondary & SEC_OP_UPVALUE)
+		{
+			auto slot = next_code();
+			*frame.closure()->upvalues()[slot]->get_value() = peek();
 		}
 		else
 		{
@@ -367,6 +386,13 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+		// FIXME: fix the bug that CLOSE_UPVALUE is generated after return so that it will never be executed
+	case CLOSE_UPVALUE:
+	{
+		close_upvalues(stack_.size() - 1);
+		pop();
+		break;
+	}
 
 	case INC:
 	case DEC:
@@ -499,8 +525,15 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			{
 				auto local = next_code();
 				auto index = next_code();
-
-
+				if (local)
+				{
+					closure->upvalues().push_back(
+							capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
+				}
+				else
+				{
+					closure->upvalues().push_back(frame.closure()->upvalues()[index]);
+				}
 			}
 		}
 
@@ -547,6 +580,7 @@ value virtual_machine::pop()
 {
 	auto ret = stack_.back();
 	stack_.pop_back();
+	assert(!stack_.empty());
 	return ret;
 }
 
@@ -637,5 +671,26 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 	push_call_frame(closure,
 			closure->function()->body()->begin(),
 			stack_offset);
+}
+
+upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val, index_type stack_index)
+{
+	if (open_upvalues_.contains(stack_index))
+	{
+		return open_upvalues_.at(stack_index);
+	}
+	auto ret = heap_->allocate<upvalue_object>(val);
+	open_upvalues_.insert_or_assign(stack_index, ret);
+	return ret;
+}
+
+void virtual_machine::close_upvalues(index_type last)
+{
+	const auto begin = open_upvalues_.lower_bound(last);
+	for (auto iter = begin; iter != open_upvalues_.end();)
+	{
+		iter->second->close();
+		iter = open_upvalues_.erase(iter);
+	}
 }
 
