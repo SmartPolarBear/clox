@@ -108,7 +108,12 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 
 void resolver::scope_begin()
 {
-	scope_begin(scopes_.top()->container_function());
+//	scope_begin(scopes_.top()->container_function());
+	auto next = make_shared<scope>(scopes_.top(),  scopes_.top()->container_function());
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
 }
 
 void resolver::scope_begin(function_id_type func_id)

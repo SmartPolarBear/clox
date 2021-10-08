@@ -36,6 +36,7 @@
 
 #include <memory>
 #include <map>
+#include <ranges>
 
 #include <gsl/gsl>
 
@@ -128,6 +129,22 @@ private:
 
 		cons_->error() << std::format(fmt, args...);
 
+		cons_->error() << "Call stack:" << std::endl;
+		for (auto& frm: call_frames_ | std::ranges::views::reverse)
+		{
+			auto func = frm.function();
+			auto line = func->body()->line_of(frm.ip() - 1);
+			cons_->error() << std::format("[Line {}] in ", line);
+			if (func->name().empty())
+			{
+				cons_->error() << "script" << std::endl;
+			}
+			else
+			{
+				cons_->error() << func->name() << std::endl;
+			}
+		}
+
 		reset_stack();
 	}
 
@@ -147,9 +164,8 @@ private:
 		}
 		catch (const std::exception& e)
 		{
-			assert(!stack_.empty());
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
-			assert(!stack_.empty());
+			throw e;
 		}
 	}
 
@@ -159,18 +175,15 @@ private:
 	{
 		try
 		{
-			assert(!stack_.empty());
-
 			auto right = get_string(peek(0));
 			auto left = get_string(peek(1));
 
 			pop_two_and_push(op(left, right));
-
-			assert(!stack_.empty());
 		}
 		catch (const std::exception& e)
 		{
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
 		}
 	}
 
