@@ -102,7 +102,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto ret = pop();
 
-		while (stack_.size() > top_call_frame().stack_offset()) // pop function's value
+		while (stack_.size() >= top_call_frame().stack_offset()) // pop function's value
 		{
 			stack_.pop_back();
 		}
@@ -376,9 +376,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+		// FIXME: fix the bug that CLOSE_UPVALUE is generated after return so that it will never be executed
 	case CLOSE_UPVALUE:
 	{
-		close_upvalues(&(*(stack_.rbegin() + 1)));
+		close_upvalues(&(*(stack_.rbegin())));
 		pop();
 		break;
 	}
@@ -676,6 +677,7 @@ void virtual_machine::close_upvalues(value* last)
 	const auto begin = open_upvalues_.find(last);
 	for (auto iter = begin; iter != open_upvalues_.end();)
 	{
+		iter->second->close();
 		iter = open_upvalues_.erase(iter);
 	}
 }

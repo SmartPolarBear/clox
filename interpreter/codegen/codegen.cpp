@@ -659,7 +659,6 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	scope_end();
 
 	auto func = function_pop();
-
 	set_constant(constant, func);
 
 }

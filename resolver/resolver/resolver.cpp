@@ -225,7 +225,7 @@ std::shared_ptr<upvalue>
 resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_ptr<function_scope>& bottom,
 		const shared_ptr<symbol>& sym)
 {
-	if (cur == bottom)
+	if (auto parent = cur->parent_function_.lock();parent == bottom)
 	{
 		if (auto named = downcast_symbol<named_symbol>(sym);named->is_captured())
 		{

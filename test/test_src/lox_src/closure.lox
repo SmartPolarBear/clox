@@ -9,7 +9,9 @@ fun closure()
     return count;
 }
 
+// FIXME upvalue is add to wrong scope
 var c=closure();
+print "fuck";
 c();
 /*
 c();
