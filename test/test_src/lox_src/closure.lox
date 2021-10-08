@@ -3,7 +3,12 @@ fun closure()
     var i=0;
     fun count(){
         i=i+1;
-        print i;
+        if(i!=3.0) {
+            print i;
+        }
+        else {
+            print "fuck";
+        }
     }
 
     return count;
@@ -11,8 +16,6 @@ fun closure()
 
 // FIXME upvalue is add to wrong scope
 var c=closure();
-print "fuck";
-
 c();
 
 c();

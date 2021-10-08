@@ -160,7 +160,28 @@ private:
 
 			auto left = get_number_promoted(r);
 
-			pop_two_and_push(op(left, right));
+			scanning::floating_literal_type ret = op(left, right);
+
+			if (std::holds_alternative<floating_value_type>(l) ||
+				std::holds_alternative<floating_value_type>(r))
+			{
+				pop_two_and_push(ret);
+			}
+			else if (std::holds_alternative<integer_value_type>(l) ||
+					 std::holds_alternative<integer_value_type>(r))
+			{
+				pop_two_and_push(static_cast<integer_value_type>(ret));
+			}
+			else if (std::holds_alternative<boolean_value_type>(l) ||
+					 std::holds_alternative<boolean_value_type>(r))
+			{
+				pop_two_and_push(static_cast<scanning::boolean_literal_type>(ret));
+			}
+			else
+			{
+				pop_two_and_push(
+						static_cast<integer_value_type>(ret)); // cannot combine for the sake of the rules of type promoting
+			}
 		}
 		catch (const std::exception& e)
 		{
