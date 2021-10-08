@@ -154,7 +154,7 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 
 	if (auto upvalue = binding->upvalue();upvalue)
 	{
-		emit_codes(VC(SEC_OP_UPVALUE, op_code::SET), upvalue->access_index());
+		emit_codes(VC(SEC_OP_UPVALUE, op_code::SET), upvalue->current_index());
 	}
 	else
 	{
@@ -381,7 +381,7 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	{
 		if (auto upvalue = binding->upvalue();upvalue)
 		{
-			emit_codes(VC(SEC_OP_UPVALUE, op_code::GET), upvalue->access_index());
+			emit_codes(VC(SEC_OP_UPVALUE, op_code::GET), upvalue->current_index());
 		}
 		else
 		{

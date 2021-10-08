@@ -88,6 +88,11 @@ public:
 	}
 
 
+	[[nodiscard]] index_type current_index()
+	{
+		return index_;
+	}
+
 	bool operator==(const upvalue& another) const
 	{
 		if (holds_symbol())
@@ -96,7 +101,8 @@ public:
 		}
 		else
 		{
-			return another.holds_upvalue() && get_object<upvalue_type>().get() == another.get_object<upvalue_type>().get();
+			return another.holds_upvalue() &&
+				   get_object<upvalue_type>().get() == another.get_object<upvalue_type>().get();
 		}
 	}
 
