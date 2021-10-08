@@ -686,6 +686,12 @@ void codegen::emit_code(vm::full_opcode_type byte)
 	current_chunk()->write(byte);
 }
 
+void codegen::emit_code(vm::full_opcode_type byte, const token& lead_token)
+{
+	current_chunk()->write(byte, lead_token);
+}
+
+
 void codegen::emit_return()
 {
 	emit_code(V(op_code::CONSTANT_NIL));
@@ -812,4 +818,5 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
+
 
