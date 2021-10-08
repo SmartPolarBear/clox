@@ -189,39 +189,39 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 	switch (be->get_op().type())
 	{
 	case scanning::token_type::PLUS:
-		emit_code(V(vm::op_code::ADD));
+		emit_code(be->get_op(), V(vm::op_code::ADD));
 		break;
 	case scanning::token_type::MINUS:
-		emit_code(V(vm::op_code::SUBTRACT));
+		emit_code(be->get_op(), V(vm::op_code::SUBTRACT));
 		break;
 	case scanning::token_type::SLASH:
-		emit_code(V(vm::op_code::DIVIDE));
+		emit_code(be->get_op(), V(vm::op_code::DIVIDE));
 		break;
 	case scanning::token_type::STAR:
-		emit_code(V(vm::op_code::MULTIPLY));
+		emit_code(be->get_op(), V(vm::op_code::MULTIPLY));
 		break;
 	case scanning::token_type::STAR_STAR:
-		emit_code(V(vm::op_code::POW));
+		emit_code(be->get_op(), V(vm::op_code::POW));
 		break;
 
 	case scanning::token_type::EQUAL_EQUAL:
-		emit_code(V(vm::op_code::EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::EQUAL));
 		break;
 	case scanning::token_type::BANG_EQUAL:
-		emit_code(V(vm::op_code::EQUAL));
-		emit_code(V(vm::op_code::NOT));
+		emit_code(be->get_op(), V(vm::op_code::EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::NOT));
 		break;
 	case scanning::token_type::GREATER:
-		emit_code(V(vm::op_code::GREATER));
+		emit_code(be->get_op(), V(vm::op_code::GREATER));
 		break;
 	case scanning::token_type::GREATER_EQUAL:
-		emit_code(V(vm::op_code::GREATER_EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::GREATER_EQUAL));
 		break;
 	case scanning::token_type::LESS:
-		emit_code(V(vm::op_code::LESS));
+		emit_code(be->get_op(), V(vm::op_code::LESS));
 		break;
 	case scanning::token_type::LESS_EQUAL:
-		emit_code(V(vm::op_code::LESS_EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::LESS_EQUAL));
 		break;
 	default:
 		UNREACHABLE_EXCEPTION;
@@ -236,10 +236,10 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
-		emit_code(V(vm::op_code::NEGATE));
+		emit_code(ue->get_op(), V(vm::op_code::NEGATE));
 		break;
 	case scanning::token_type::BANG:
-		emit_code(V(vm::op_code::NOT));
+		emit_code(ue->get_op(), V(vm::op_code::NOT));
 		break;
 
 	case scanning::token_type::PLUS_PLUS:
@@ -338,17 +338,18 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 {
 	auto val = le->get_value();
 
-	std::visit([this](auto&& arg)
+	std::visit([this, &le](auto&& arg)
 	{
 		using T = std::decay_t<decltype(arg)>;
 
 		if constexpr(std::is_same_v<T, boolean_literal_type>)
 		{
-			emit_code(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
+			emit_code(le->get_token(),
+					V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
 		}
 		else if constexpr(std::is_same_v<T, nil_value_tag_type>)
 		{
-			emit_code(V(vm::op_code::CONSTANT_NIL));
+			emit_code(le->get_token(), V(vm::op_code::CONSTANT_NIL));
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
@@ -639,7 +640,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	assert(id_ret.has_value());
 
-	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
+	emit_codes(fs->get_name(), VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
 
 	emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id_ret.value());
 
@@ -668,7 +669,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
 {
 	generate(rs->get_val());
-	emit_code(V(op_code::RETURN));
+	emit_code(rs->get_return_keyword(), V(op_code::RETURN));
 }
 
 void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
@@ -686,7 +687,7 @@ void codegen::emit_code(vm::full_opcode_type byte)
 	current_chunk()->write(byte);
 }
 
-void codegen::emit_code(vm::full_opcode_type byte, const token& lead_token)
+void codegen::emit_code(const token& lead_token, vm::full_opcode_type byte)
 {
 	current_chunk()->write(byte, lead_token);
 }
