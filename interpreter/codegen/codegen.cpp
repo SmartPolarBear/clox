@@ -94,7 +94,7 @@ void codegen::scope_end()
 {
 	auto scope = *scope_iterator_;
 
-	if(scope->scope_type()==resolving::scope_types::FUNCTION_SCOPE)
+	if (scope->scope_type() == resolving::scope_types::FUNCTION_SCOPE)
 	{
 		for (auto& var: scope->names())
 		{

@@ -290,10 +290,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case EQUAL:
 	{
-		auto right = peek(0);
-		auto left = peek(1);
-
-		pop_two_and_push(left == right);
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l == r;
+		});
 
 		break;
 	}
@@ -596,8 +596,8 @@ value virtual_machine::peek(size_t offset)
 
 inline void virtual_machine::pop_two_and_push(const value& val)
 {
-	pop();
-	pop();
+	auto left = pop();
+	auto right = pop();
 
 	push(val);
 }
@@ -628,7 +628,6 @@ std::string virtual_machine::next_variable_name()
 	return get<std::string>(next_constant());
 }
 
-// TODO: change it to accept function_object
 virtual_machine_status virtual_machine::run(closure_object_raw_pointer closure)
 {
 	push(closure);

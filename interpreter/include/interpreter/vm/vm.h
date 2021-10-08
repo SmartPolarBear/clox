@@ -36,6 +36,7 @@
 
 #include <memory>
 #include <map>
+#include <ranges>
 
 #include <gsl/gsl>
 
@@ -46,6 +47,12 @@ enum class virtual_machine_status
 {
 	OK,
 	RUNTIME_ERROR,
+};
+
+template<typename F, typename R, class ...Args>
+concept BinaryOperator=
+requires(F&& f, Args&& ... args) {
+	{ std::invoke(std::forward<F>(f), std::forward<Args>(args)...) }->std::same_as<R>;
 };
 
 class virtual_machine final
@@ -128,11 +135,27 @@ private:
 
 		cons_->error() << std::format(fmt, args...);
 
+		cons_->error() << "Call stack:" << std::endl;
+		for (auto& frm: call_frames_ | std::ranges::views::reverse)
+		{
+			auto func = frm.function();
+			auto line = func->body()->line_of(frm.ip() - 1);
+			cons_->error() << std::format("[Line {}] in ", line);
+			if (func->name().empty())
+			{
+				cons_->error() << "script" << std::endl;
+			}
+			else
+			{
+				cons_->error() << func->name() << std::endl;
+			}
+		}
+
 		reset_stack();
 	}
 
 	template<typename TOp>
-	requires std::invocable<TOp, scanning::floating_literal_type, scanning::floating_literal_type>
+	requires BinaryOperator<TOp, floating_value_type, floating_value_type, floating_value_type>
 	inline void binary_op(TOp op)
 	{
 		try
@@ -143,36 +166,91 @@ private:
 
 			auto left = get_number_promoted(r);
 
-			pop_two_and_push(op(left, right));
+			auto ret = op(left, right);
+
+			if (std::holds_alternative<floating_value_type>(l) ||
+				std::holds_alternative<floating_value_type>(r))
+			{
+				pop_two_and_push(ret);
+			}
+			else if (std::holds_alternative<integer_value_type>(l) ||
+					 std::holds_alternative<integer_value_type>(r))
+			{
+				pop_two_and_push(static_cast<integer_value_type>(ret));
+			}
+			else if (std::holds_alternative<boolean_value_type>(l) ||
+					 std::holds_alternative<boolean_value_type>(r))
+			{
+				pop_two_and_push(static_cast<scanning::boolean_literal_type>(ret));
+			}
+			else
+			{
+				pop_two_and_push(
+						static_cast<integer_value_type>(ret)); // cannot combine for the sake of the rules of type promoting
+			}
 		}
 		catch (const std::exception& e)
 		{
-			assert(!stack_.empty());
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
-			assert(!stack_.empty());
+			throw e;
 		}
 	}
 
 	template<typename TOp>
-	requires std::invocable<TOp, string_object_raw_pointer, string_object_raw_pointer>
+	requires BinaryOperator<TOp, object_raw_pointer, string_object_raw_pointer, string_object_raw_pointer>
 	inline void binary_op(TOp op)
 	{
 		try
 		{
-			assert(!stack_.empty());
-
 			auto right = get_string(peek(0));
 			auto left = get_string(peek(1));
 
 			pop_two_and_push(op(left, right));
-
-			assert(!stack_.empty());
 		}
 		catch (const std::exception& e)
 		{
 			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
 		}
 	}
+
+	// for comparing, whose op returns bool value
+	template<typename TOp>
+	requires BinaryOperator<TOp, bool, floating_value_type, floating_value_type>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_number_promoted(peek(0));
+			auto left = get_number_promoted(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
+		}
+	}
+
+	template<typename TOp>
+	requires BinaryOperator<TOp, bool, string_object_raw_pointer, string_object_raw_pointer>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_string(peek(0));
+			auto left = get_string(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
+		}
+	}
+
 
 	void call_value(const value& val, size_t arg_count);
 
