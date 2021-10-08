@@ -49,6 +49,12 @@ enum class virtual_machine_status
 	RUNTIME_ERROR,
 };
 
+template<typename F, typename R, class ...Args>
+concept BinaryOperator=
+requires(F&& f, Args&& ... args) {
+	{ std::invoke(std::forward<F>(f), std::forward<Args>(args)...) }->std::same_as<R>;
+};
+
 class virtual_machine final
 {
 public:
@@ -149,7 +155,7 @@ private:
 	}
 
 	template<typename TOp>
-	requires std::invocable<TOp, scanning::floating_literal_type, scanning::floating_literal_type>
+	requires BinaryOperator<TOp, floating_value_type, floating_value_type, floating_value_type>
 	inline void binary_op(TOp op)
 	{
 		try
@@ -160,7 +166,7 @@ private:
 
 			auto left = get_number_promoted(r);
 
-			scanning::floating_literal_type ret = op(left, right);
+			auto ret = op(left, right);
 
 			if (std::holds_alternative<floating_value_type>(l) ||
 				std::holds_alternative<floating_value_type>(r))
@@ -191,7 +197,7 @@ private:
 	}
 
 	template<typename TOp>
-	requires std::invocable<TOp, string_object_raw_pointer, string_object_raw_pointer>
+	requires BinaryOperator<TOp, object_raw_pointer, string_object_raw_pointer, string_object_raw_pointer>
 	inline void binary_op(TOp op)
 	{
 		try
@@ -207,6 +213,44 @@ private:
 			throw e;
 		}
 	}
+
+	// for comparing, whose op returns bool value
+	template<typename TOp>
+	requires BinaryOperator<TOp, bool, floating_value_type, floating_value_type>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_number_promoted(peek(0));
+			auto left = get_number_promoted(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
+		}
+	}
+
+	template<typename TOp>
+	requires BinaryOperator<TOp, bool, string_object_raw_pointer, string_object_raw_pointer>
+	inline void binary_op(TOp op)
+	{
+		try
+		{
+			auto right = get_string(peek(0));
+			auto left = get_string(peek(1));
+
+			pop_two_and_push(op(left, right));
+		}
+		catch (const std::exception& e)
+		{
+			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			throw e;
+		}
+	}
+
 
 	void call_value(const value& val, size_t arg_count);
 

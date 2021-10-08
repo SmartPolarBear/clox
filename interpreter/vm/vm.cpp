@@ -290,10 +290,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case EQUAL:
 	{
-		auto right = peek(0);
-		auto left = peek(1);
-
-		pop_two_and_push(left == right);
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		{
+			return l == r;
+		});
 
 		break;
 	}
