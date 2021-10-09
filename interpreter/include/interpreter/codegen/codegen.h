@@ -158,7 +158,7 @@ private:
 
 	vm::chunk::code_type emit_constant(const vm::value& val);
 
-	vm::chunk::difference_type emit_jump(vm::full_opcode_type jmp);
+	vm::chunk::difference_type emit_jump(const scanning::token& lead_token, vm::full_opcode_type jmp);
 
 	void patch_jump(vm::chunk::difference_type pos);
 

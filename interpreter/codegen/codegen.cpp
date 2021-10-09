@@ -411,12 +411,13 @@ clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shar
 {
 	generate(te->get_cond());
 
-	auto false_jmp = emit_jump(V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
+	auto false_jmp = emit_jump(te->get_colon(),
+			V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
 
 	emit_code(V(op_code::POP)); // pop the cond value
 	generate(te->get_true_expr());  // calculate the true expression
 
-	auto end_jmp = emit_jump(V(op_code::JUMP)); // skip the false expression
+	auto end_jmp = emit_jump(te->get_qmark(), V(op_code::JUMP)); // skip the false expression
 
 	// Here goes the false expression
 	patch_jump(false_jmp);
@@ -440,7 +441,7 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 		generate(le->get_left()); // calculate lhs expression first.
 
 		// if lhs is false, jump to end and leave the false value in the stack
-		auto end_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+		auto end_jmp = emit_jump(le->get_op(), V(op_code::JUMP_IF_FALSE));
 
 		// if lhs is true, the value is useless so that it is discarded (poped)
 		emit_code(V(op_code::POP));
@@ -457,10 +458,10 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 		generate(le->get_left()); // calculate lhs first
 
 		// if value is false, we jump to the calculation of rhs
-		auto false_jmp = emit_jump(V(vm::op_code::JUMP_IF_FALSE));
+		auto false_jmp = emit_jump(le->get_op(), V(vm::op_code::JUMP_IF_FALSE));
 
 		// if value is true, we reach here and jump to the end
-		auto true_jmp = emit_jump(V(vm::op_code::JUMP));
+		auto true_jmp = emit_jump(le->get_op(), V(vm::op_code::JUMP));
 
 		// Here goes the calculation of rhs
 		patch_jump(false_jmp);
@@ -534,7 +535,7 @@ void clox::interpreting::compiling::codegen::visit_expression_statement(
 void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& pe)
 {
 	generate(pe->get_expr());
-	emit_code(V(op_code::PRINT));
+	emit_code(pe->get_keyword(), V(op_code::PRINT));
 }
 
 void
@@ -579,7 +580,7 @@ void clox::interpreting::compiling::codegen::visit_while_statement(const std::sh
 
 	generate(ws->get_cond());
 
-	auto exit_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+	auto exit_jmp = emit_jump(ws->get_cond_l_paren(), V(op_code::JUMP_IF_FALSE));
 
 	emit_code(V(vm::op_code::POP)); // pop the cond value
 
@@ -602,12 +603,13 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 {
 	generate(ifs->get_cond());
 
-	auto then_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+	auto then_jmp = emit_jump(ifs->get_cond_l_paren(), V(op_code::JUMP_IF_FALSE));
 	emit_code(V(op_code::POP));// pop conditional value when cond is true
 
 	generate(ifs->get_true_stmt());
 
-	auto else_jmp = emit_jump(V(op_code::JUMP)); // when execute true branch, we must skip the else branch
+	auto else_jmp = emit_jump(ifs->get_else_keyword().value_or(ifs->get_cond_l_paren()),
+			V(op_code::JUMP)); // when execute true branch, we must skip the else branch
 
 	patch_jump(then_jmp);
 	emit_code(V(op_code::POP));// pop conditional value when cond is false
@@ -746,7 +748,7 @@ std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shar
 	return binding;
 }
 
-vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
+vm::chunk::difference_type codegen::emit_jump(const token& lead_token, vm::full_opcode_type jmp)
 {
 	emit_code(jmp);
 	emit_code(PATCHABLE_PLACEHOLDER);
@@ -804,16 +806,6 @@ vm::closure_object_raw_pointer codegen::top_level()
 	return heap_->allocate<closure_object>(function_top());
 }
 
-//vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
-//{
-//	if (functions_ids_.contains(func))
-//	{
-//		return functions_ids_.at(func);
-//	}
-//
-//	functions_ids_.insert_or_assign(func, function_id_counter_);
-//	return function_id_counter_++;
-//}
 
 void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {

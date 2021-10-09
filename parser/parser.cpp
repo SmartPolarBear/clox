@@ -639,12 +639,14 @@ std::shared_ptr<statement> parser::if_stmt()
 	auto true_stmt = stmt();
 	decltype(true_stmt) false_stmt{ nullptr };
 
+	std::optional<token> else_keyword{ nullopt };
 	if (match({ token_type::ELSE }))
 	{
+		else_keyword = previous();
 		false_stmt = stmt();
 	}
 
-	return make_shared<if_statement>(cond, lparen, true_stmt, false_stmt);
+	return make_shared<if_statement>(cond, lparen, else_keyword, true_stmt, false_stmt);
 }
 
 std::shared_ptr<statement> parser::return_stmt()
