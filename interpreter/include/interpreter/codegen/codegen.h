@@ -120,7 +120,8 @@ private:
 
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
-	void define_global_variable([[maybe_unused]]const std::string& name, vm::chunk::code_type global);
+	void define_global_variable(const std::string& name, vm::chunk::code_type global,
+			std::optional<scanning::token> tk = std::nullopt);
 
 	void declare_local_variable(const std::string& name, size_t depth = 0);
 
@@ -156,7 +157,7 @@ private:
 
 	void emit_return();
 
-	vm::chunk::code_type emit_constant(const vm::value& val);
+	vm::chunk::code_type emit_constant(const scanning::token& tk, const vm::value& val);
 
 	vm::chunk::difference_type emit_jump(const scanning::token& lead_token, vm::full_opcode_type jmp);
 

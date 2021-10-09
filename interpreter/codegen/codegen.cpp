@@ -154,7 +154,7 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 
 	if (auto upvalue = binding->upvalue();upvalue)
 	{
-		emit_codes(VC(SEC_OP_UPVALUE, op_code::SET), upvalue->current_index());
+		emit_codes(ae->get_name(), VC(SEC_OP_UPVALUE, op_code::SET), upvalue->current_index());
 	}
 	else
 	{
@@ -163,11 +163,11 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		// See opcode.h for the design here in details
 		if (symbol->is_global())
 		{
-			emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+			emit_codes(ae->get_name(), VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
 		}
 		else
 		{
-			emit_codes(VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
+			emit_codes(ae->get_name(), VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
 		}
 	}
 }
@@ -353,11 +353,11 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
-			emit_constant(heap_->allocate<string_object>(arg));
+			emit_constant(le->get_token(), heap_->allocate<string_object>(arg));
 		}
 		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{
-			emit_constant(arg);
+			emit_constant(le->get_token(), arg);
 		}
 		else
 		{
@@ -382,7 +382,7 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	{
 		if (auto upvalue = binding->upvalue();upvalue)
 		{
-			emit_codes(VC(SEC_OP_UPVALUE, op_code::GET), upvalue->current_index());
+			emit_codes(ve->get_name(), VC(SEC_OP_UPVALUE, op_code::GET), upvalue->current_index());
 		}
 		else
 		{
@@ -390,11 +390,11 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 
 			if (symbol->is_global())
 			{
-				emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+				emit_codes(ve->get_name(), VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 			}
 			else if (symbol->is_local())
 			{
-				emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
+				emit_codes(ve->get_name(), VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
 			}
 		}
 	}
@@ -417,7 +417,7 @@ clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shar
 	emit_code(V(op_code::POP)); // pop the cond value
 	generate(te->get_true_expr());  // calculate the true expression
 
-	auto end_jmp = emit_jump(te->get_qmark(), V(op_code::JUMP)); // skip the false expression
+	auto end_jmp = emit_jump(te->get_colon(), V(op_code::JUMP)); // skip the false expression
 
 	// Here goes the false expression
 	patch_jump(false_jmp);
@@ -489,28 +489,28 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
 	{
 
-		emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
-		emit_code(V(op_code::CLOSURE));
+		emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
 
-		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
 		generate(ce->get_callee());
 
-		emit_code(V(op_code::CLOSURE));
+		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
 
-		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 //		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
@@ -547,13 +547,14 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 	}
 	else
 	{
-		emit_code(V(op_code::CONSTANT_NIL));
+		emit_code(vs->get_name(), V(op_code::CONSTANT_NIL));
 	}
 
 
 	if (auto symbol = current_scope()->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
 	{
-		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()));
+		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()),
+				vs->get_name());
 	}
 	else
 	{
@@ -626,12 +627,13 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+	auto constant = emit_constant(fs->get_name(), static_cast<function_object_raw_pointer>(nullptr));
 
 	// define it as variable to follow the function overloading specification
 	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
 	{
-		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
+		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()),
+				fs->get_name());
 	}
 	else
 	{
@@ -701,10 +703,10 @@ void codegen::emit_return()
 	emit_code(V(op_code::RETURN));
 }
 
-vm::chunk::code_type codegen::emit_constant(const value& val)
+vm::chunk::code_type codegen::emit_constant(const scanning::token& tk, const value& val)
 {
 	auto constant = make_constant(val);
-	emit_codes(V(op_code::CONSTANT), constant);
+	emit_codes(tk, V(op_code::CONSTANT), constant);
 	return constant;
 }
 
@@ -720,10 +722,18 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 }
 
 
-void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
+void codegen::define_global_variable(const std::string& name, vm::chunk::code_type global,
+		std::optional<scanning::token> tk)
 {
 //	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
-	emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	if (tk.has_value())[[likely]]
+	{
+		emit_codes(tk.value(), VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	}
+	else
+	{
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	}
 }
 
 void codegen::declare_local_variable(const string& name, size_t depth)

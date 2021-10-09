@@ -62,9 +62,9 @@ void chunk::write(code_type op, int64_t line)
 	else
 	{
 		lines_.push_back(line);
+		last_line_ = line;
 	}
 
-	last_line_ = line;
 }
 
 
