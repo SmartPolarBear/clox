@@ -28,8 +28,12 @@
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
-#include <interpreter/vm/heap.h>
 #include <interpreter/vm/exceptions.h>
+
+#include <interpreter/vm/heap.h>
+#include <interpreter/vm/heap_allocator.h>
+#include <interpreter/vm/gc.h>
+
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>

@@ -46,6 +46,7 @@ public:
 	using raw_pointer = void*;
 
 	friend class gc;
+
 public:
 	object_heap() = default;
 
@@ -76,5 +77,7 @@ private:
 
 	object_list_type objects_{};
 };
+
+
 
 }

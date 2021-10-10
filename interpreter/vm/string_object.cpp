@@ -24,6 +24,11 @@
 
 #include <interpreter/vm/string_object.h>
 
+using namespace std;
+using namespace clox::interpreting::vm;
+
+std::unordered_set<std::string> clox::interpreting::vm::string_object::interns_{};
+
 clox::interpreting::vm::object_type clox::interpreting::vm::string_object::type() const noexcept
 {
 	return object_type::STRING;
@@ -31,16 +36,24 @@ clox::interpreting::vm::object_type clox::interpreting::vm::string_object::type(
 
 std::string clox::interpreting::vm::string_object::string() const
 {
-	return data_;
+	return *data_;
 }
 
 clox::interpreting::vm::string_object::string_object(std::string value)
-		: data_(std::move(value))
 {
-
+	auto interned = interns_.find(value);
+	if (interned != interns_.end())
+	{
+		data_ = &(*interned);
+	}
+	else
+	{
+		auto ret = interns_.insert(std::move(value));
+		data_ = &(*ret.first);
+	}
 }
 
 std::string clox::interpreting::vm::string_object::printable_string()
 {
-	return data_;
+	return *data_;
 }
