@@ -19,62 +19,20 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/7/2021.
+// Created by cleve on 10/9/2021.
 //
 
 #pragma once
 
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-
-
 namespace clox::interpreting::vm
 {
-
-class object_heap
+class gc
 {
 public:
-	using object_list_type = std::list<object_raw_pointer>;
-
-	using raw_pointer = void*;
-
-	friend class gc;
-public:
-	object_heap() = default;
-
-	~object_heap();
-
-	template<std::derived_from<object> T, class ...Args>
-	T* allocate(Args&& ...args)
-	{
-		using TRaw = std::decay_t<T>;
-		raw_pointer mem = allocate_raw(sizeof(TRaw));
-
-		auto ret = new(mem) T(std::forward<Args>(args)...); // placement new
-		objects_.push_back(ret);
-		return ret;
-	}
-
-	template<std::derived_from<object> T>
-	void deallocate(T* val)
-	{
-		delete val;
-	}
-
 
 private:
-	raw_pointer allocate_raw(size_t size);
 
-	void deallocate_raw(raw_pointer raw);
-
-	object_list_type objects_{};
 };
+
 
 }

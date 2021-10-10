@@ -58,6 +58,11 @@ else ()
     message(STATUS "Not use address sanitizer.")
 endif ()
 
+if (ENABLE_DEBUG_STRESS_GC)
+    target_compile_definitions(clox
+            PRIVATE -DDEBUG_STRESS_GC=1)
+endif ()
+
 add_custom_target(parser_classes_inc
         COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/parser/generator/parser_gen.py -c ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.json -H ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.head -t ${CMAKE_CURRENT_SOURCE_DIR}/parser/config/classes.tail -p ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_classes.inc -s ${CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser/gen/parser_base.inc
         BYPRODUCTS {CMAKE_CURRENT_SOURCE_DIR}/parser/include/parser_classes.inc
