@@ -21,7 +21,32 @@
 //
 // Created by cleve on 10/9/2021.
 //
+#include <helper/std_console.h>
 
-#include <interpreter/vm/gc.h>
+#include <base/predefined.h>
+
+#include <interpreter/vm/garbage_collector.h>
+
+#include <format>
+#include <gsl/gsl>
+
+using namespace std;
+using namespace gsl;
+
+using namespace clox;
+using namespace clox::base;
+using namespace clox::interpreting::vm;
+
+void clox::interpreting::vm::garbage_collector::collect()
+{
+	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+	{
+		cons_->log() << "-- begin gc" << endl;
+	}
 
 
+	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+	{
+		cons_->log() << "-- end gc" << endl;
+	}
+}

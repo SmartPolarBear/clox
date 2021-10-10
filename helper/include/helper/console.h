@@ -63,6 +63,8 @@ public:
 
 	virtual std::ostream& out() = 0;
 
+	virtual std::ostream& log() = 0;
+
 	virtual std::ostream& error() = 0;
 };
 

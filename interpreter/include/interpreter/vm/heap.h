@@ -24,9 +24,15 @@
 
 #pragma once
 
+#include <helper/console.h>
+#include <helper/std_console.h>
+
+#include <base/predefined.h>
+
 #include <scanner/scanner.h>
 
 #include <interpreter/vm/object.h>
+#include <interpreter/vm/garbage_collector.h>
 
 #include <variant>
 #include <string>
@@ -45,10 +51,15 @@ public:
 
 	using raw_pointer = void*;
 
-	friend class gc;
+	friend class garbage_collector;
 
 public:
-	object_heap() = default;
+	object_heap() = delete;
+
+	explicit object_heap(helper::console& cons)
+			: gc_(cons), cons_(&cons)
+	{
+	}
 
 	~object_heap();
 
@@ -76,8 +87,12 @@ private:
 	void deallocate_raw(raw_pointer raw);
 
 	object_list_type objects_{};
-};
 
+	garbage_collector gc_;
+
+	mutable helper::console* cons_{};
+
+};
 
 
 }

@@ -10,7 +10,7 @@ target_sources(clox
         PRIVATE value.cpp
         PRIVATE upvalue_object.cpp
         PRIVATE chunk.cpp
-        PRIVATE gc.cpp)
+        PRIVATE garbage_collector.cpp)
 
 target_sources(clox_test
         PRIVATE vm.cpp
@@ -22,5 +22,5 @@ target_sources(clox_test
         PRIVATE value.cpp
         PRIVATE upvalue_object.cpp
         PRIVATE chunk.cpp
-        PRIVATE gc.cpp)
+        PRIVATE garbage_collector.cpp)
 

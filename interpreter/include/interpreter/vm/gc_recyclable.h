@@ -29,7 +29,7 @@ namespace clox::interpreting::vm
 class gc_recyclable
 {
 public:
-	friend class gc;
+	friend class garbage_collector;
 
 protected:
 

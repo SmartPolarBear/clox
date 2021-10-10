@@ -40,6 +40,13 @@ public:
 #endif
 
 	static inline constexpr bool ENABLE_DEBUG_STRESS_GC = DEBUG_STRESS_GC;
+
+#ifndef DEBUG_LOGGING_GC
+#warning "DEBUG_LOGGING_GC is defined to 0 by default"
+#define DEBUG_LOGGING_GC 0
+#endif
+
+	static inline constexpr bool ENABLE_DEBUG_LOGGING_GC = DEBUG_LOGGING_GC;
 };
 
 }

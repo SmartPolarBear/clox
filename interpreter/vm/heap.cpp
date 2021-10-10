@@ -42,6 +42,11 @@ object_heap::~object_heap()
 
 clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_heap::allocate_raw(size_t size)
 {
+	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_STRESS_GC)
+	{
+		gc_.collect();
+	}
+
 	auto ret = reinterpret_cast<void*>(malloc(size));
 
 	if (!ret)

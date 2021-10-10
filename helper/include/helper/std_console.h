@@ -56,6 +56,8 @@ public:
 
 	std::ostream& error() override;
 
+	std::ostream& log() override;
+
 private:
 	mutable std::ostream* out_stream_{ &std::cout };
 };

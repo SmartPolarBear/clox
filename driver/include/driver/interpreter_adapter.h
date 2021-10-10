@@ -54,7 +54,7 @@ class vm_interpreter_adapter final
 public:
 
 	explicit vm_interpreter_adapter(helper::console& cons)
-			: heap_(std::make_shared<interpreting::vm::object_heap>()),
+			: heap_(std::make_shared<interpreting::vm::object_heap>(cons)),
 			  cons_(&cons),
 			  repl_resolver_(),
 			  repl_vm_(cons, heap_)

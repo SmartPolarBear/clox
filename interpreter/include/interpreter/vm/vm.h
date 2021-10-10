@@ -32,7 +32,7 @@
 
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/heap_allocator.h>
-#include <interpreter/vm/gc.h>
+#include <interpreter/vm/garbage_collector.h>
 
 
 #include <interpreter/vm/string_object.h>

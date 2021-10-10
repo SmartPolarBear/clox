@@ -24,14 +24,23 @@
 
 #pragma once
 
+#include <helper/console.h>
+
 namespace clox::interpreting::vm
 {
-class gc
+class garbage_collector
 {
 public:
+	explicit garbage_collector(helper::console& cons)
+			: cons_(&cons)
+	{
+
+	}
+
+	void collect();
 
 private:
-
+	mutable helper::console* cons_{};
 };
 
 
