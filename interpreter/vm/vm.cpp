@@ -46,7 +46,7 @@ using namespace clox::interpreting::vm;
 
 virtual_machine::virtual_machine(clox::helper::console& cons,
 		std::shared_ptr<object_heap> heap)
-		: heap_(std::move(heap)), gc_(heap, *this), cons_(&cons)
+		: heap_(std::move(heap)), gc_(cons,heap, *this), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
 	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);

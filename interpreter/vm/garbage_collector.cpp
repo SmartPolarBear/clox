@@ -38,6 +38,13 @@ using namespace clox;
 using namespace clox::base;
 using namespace clox::interpreting::vm;
 
+garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap,
+		class virtual_machine& vm)
+		: cons_(&cons), heap_(std::move(heap)), vm_(&vm)
+{
+	heap_->use_gc(*this);
+}
+
 void clox::interpreting::vm::garbage_collector::collect()
 {
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
@@ -60,17 +67,37 @@ void garbage_collector::mark_roots()
 	{
 		mark_value(val);
 	}
+
+	for (auto& call_frame: vm_->call_frames_)
+	{
+		mark_object(call_frame.closure());
+	}
+
+	for (auto& upvalue: vm_->open_upvalues_)
+	{
+		mark_object(upvalue.second);
+	}
+
+	mark_globals();
 }
+
+void garbage_collector::mark_globals()
+{
+	for (auto& p: vm_->globals_)
+	{
+		mark_value(p.second);
+	}
+}
+
 
 void garbage_collector::mark_value(value& val)
 {
-	std::visit([](auto&& val)
+	std::visit([this](auto&& val)
 	{
 		using T = std::decay_t<decltype(val)>;
 		if constexpr (std::is_same_v<T, object_value_type>)
 		{
-			if (val == nullptr)return;
-			val->marked_ = true;
+			mark_object(val);
 		}
 		else
 		{
@@ -79,8 +106,10 @@ void garbage_collector::mark_value(value& val)
 	}, val);
 }
 
-garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap,
-		class virtual_machine& vm)
-		: cons_(&cons), heap_(std::move(heap)), vm_(&vm)
+
+void garbage_collector::mark_object(object_raw_pointer obj)
 {
+	if (obj == nullptr)return;
+	obj->marked_ = true;
 }
+

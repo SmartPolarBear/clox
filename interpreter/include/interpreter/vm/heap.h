@@ -79,6 +79,7 @@ public:
 		delete val;
 	}
 
+	void use_gc(class garbage_collector& gc);
 
 private:
 	raw_pointer allocate_raw(size_t size);
@@ -86,6 +87,8 @@ private:
 	void deallocate_raw(raw_pointer raw);
 
 	object_list_type objects_{};
+
+	mutable class garbage_collector* gc_{};
 
 	mutable helper::console* cons_{};
 

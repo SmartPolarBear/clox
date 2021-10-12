@@ -25,6 +25,7 @@
 
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/exceptions.h>
+#include <interpreter/vm/garbage_collector.h>
 
 using namespace clox;
 using namespace clox::interpreting;
@@ -44,7 +45,7 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 {
 	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_STRESS_GC)
 	{
-		gc_.collect();
+		gc_->collect();
 	}
 
 	auto ret = reinterpret_cast<void*>(malloc(size));
@@ -60,6 +61,11 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointer p)
 {
 	free(p);
+}
+
+void object_heap::use_gc(clox::interpreting::vm::garbage_collector& gc)
+{
+	gc_ = &gc;
 }
 
 

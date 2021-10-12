@@ -41,6 +41,10 @@ public:
 private:
 	void mark_roots();
 
+	void mark_globals();
+
+	void mark_object(object_raw_pointer obj);
+
 	void mark_value(value& val);
 
 	std::shared_ptr<object_heap> heap_{ nullptr };
