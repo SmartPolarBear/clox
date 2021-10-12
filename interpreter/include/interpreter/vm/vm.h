@@ -62,6 +62,8 @@ requires(F&& f, Args&& ... args) {
 class virtual_machine final
 {
 public:
+	friend class garbage_collector;
+
 	static inline constexpr size_t CALL_STACK_RESERVED_SIZE = 64;
 	static inline constexpr size_t STACK_RESERVED_SIZE = 16384;
 
@@ -337,6 +339,8 @@ private:
 	//
 
 	std::shared_ptr<object_heap> heap_{};
+
+	garbage_collector gc_;
 
 	value_list_type stack_{};
 

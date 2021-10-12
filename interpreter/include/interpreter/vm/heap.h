@@ -32,7 +32,6 @@
 #include <scanner/scanner.h>
 
 #include <interpreter/vm/object.h>
-#include <interpreter/vm/garbage_collector.h>
 
 #include <variant>
 #include <string>
@@ -57,7 +56,7 @@ public:
 	object_heap() = delete;
 
 	explicit object_heap(helper::console& cons)
-			: gc_(cons), cons_(&cons)
+			: cons_(&cons)
 	{
 	}
 
@@ -87,8 +86,6 @@ private:
 	void deallocate_raw(raw_pointer raw);
 
 	object_list_type objects_{};
-
-	garbage_collector gc_;
 
 	mutable helper::console* cons_{};
 

@@ -27,25 +27,27 @@
 #include <helper/console.h>
 
 #include <interpreter/vm/value.h>
+#include <interpreter/vm/heap.h>
 
 namespace clox::interpreting::vm
 {
 class garbage_collector
 {
 public:
-	explicit garbage_collector(helper::console& cons)
-			: cons_(&cons)
-	{
-	}
+	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm);
 
 	void collect();
 
 private:
 	void mark_roots();
 
-	void mark_value(value &val);
+	void mark_value(value& val);
 
-	mutable helper::console* cons_{};
+	std::shared_ptr<object_heap> heap_{ nullptr };
+
+	mutable class virtual_machine* vm_{ nullptr };
+
+	mutable helper::console* cons_{ nullptr };
 };
 
 

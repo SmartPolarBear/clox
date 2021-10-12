@@ -26,6 +26,7 @@
 #include <base/predefined.h>
 
 #include <interpreter/vm/garbage_collector.h>
+#include <interpreter/vm/vm.h>
 
 #include <format>
 #include <gsl/gsl>
@@ -55,7 +56,10 @@ void clox::interpreting::vm::garbage_collector::collect()
 
 void garbage_collector::mark_roots()
 {
-
+	for (auto& val: vm_->stack_)
+	{
+		mark_value(val);
+	}
 }
 
 void garbage_collector::mark_value(value& val)
@@ -65,6 +69,7 @@ void garbage_collector::mark_value(value& val)
 		using T = std::decay_t<decltype(val)>;
 		if constexpr (std::is_same_v<T, object_value_type>)
 		{
+			if (val == nullptr)return;
 			val->marked_ = true;
 		}
 		else
@@ -72,4 +77,10 @@ void garbage_collector::mark_value(value& val)
 			return; // do nothing
 		}
 	}, val);
+}
+
+garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap,
+		class virtual_machine& vm)
+		: cons_(&cons), heap_(std::move(heap)), vm_(&vm)
+{
 }
