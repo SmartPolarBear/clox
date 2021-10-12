@@ -39,6 +39,7 @@ public:
 #define DEBUG_STRESS_GC 0
 #endif
 
+	/// \brief call gc everytime when a block of memory is allocated
 	static inline constexpr bool ENABLE_DEBUG_STRESS_GC = DEBUG_STRESS_GC;
 
 #ifndef DEBUG_LOGGING_GC

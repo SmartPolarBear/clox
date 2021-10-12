@@ -44,9 +44,32 @@ void clox::interpreting::vm::garbage_collector::collect()
 		cons_->log() << "-- begin gc" << endl;
 	}
 
+	mark_roots();
+
 
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
 		cons_->log() << "-- end gc" << endl;
 	}
+}
+
+void garbage_collector::mark_roots()
+{
+
+}
+
+void garbage_collector::mark_value(value& val)
+{
+	std::visit([](auto&& val)
+	{
+		using T = std::decay_t<decltype(val)>;
+		if constexpr (std::is_same_v<T, object_value_type>)
+		{
+			val->marked_ = true;
+		}
+		else
+		{
+			return; // do nothing
+		}
+	}, val);
 }

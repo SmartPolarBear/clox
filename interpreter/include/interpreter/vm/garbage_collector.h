@@ -26,6 +26,8 @@
 
 #include <helper/console.h>
 
+#include <interpreter/vm/value.h>
+
 namespace clox::interpreting::vm
 {
 class garbage_collector
@@ -34,12 +36,15 @@ public:
 	explicit garbage_collector(helper::console& cons)
 			: cons_(&cons)
 	{
-
 	}
 
 	void collect();
 
 private:
+	void mark_roots();
+
+	void mark_value(value &val);
+
 	mutable helper::console* cons_{};
 };
 
