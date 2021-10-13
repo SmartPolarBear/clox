@@ -46,7 +46,7 @@ using namespace clox::interpreting::vm;
 
 virtual_machine::virtual_machine(clox::helper::console& cons,
 		std::shared_ptr<object_heap> heap)
-		: heap_(std::move(heap)), cons_(&cons)
+		: heap_(std::move(heap)), gc_(cons,heap, *this), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
 	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
@@ -201,7 +201,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case ADD:
 	{
 
-		if (is_string_value(peek(1)))
+		if (is_string_value(peek(1)) || is_string_value(peek(1)))
 		{
 			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
 			{
@@ -210,14 +210,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		}
 		else
 		{
-			assert(!stack_.empty());
-
-			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+			binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 			{
 				return l + r;
 			});
-
-			assert(!stack_.empty());
 		}
 
 
@@ -225,7 +221,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case SUBTRACT:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
 			return l - r;
 		});
@@ -233,7 +229,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case MULTIPLY:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
 			return l * r;
 		});
@@ -241,7 +237,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case DIVIDE:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
 			return l / r;
 		});
@@ -249,7 +245,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case POW:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
 			return std::pow(l, r);
 		});
@@ -258,7 +254,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case LESS:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
 			return l < r;
 		});
@@ -266,7 +262,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case LESS_EQUAL:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
 			return l <= r;
 		});
@@ -274,7 +270,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case GREATER:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
 			return l > r;
 		});
@@ -282,7 +278,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case GREATER_EQUAL:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
 			return l >= r;
 		});
@@ -290,10 +286,21 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	}
 	case EQUAL:
 	{
-		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r)
+		if (is_string_value(peek(1)) || is_string_value(peek(1)))
 		{
-			return l == r;
-		});
+			binary_op([](string_object_raw_pointer lp, string_object_raw_pointer rp) -> bool
+			{
+				return lp->string() == rp->string();
+			});
+		}
+		else
+		{
+			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
+			{
+				return l == r;
+			});
+		}
+
 
 		break;
 	}

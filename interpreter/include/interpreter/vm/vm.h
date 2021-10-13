@@ -28,8 +28,12 @@
 #include <interpreter/vm/opcode.h>
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/value.h>
-#include <interpreter/vm/heap.h>
 #include <interpreter/vm/exceptions.h>
+
+#include <interpreter/vm/heap.h>
+#include <interpreter/vm/heap_allocator.h>
+#include <interpreter/vm/garbage_collector.h>
+
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
@@ -58,6 +62,8 @@ requires(F&& f, Args&& ... args) {
 class virtual_machine final
 {
 public:
+	friend class garbage_collector;
+
 	static inline constexpr size_t CALL_STACK_RESERVED_SIZE = 64;
 	static inline constexpr size_t STACK_RESERVED_SIZE = 16384;
 
@@ -333,6 +339,8 @@ private:
 	//
 
 	std::shared_ptr<object_heap> heap_{};
+
+	garbage_collector gc_;
 
 	value_list_type stack_{};
 

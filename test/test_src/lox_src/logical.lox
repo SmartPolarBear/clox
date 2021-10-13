@@ -10,3 +10,6 @@ print r or s;
 print p and q;
 print p and r;
 print r and s;
+
+print 1==true;
+print 0==false;

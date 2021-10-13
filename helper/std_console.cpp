@@ -82,3 +82,8 @@ ostream& clox::helper::std_console::error()
 {
 	return std::cerr;
 }
+
+ostream& clox::helper::std_console::log()
+{
+	return std::clog;
+}

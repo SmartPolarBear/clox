@@ -54,7 +54,17 @@ void clox::interpreting::vm::chunk::write(code_type op, std::optional<scanning::
 void chunk::write(code_type op, int64_t line)
 {
 	codes_.push_back(op);
-	lines_.push_back(line);
+
+	if (line == INVALID_LINE)
+	{
+		lines_.push_back(last_line_);
+	}
+	else
+	{
+		lines_.push_back(line);
+		last_line_ = line;
+	}
+
 }
 
 

@@ -80,9 +80,9 @@ public:
 
 	void disassemble(helper::console& out);
 
-	void write(code_type op, std::optional<scanning::token> t = std::nullopt);
+	void write(code_type op, std::optional<scanning::token> t);
 
-	void write(code_type op, int64_t line);
+	void write(code_type op, int64_t line = INVALID_LINE);
 
 	/// Patch the code offset from the first opcode
 	/// \param new_op
@@ -115,5 +115,7 @@ private:
 	code_list_type codes_{};
 
 	std::vector<int64_t> lines_{};
+
+	int64_t last_line_{ INVALID_LINE };
 };
 }

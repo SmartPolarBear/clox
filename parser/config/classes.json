@@ -6,7 +6,8 @@
     "any",
     "memory",
     "stdexcept",
-    "vector"
+    "vector",
+    "optional"
   ],
   "secondary_includes": [
     "scanner/scanner.h",
@@ -469,6 +470,10 @@
         {
           "type": "clox::scanning::token",
           "name": "cond_l_paren_"
+        },
+        {
+          "type": "std::optional<clox::scanning::token>",
+          "name": "else_keyword_"
         },
         {
           "type": "std::shared_ptr<statement>",

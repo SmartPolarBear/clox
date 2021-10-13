@@ -120,7 +120,8 @@ private:
 
 	void generate(const std::shared_ptr<parsing::expression>& s);
 
-	void define_global_variable([[maybe_unused]]const std::string& name, vm::chunk::code_type global);
+	void define_global_variable(const std::string& name, vm::chunk::code_type global,
+			std::optional<scanning::token> tk = std::nullopt);
 
 	void declare_local_variable(const std::string& name, size_t depth = 0);
 
@@ -136,9 +137,17 @@ private:
 
 	std::shared_ptr<resolving::named_symbol> variable_lookup(const std::string& name);
 
-	std::shared_ptr<resolving::variable_binding> variable_lookup(const std::shared_ptr<parsing::expression> &expr);
+	std::shared_ptr<resolving::variable_binding> variable_lookup(const std::shared_ptr<parsing::expression>& expr);
+
+	void emit_code(const scanning::token& lead_token, vm::full_opcode_type byte);
 
 	void emit_code(vm::full_opcode_type byte);
+
+	template<std::convertible_to<vm::full_opcode_type> ...Args>
+	void emit_codes(const scanning::token& lead_token, const Args& ...arg)
+	{
+		(emit_code(lead_token, (vm::full_opcode_type)arg), ...);
+	}
 
 	template<std::convertible_to<vm::full_opcode_type> ...Args>
 	void emit_codes(const Args& ...arg)
@@ -148,9 +157,9 @@ private:
 
 	void emit_return();
 
-	vm::chunk::code_type emit_constant(const vm::value& val);
+	vm::chunk::code_type emit_constant(const scanning::token& tk, const vm::value& val);
 
-	vm::chunk::difference_type emit_jump(vm::full_opcode_type jmp);
+	vm::chunk::difference_type emit_jump(const scanning::token& lead_token, vm::full_opcode_type jmp);
 
 	void patch_jump(vm::chunk::difference_type pos);
 

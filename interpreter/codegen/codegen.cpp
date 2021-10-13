@@ -154,7 +154,7 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 
 	if (auto upvalue = binding->upvalue();upvalue)
 	{
-		emit_codes(VC(SEC_OP_UPVALUE, op_code::SET), upvalue->current_index());
+		emit_codes(ae->get_name(), VC(SEC_OP_UPVALUE, op_code::SET), upvalue->current_index());
 	}
 	else
 	{
@@ -163,11 +163,11 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 		// See opcode.h for the design here in details
 		if (symbol->is_global())
 		{
-			emit_codes(VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
+			emit_codes(ae->get_name(), VC(SEC_OP_GLOBAL, op_code::SET), identifier_constant(name));
 		}
 		else
 		{
-			emit_codes(VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
+			emit_codes(ae->get_name(), VC(SEC_OP_LOCAL, op_code::SET), symbol->slot_index());
 		}
 	}
 }
@@ -189,39 +189,39 @@ clox::interpreting::compiling::codegen::visit_binary_expression(const std::share
 	switch (be->get_op().type())
 	{
 	case scanning::token_type::PLUS:
-		emit_code(V(vm::op_code::ADD));
+		emit_code(be->get_op(), V(vm::op_code::ADD));
 		break;
 	case scanning::token_type::MINUS:
-		emit_code(V(vm::op_code::SUBTRACT));
+		emit_code(be->get_op(), V(vm::op_code::SUBTRACT));
 		break;
 	case scanning::token_type::SLASH:
-		emit_code(V(vm::op_code::DIVIDE));
+		emit_code(be->get_op(), V(vm::op_code::DIVIDE));
 		break;
 	case scanning::token_type::STAR:
-		emit_code(V(vm::op_code::MULTIPLY));
+		emit_code(be->get_op(), V(vm::op_code::MULTIPLY));
 		break;
 	case scanning::token_type::STAR_STAR:
-		emit_code(V(vm::op_code::POW));
+		emit_code(be->get_op(), V(vm::op_code::POW));
 		break;
 
 	case scanning::token_type::EQUAL_EQUAL:
-		emit_code(V(vm::op_code::EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::EQUAL));
 		break;
 	case scanning::token_type::BANG_EQUAL:
-		emit_code(V(vm::op_code::EQUAL));
-		emit_code(V(vm::op_code::NOT));
+		emit_code(be->get_op(), V(vm::op_code::EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::NOT));
 		break;
 	case scanning::token_type::GREATER:
-		emit_code(V(vm::op_code::GREATER));
+		emit_code(be->get_op(), V(vm::op_code::GREATER));
 		break;
 	case scanning::token_type::GREATER_EQUAL:
-		emit_code(V(vm::op_code::GREATER_EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::GREATER_EQUAL));
 		break;
 	case scanning::token_type::LESS:
-		emit_code(V(vm::op_code::LESS));
+		emit_code(be->get_op(), V(vm::op_code::LESS));
 		break;
 	case scanning::token_type::LESS_EQUAL:
-		emit_code(V(vm::op_code::LESS_EQUAL));
+		emit_code(be->get_op(), V(vm::op_code::LESS_EQUAL));
 		break;
 	default:
 		UNREACHABLE_EXCEPTION;
@@ -236,10 +236,10 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
-		emit_code(V(vm::op_code::NEGATE));
+		emit_code(ue->get_op(), V(vm::op_code::NEGATE));
 		break;
 	case scanning::token_type::BANG:
-		emit_code(V(vm::op_code::NOT));
+		emit_code(ue->get_op(), V(vm::op_code::NOT));
 		break;
 
 	case scanning::token_type::PLUS_PLUS:
@@ -338,25 +338,26 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 {
 	auto val = le->get_value();
 
-	std::visit([this](auto&& arg)
+	std::visit([this, &le](auto&& arg)
 	{
 		using T = std::decay_t<decltype(arg)>;
 
 		if constexpr(std::is_same_v<T, boolean_literal_type>)
 		{
-			emit_code(V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
+			emit_code(le->get_token(),
+					V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
 		}
 		else if constexpr(std::is_same_v<T, nil_value_tag_type>)
 		{
-			emit_code(V(vm::op_code::CONSTANT_NIL));
+			emit_code(le->get_token(), V(vm::op_code::CONSTANT_NIL));
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
-			emit_constant(heap_->allocate<string_object>(arg));
+			emit_constant(le->get_token(), heap_->allocate<string_object>(arg));
 		}
 		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{
-			emit_constant(arg);
+			emit_constant(le->get_token(), arg);
 		}
 		else
 		{
@@ -381,7 +382,7 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 	{
 		if (auto upvalue = binding->upvalue();upvalue)
 		{
-			emit_codes(VC(SEC_OP_UPVALUE, op_code::GET), upvalue->current_index());
+			emit_codes(ve->get_name(), VC(SEC_OP_UPVALUE, op_code::GET), upvalue->current_index());
 		}
 		else
 		{
@@ -389,11 +390,11 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 
 			if (symbol->is_global())
 			{
-				emit_codes(VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
+				emit_codes(ve->get_name(), VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant(name));
 			}
 			else if (symbol->is_local())
 			{
-				emit_codes(VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
+				emit_codes(ve->get_name(), VC(SEC_OP_LOCAL, op_code::GET), symbol->slot_index());
 			}
 		}
 	}
@@ -410,12 +411,13 @@ clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shar
 {
 	generate(te->get_cond());
 
-	auto false_jmp = emit_jump(V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
+	auto false_jmp = emit_jump(te->get_colon(),
+			V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
 
 	emit_code(V(op_code::POP)); // pop the cond value
 	generate(te->get_true_expr());  // calculate the true expression
 
-	auto end_jmp = emit_jump(V(op_code::JUMP)); // skip the false expression
+	auto end_jmp = emit_jump(te->get_colon(), V(op_code::JUMP)); // skip the false expression
 
 	// Here goes the false expression
 	patch_jump(false_jmp);
@@ -439,7 +441,7 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 		generate(le->get_left()); // calculate lhs expression first.
 
 		// if lhs is false, jump to end and leave the false value in the stack
-		auto end_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+		auto end_jmp = emit_jump(le->get_op(), V(op_code::JUMP_IF_FALSE));
 
 		// if lhs is true, the value is useless so that it is discarded (poped)
 		emit_code(V(op_code::POP));
@@ -456,10 +458,10 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 		generate(le->get_left()); // calculate lhs first
 
 		// if value is false, we jump to the calculation of rhs
-		auto false_jmp = emit_jump(V(vm::op_code::JUMP_IF_FALSE));
+		auto false_jmp = emit_jump(le->get_op(), V(vm::op_code::JUMP_IF_FALSE));
 
 		// if value is true, we reach here and jump to the end
-		auto true_jmp = emit_jump(V(vm::op_code::JUMP));
+		auto true_jmp = emit_jump(le->get_op(), V(vm::op_code::JUMP));
 
 		// Here goes the calculation of rhs
 		patch_jump(false_jmp);
@@ -487,28 +489,28 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
 	{
 
-		emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
-		emit_code(V(op_code::CLOSURE));
+		emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
 
-		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else // it is not a call expression that bind to certain function, so we directly deal with it
 	{
 		generate(ce->get_callee());
 
-		emit_code(V(op_code::CLOSURE));
+		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
 
-		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 //		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
@@ -533,7 +535,7 @@ void clox::interpreting::compiling::codegen::visit_expression_statement(
 void clox::interpreting::compiling::codegen::visit_print_statement(const std::shared_ptr<print_statement>& pe)
 {
 	generate(pe->get_expr());
-	emit_code(V(op_code::PRINT));
+	emit_code(pe->get_keyword(), V(op_code::PRINT));
 }
 
 void
@@ -545,13 +547,14 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 	}
 	else
 	{
-		emit_code(V(op_code::CONSTANT_NIL));
+		emit_code(vs->get_name(), V(op_code::CONSTANT_NIL));
 	}
 
 
 	if (auto symbol = current_scope()->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
 	{
-		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()));
+		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()),
+				vs->get_name());
 	}
 	else
 	{
@@ -578,7 +581,7 @@ void clox::interpreting::compiling::codegen::visit_while_statement(const std::sh
 
 	generate(ws->get_cond());
 
-	auto exit_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+	auto exit_jmp = emit_jump(ws->get_cond_l_paren(), V(op_code::JUMP_IF_FALSE));
 
 	emit_code(V(vm::op_code::POP)); // pop the cond value
 
@@ -601,12 +604,13 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 {
 	generate(ifs->get_cond());
 
-	auto then_jmp = emit_jump(V(op_code::JUMP_IF_FALSE));
+	auto then_jmp = emit_jump(ifs->get_cond_l_paren(), V(op_code::JUMP_IF_FALSE));
 	emit_code(V(op_code::POP));// pop conditional value when cond is true
 
 	generate(ifs->get_true_stmt());
 
-	auto else_jmp = emit_jump(V(op_code::JUMP)); // when execute true branch, we must skip the else branch
+	auto else_jmp = emit_jump(ifs->get_else_keyword().value_or(ifs->get_cond_l_paren()),
+			V(op_code::JUMP)); // when execute true branch, we must skip the else branch
 
 	patch_jump(then_jmp);
 	emit_code(V(op_code::POP));// pop conditional value when cond is false
@@ -623,12 +627,13 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 void
 clox::interpreting::compiling::codegen::visit_function_statement(const std::shared_ptr<function_statement>& fs)
 {
-	auto constant = emit_constant(static_cast<function_object_raw_pointer>(nullptr));
+	auto constant = emit_constant(fs->get_name(), static_cast<function_object_raw_pointer>(nullptr));
 
 	// define it as variable to follow the function overloading specification
 	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
 	{
-		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()));
+		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()),
+				fs->get_name());
 	}
 	else
 	{
@@ -639,7 +644,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	assert(id_ret.has_value());
 
-	emit_codes(VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
+	emit_codes(fs->get_name(), VC(SEC_OP_FUNC, vm::op_code::DEFINE), id_ret.value(), constant);
 
 	emit_codes(VC(SEC_OP_FUNC, op_code::PUSH), id_ret.value());
 
@@ -668,7 +673,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
 {
 	generate(rs->get_val());
-	emit_code(V(op_code::RETURN));
+	emit_code(rs->get_return_keyword(), V(op_code::RETURN));
 }
 
 void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
@@ -686,16 +691,22 @@ void codegen::emit_code(vm::full_opcode_type byte)
 	current_chunk()->write(byte);
 }
 
+void codegen::emit_code(const token& lead_token, vm::full_opcode_type byte)
+{
+	current_chunk()->write(byte, lead_token);
+}
+
+
 void codegen::emit_return()
 {
 	emit_code(V(op_code::CONSTANT_NIL));
 	emit_code(V(op_code::RETURN));
 }
 
-vm::chunk::code_type codegen::emit_constant(const value& val)
+vm::chunk::code_type codegen::emit_constant(const scanning::token& tk, const value& val)
 {
 	auto constant = make_constant(val);
-	emit_codes(V(op_code::CONSTANT), constant);
+	emit_codes(tk, V(op_code::CONSTANT), constant);
 	return constant;
 }
 
@@ -711,10 +722,18 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 }
 
 
-void codegen::define_global_variable(const string& name, vm::chunk::code_type global)
+void codegen::define_global_variable(const std::string& name, vm::chunk::code_type global,
+		std::optional<scanning::token> tk)
 {
 //	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
-	emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	if (tk.has_value())[[likely]]
+	{
+		emit_codes(tk.value(), VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	}
+	else
+	{
+		emit_codes(VC(SEC_OP_GLOBAL, op_code::DEFINE), global);
+	}
 }
 
 void codegen::declare_local_variable(const string& name, size_t depth)
@@ -739,7 +758,7 @@ std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shar
 	return binding;
 }
 
-vm::chunk::difference_type codegen::emit_jump(vm::full_opcode_type jmp)
+vm::chunk::difference_type codegen::emit_jump(const token& lead_token, vm::full_opcode_type jmp)
 {
 	emit_code(jmp);
 	emit_code(PATCHABLE_PLACEHOLDER);
@@ -797,19 +816,10 @@ vm::closure_object_raw_pointer codegen::top_level()
 	return heap_->allocate<closure_object>(function_top());
 }
 
-//vm::full_opcode_type codegen::make_function(const shared_ptr<statement>& func)
-//{
-//	if (functions_ids_.contains(func))
-//	{
-//		return functions_ids_.at(func);
-//	}
-//
-//	functions_ids_.insert_or_assign(func, function_id_counter_);
-//	return function_id_counter_++;
-//}
 
 void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {
 
 }
+
 

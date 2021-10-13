@@ -1,0 +1,9 @@
+var a="fuck";
+{
+    var b="fuck";
+    print "fuck";
+    print a;
+    print b;
+}
+print "fuck";
+print a;

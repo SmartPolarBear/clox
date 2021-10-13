@@ -19,44 +19,20 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 10/9/2021.
 //
 
 #pragma once
 
-
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <unordered_set>
-
-
 namespace clox::interpreting::vm
 {
-class string_object :
-		public object
+class gc_recyclable
 {
 public:
-	string_object() = default;
+	friend class garbage_collector;
 
-	explicit string_object(std::string value);
+protected:
 
-	[[nodiscard]] object_type type() const noexcept override;
-
-	[[nodiscard]] std::string string() const;
-
-	std::string printable_string() override;
-
-private:
-	const std::string* data_;
-
-	static std::unordered_set<std::string> interns_;
+	bool marked_{};
 };
-
-using string_object_raw_pointer = string_object*;
 }

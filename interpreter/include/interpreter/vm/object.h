@@ -26,6 +26,8 @@
 
 #include <scanner/scanner.h>
 
+#include <interpreter/vm/gc_recyclable.h>
+
 #include <variant>
 #include <string>
 #include <string_view>
@@ -45,7 +47,8 @@ enum class object_type
 
 
 class object
-		: public helper::printable
+		: public helper::printable,
+		  public gc_recyclable
 {
 
 public:

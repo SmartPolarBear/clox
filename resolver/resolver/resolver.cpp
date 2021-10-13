@@ -109,7 +109,7 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 void resolver::scope_begin()
 {
 //	scope_begin(scopes_.top()->container_function());
-	auto next = make_shared<scope>(scopes_.top(),  scopes_.top()->container_function());
+	auto next = make_shared<scope>(scopes_.top(), scopes_.top()->container_function());
 
 	scopes_.top()->children_.push_back(next);
 
@@ -258,7 +258,8 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 		{
 			auto ret = s->name_typed<named_symbol>(tk.lexeme());
 
-			if (s->container_function() != scopes_.top()->container_function())
+			if (s->container_function() != FUNCTION_ID_GLOBAL &&
+				s->container_function() != scopes_.top()->container_function())
 			{
 				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
 				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);

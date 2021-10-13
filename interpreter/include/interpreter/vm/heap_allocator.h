@@ -19,44 +19,37 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 10/10/2021.
 //
 
 #pragma once
 
-
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <unordered_set>
-
+#include <gsl/gsl>
 
 namespace clox::interpreting::vm
 {
-class string_object :
-		public object
+
+template<typename T>
+class object_heap_allocator final
 {
 public:
-	string_object() = default;
 
-	explicit string_object(std::string value);
+	template<typename U>
+	struct rebind
+	{
+		using other = object_heap_allocator<U>;
+	};
 
-	[[nodiscard]] object_type type() const noexcept override;
+	using pointer = T*;
 
-	[[nodiscard]] std::string string() const;
+	using size_type = std::size_t;
 
-	std::string printable_string() override;
+	pointer allocate(size_type n, const void* hint = nullptr)
+	{
 
-private:
-	const std::string* data_;
+	}
 
-	static std::unordered_set<std::string> interns_;
+
 };
 
-using string_object_raw_pointer = string_object*;
 }

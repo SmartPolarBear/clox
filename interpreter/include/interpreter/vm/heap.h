@@ -24,6 +24,11 @@
 
 #pragma once
 
+#include <helper/console.h>
+#include <helper/std_console.h>
+
+#include <base/predefined.h>
+
 #include <scanner/scanner.h>
 
 #include <interpreter/vm/object.h>
@@ -44,8 +49,16 @@ public:
 	using object_list_type = std::list<object_raw_pointer>;
 
 	using raw_pointer = void*;
+
+	friend class garbage_collector;
+
 public:
-	object_heap() = default;
+	object_heap() = delete;
+
+	explicit object_heap(helper::console& cons)
+			: cons_(&cons)
+	{
+	}
 
 	~object_heap();
 
@@ -66,6 +79,7 @@ public:
 		delete val;
 	}
 
+	void use_gc(class garbage_collector& gc);
 
 private:
 	raw_pointer allocate_raw(size_t size);
@@ -73,6 +87,12 @@ private:
 	void deallocate_raw(raw_pointer raw);
 
 	object_list_type objects_{};
+
+	mutable class garbage_collector* gc_{};
+
+	mutable helper::console* cons_{};
+
 };
+
 
 }

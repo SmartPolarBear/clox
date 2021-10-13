@@ -19,44 +19,40 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/6/2021.
+// Created by cleve on 10/9/2021.
 //
 
 #pragma once
 
+#include <helper/console.h>
 
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <unordered_set>
-
+#include <interpreter/vm/value.h>
+#include <interpreter/vm/heap.h>
 
 namespace clox::interpreting::vm
 {
-class string_object :
-		public object
+class garbage_collector
 {
 public:
-	string_object() = default;
+	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm);
 
-	explicit string_object(std::string value);
-
-	[[nodiscard]] object_type type() const noexcept override;
-
-	[[nodiscard]] std::string string() const;
-
-	std::string printable_string() override;
+	void collect();
 
 private:
-	const std::string* data_;
+	void mark_roots();
 
-	static std::unordered_set<std::string> interns_;
+	void mark_globals();
+
+	void mark_object(object_raw_pointer obj);
+
+	void mark_value(value& val);
+
+	std::shared_ptr<object_heap> heap_{ nullptr };
+
+	mutable class virtual_machine* vm_{ nullptr };
+
+	mutable helper::console* cons_{ nullptr };
 };
 
-using string_object_raw_pointer = string_object*;
+
 }
