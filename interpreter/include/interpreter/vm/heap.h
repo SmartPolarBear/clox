@@ -70,13 +70,25 @@ public:
 
 		auto ret = new(mem) T(std::forward<Args>(args)...); // placement new
 		objects_.push_back(ret);
+
+		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+		{
+			cons_->log() << std::format("At {:x} allocate {} bytes for type {}", mem, sizeof(TRaw), ret->type())
+						 << std::endl;
+		}
+
 		return ret;
 	}
 
 	template<std::derived_from<object> T>
 	void deallocate(T* val)
 	{
-		delete val;
+		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+		{
+			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", val, sizeof(*val), val->type())
+						 << std::endl;
+		}
+		deallocate_raw(val);
 	}
 
 	void use_gc(class garbage_collector& gc);
