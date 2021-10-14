@@ -43,6 +43,8 @@ private:
 
 	void mark_globals();
 
+	void mark_functions();
+
 	void mark_object(object_raw_pointer obj);
 
 	void mark_value(value& val);

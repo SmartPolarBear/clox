@@ -79,6 +79,8 @@ void garbage_collector::mark_roots()
 	}
 
 	mark_globals();
+
+	mark_functions();
 }
 
 void garbage_collector::mark_globals()
@@ -89,6 +91,13 @@ void garbage_collector::mark_globals()
 	}
 }
 
+void garbage_collector::mark_functions()
+{
+	for (auto& func: vm_->functions_)
+	{
+		mark_value(func.second);
+	}
+}
 
 void garbage_collector::mark_value(value& val)
 {
@@ -112,4 +121,5 @@ void garbage_collector::mark_object(object_raw_pointer obj)
 	if (obj == nullptr)return;
 	obj->marked_ = true;
 }
+
 
