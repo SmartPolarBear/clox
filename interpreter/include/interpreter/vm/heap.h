@@ -80,12 +80,13 @@ public:
 		return ret;
 	}
 
-	template<std::derived_from<object> T>
+	template<class T>
+	requires std::derived_from<T, object> || std::same_as<T, object_raw_pointer>
 	void deallocate(T* val)
 	{
 		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 		{
-			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", val, sizeof(*val), val->type())
+			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", (void*)val, sizeof(*val), val->type())
 						 << std::endl;
 		}
 		deallocate_raw(val);

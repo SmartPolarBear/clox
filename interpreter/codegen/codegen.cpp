@@ -353,7 +353,7 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 		}
 		else if constexpr(std::is_same_v<T, string_literal_type>)
 		{
-			emit_constant(le->get_token(), heap_->allocate<string_object>(arg));
+			emit_constant(le->get_token(), string_object::create_on_heap(heap_, arg));
 		}
 		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
 		{

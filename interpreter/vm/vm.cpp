@@ -46,7 +46,7 @@ using namespace clox::interpreting::vm;
 
 virtual_machine::virtual_machine(clox::helper::console& cons,
 		std::shared_ptr<object_heap> heap)
-		: heap_(std::move(heap)), gc_(cons,heap, *this), cons_(&cons)
+		: heap_(std::move(heap)), gc_(cons, heap, *this), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
 	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
@@ -205,7 +205,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
 			{
-				return heap_->allocate<string_object>(lp->string() + rp->string());
+				return string_object::create_on_heap(heap_, lp->string() + rp->string());
 			});
 		}
 		else

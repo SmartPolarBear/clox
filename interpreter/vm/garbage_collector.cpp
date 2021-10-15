@@ -125,6 +125,8 @@ void garbage_collector::mark_object(object_raw_pointer obj)
 	if (obj->marked_)return;
 
 	obj->marked_ = true;
+
+	gray_stack_.push(obj);
 }
 
 void garbage_collector::trace_references()
@@ -151,6 +153,21 @@ void garbage_collector::blacken_object(object_raw_pointer obj)
 
 void garbage_collector::sweep()
 {
+	// remove white things in string table
+	for (auto iter = string_object::interns_.begin(); iter != string_object::interns_.end();)
+	{
+		if ((*iter)->marked_)
+		{
+			iter++;
+		}
+		else
+		{
+			auto* unreachable = *iter;
+			iter = string_object::interns_.erase(iter);
+			heap_->deallocate(unreachable);
+		}
+	}
+
 	for (auto iter = heap_->objects_.begin(); iter != heap_->objects_.end();)
 	{
 		if ((*iter)->marked_)
