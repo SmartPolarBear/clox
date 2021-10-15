@@ -41,6 +41,8 @@ namespace clox::interpreting::vm
 class chunk final
 {
 public:
+	friend class function_object;
+
 	static inline constexpr int64_t INVALID_LINE = -1;
 
 	using code_type = full_opcode_type;

@@ -23,6 +23,7 @@
 //
 
 #include <interpreter/vm/string_object.h>
+#include "interpreter/vm/garbage_collector.h"
 
 using namespace std;
 using namespace clox::interpreting::vm;
@@ -56,4 +57,9 @@ clox::interpreting::vm::string_object::string_object(std::string value)
 std::string clox::interpreting::vm::string_object::printable_string()
 {
 	return *data_;
+}
+
+void string_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	// do nothing
 }

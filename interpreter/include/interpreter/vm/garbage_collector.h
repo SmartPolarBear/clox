@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <base/iterable_stack.h>
+
 #include <helper/console.h>
 
 #include <interpreter/vm/value.h>
@@ -34,9 +36,15 @@ namespace clox::interpreting::vm
 class garbage_collector
 {
 public:
+	friend class gc_recyclable;
+
 	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm);
 
 	void collect();
+
+	void mark_object(object_raw_pointer obj);
+
+	void mark_value(value& val);
 
 private:
 	void mark_roots();
@@ -45,11 +53,15 @@ private:
 
 	void mark_functions();
 
-	void mark_object(object_raw_pointer obj);
+	void trace_references();
 
-	void mark_value(value& val);
+	void sweep();
+
+	void blacken_object(object_raw_pointer obj);
 
 	std::shared_ptr<object_heap> heap_{ nullptr };
+
+	base::iterable_stack<object_raw_pointer> gray_stack_{};
 
 	mutable class virtual_machine* vm_{ nullptr };
 

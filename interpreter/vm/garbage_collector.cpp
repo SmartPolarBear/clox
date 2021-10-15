@@ -54,6 +54,9 @@ void clox::interpreting::vm::garbage_collector::collect()
 
 	mark_roots();
 
+	trace_references();
+
+	sweep();
 
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
@@ -119,7 +122,47 @@ void garbage_collector::mark_value(value& val)
 void garbage_collector::mark_object(object_raw_pointer obj)
 {
 	if (obj == nullptr)return;
+	if (obj->marked_)return;
+
 	obj->marked_ = true;
 }
 
+void garbage_collector::trace_references()
+{
+	while (!gray_stack_.empty())
+	{
+		auto top = gray_stack_.top();
+		gray_stack_.pop();
 
+		blacken_object(top);
+	}
+}
+
+void garbage_collector::blacken_object(object_raw_pointer obj)
+{
+	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+	{
+		cons_->log() << std::format("At {:x} blacken {}", obj->printable_string())
+					 << std::endl;
+	}
+
+	obj->blacken(this);
+}
+
+void garbage_collector::sweep()
+{
+	for (auto iter = heap_->objects_.begin(); iter != heap_->objects_.end();)
+	{
+		if ((*iter)->marked_)
+		{
+			iter++;
+			(*iter)->marked_ = false;
+		}
+		else
+		{
+			auto unreached = *iter;
+			iter = heap_->objects_.erase(iter);
+			heap_->deallocate(unreached);
+		}
+	}
+}

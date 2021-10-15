@@ -23,6 +23,7 @@
 //
 
 #include <interpreter/vm/closure_object.h>
+#include "interpreter/vm/garbage_collector.h"
 
 clox::interpreting::vm::closure_object::closure_object(function_object_raw_pointer func)
 		: function_{ func }
@@ -38,4 +39,13 @@ std::string clox::interpreting::vm::closure_object::printable_string()
 clox::interpreting::vm::object_type clox::interpreting::vm::closure_object::type() const noexcept
 {
 	return object_type::CLOSURE;
+}
+
+void clox::interpreting::vm::closure_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	gc_inst->mark_object(function_);
+	for (auto& upvalue: upvalues_)
+	{
+		gc_inst->mark_object(upvalue);
+	}
 }

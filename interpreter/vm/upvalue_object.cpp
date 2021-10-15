@@ -23,6 +23,7 @@
 //
 
 #include <interpreter/vm/upvalue_object.h>
+#include "interpreter/vm/garbage_collector.h"
 
 std::string clox::interpreting::vm::upvalue_object::printable_string()
 {
@@ -43,4 +44,12 @@ void clox::interpreting::vm::upvalue_object::close()
 {
 	closed_ = *value_;
 	value_ = &closed_.value();
+}
+
+void clox::interpreting::vm::upvalue_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	if(closed_.has_value())
+	{
+		gc_inst->mark_value(this->closed_.value());
+	}
 }

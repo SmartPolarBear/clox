@@ -48,6 +48,10 @@ public:
 
 	[[nodiscard]] object_type type() const noexcept override;
 
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
+
+public:
 	[[nodiscard]] std::string string() const;
 
 	std::string printable_string() override;

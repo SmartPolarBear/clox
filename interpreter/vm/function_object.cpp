@@ -26,6 +26,7 @@
 #include <interpreter/vm/chunk.h>
 
 #include <utility>
+#include "interpreter/vm/garbage_collector.h"
 
 using namespace std;
 using namespace clox::interpreting::vm;
@@ -43,4 +44,12 @@ clox::interpreting::vm::function_object::function_object(std::string name, size_
 string clox::interpreting::vm::function_object::printable_string()
 {
 	return std::format("<function {} of {} arity>", name_, arity_);
+}
+
+void function_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	for (auto& constant: this->body_->constants_)
+	{
+		gc_inst->mark_value(constant);
+	}
 }

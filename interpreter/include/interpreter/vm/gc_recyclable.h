@@ -33,6 +33,8 @@ public:
 
 protected:
 
+	virtual void blacken(class garbage_collector* gc_inst) = 0;
+
 	bool marked_{};
 };
 }
