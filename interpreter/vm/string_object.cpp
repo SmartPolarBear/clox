@@ -23,11 +23,14 @@
 //
 
 #include <interpreter/vm/string_object.h>
+#include "interpreter/vm/garbage_collector.h"
+
+#include <string>
 
 using namespace std;
 using namespace clox::interpreting::vm;
 
-std::unordered_set<std::string> clox::interpreting::vm::string_object::interns_{};
+clox::interpreting::vm::string_object::string_interns_table_type clox::interpreting::vm::string_object::interns_{};
 
 clox::interpreting::vm::object_type clox::interpreting::vm::string_object::type() const noexcept
 {
@@ -36,24 +39,35 @@ clox::interpreting::vm::object_type clox::interpreting::vm::string_object::type(
 
 std::string clox::interpreting::vm::string_object::string() const
 {
-	return *data_;
+	return data_;
 }
 
 clox::interpreting::vm::string_object::string_object(std::string value)
+		: data_(std::move(value))
 {
-	auto interned = interns_.find(value);
-	if (interned != interns_.end())
-	{
-		data_ = &(*interned);
-	}
-	else
-	{
-		auto ret = interns_.insert(std::move(value));
-		data_ = &(*ret.first);
-	}
 }
 
 std::string clox::interpreting::vm::string_object::printable_string()
 {
-	return *data_;
+	return data_;
+}
+
+void string_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	// do nothing
+}
+
+string_object_raw_pointer
+string_object::create_on_heap(const std::shared_ptr<object_heap>& heap, const std::string& value)
+{
+	if (string_object query_obj{ value };interns_.contains(&query_obj))
+	{
+		return *interns_.find(&query_obj);
+	}
+	else
+	{
+		auto ret = heap->allocate<string_object>(value);
+		interns_.insert(ret);
+		return ret;
+	}
 }

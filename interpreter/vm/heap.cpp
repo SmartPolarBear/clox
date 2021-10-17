@@ -45,7 +45,10 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 {
 	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_STRESS_GC)
 	{
-		gc_->collect();
+		if(gc_)
+		{
+			gc_->collect();
+		}
 	}
 
 	auto ret = reinterpret_cast<void*>(malloc(size));

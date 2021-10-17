@@ -42,6 +42,10 @@ class closure_object final
 		: public object
 {
 public:
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
+
+public:
 	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
 
 	std::string printable_string() override;

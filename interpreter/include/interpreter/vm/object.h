@@ -39,10 +39,14 @@ namespace clox::interpreting::vm
 {
 enum class object_type
 {
+	OBJECT_TYPE_MIN,
+
 	STRING,
 	FUNCTION,
 	CLOSURE,
 	UPVALUE,
+
+	OBJECT_TYPE_MAX,
 };
 
 
@@ -74,4 +78,33 @@ requires(T t){
 	std::derived_from<std::decay_t<decltype(*t)>, object>;
 };
 
+}
+
+#include <magic_enum.hpp>
+
+namespace magic_enum
+{
+template<>
+struct customize::enum_range<clox::interpreting::vm::object_type>
+{
+	static constexpr int min = (int)clox::interpreting::vm::object_type::OBJECT_TYPE_MIN;
+	static constexpr int max = (int)clox::interpreting::vm::object_type::OBJECT_TYPE_MAX;
+};
+}
+
+#include <string>
+#include <format>
+
+namespace std
+{
+template<>
+struct std::formatter<clox::interpreting::vm::object_type> : std::formatter<std::string>
+{
+	auto format(clox::interpreting::vm::object_type ot, format_context& ctx)
+	{
+		std::string str{ magic_enum::enum_name(ot) };
+		return formatter<string>::format(
+				str, ctx);
+	}
+};
 }

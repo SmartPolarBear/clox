@@ -340,8 +340,6 @@ private:
 
 	std::shared_ptr<object_heap> heap_{};
 
-	garbage_collector gc_;
-
 	value_list_type stack_{};
 
 	global_table_type globals_{};

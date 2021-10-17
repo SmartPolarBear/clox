@@ -25,6 +25,8 @@
 
 #include <base/predefined.h>
 
+#include <interpreter/codegen/codegen.h>
+
 #include <interpreter/vm/garbage_collector.h>
 #include <interpreter/vm/vm.h>
 
@@ -39,10 +41,9 @@ using namespace clox::base;
 using namespace clox::interpreting::vm;
 
 garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap,
-		class virtual_machine& vm)
-		: cons_(&cons), heap_(std::move(heap)), vm_(&vm)
+		virtual_machine& vm, compiling::codegen& cg)
+		: cons_(&cons), heap_(std::move(heap)), vm_(&vm), gen_(&cg)
 {
-	heap_->use_gc(*this);
 }
 
 void clox::interpreting::vm::garbage_collector::collect()
@@ -53,6 +54,10 @@ void clox::interpreting::vm::garbage_collector::collect()
 	}
 
 	mark_roots();
+
+	trace_references();
+
+	sweep();
 
 
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
@@ -79,6 +84,8 @@ void garbage_collector::mark_roots()
 	}
 
 	mark_globals();
+
+	mark_functions();
 }
 
 void garbage_collector::mark_globals()
@@ -89,6 +96,18 @@ void garbage_collector::mark_globals()
 	}
 }
 
+void garbage_collector::mark_functions()
+{
+	for (auto& func: vm_->functions_)
+	{
+		mark_value(func.second);
+	}
+
+	for (auto& func: gen_->functions_)
+	{
+		mark_object(func);
+	}
+}
 
 void garbage_collector::mark_value(value& val)
 {
@@ -110,6 +129,64 @@ void garbage_collector::mark_value(value& val)
 void garbage_collector::mark_object(object_raw_pointer obj)
 {
 	if (obj == nullptr)return;
+	if (obj->marked_)return;
+
 	obj->marked_ = true;
+
+	gray_stack_.push(obj);
 }
 
+void garbage_collector::trace_references()
+{
+	while (!gray_stack_.empty())
+	{
+		auto top = gray_stack_.top();
+		gray_stack_.pop();
+
+		blacken_object(top);
+	}
+}
+
+void garbage_collector::blacken_object(object_raw_pointer obj)
+{
+	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+	{
+		cons_->log() << std::format("At {:x} blacken {}", (uintptr_t)obj, obj->printable_string())
+					 << std::endl;
+	}
+
+	obj->blacken(this);
+}
+
+void garbage_collector::sweep()
+{
+	// remove white things in string table
+	for (auto iter = string_object::interns_.begin(); iter != string_object::interns_.end();)
+	{
+		if ((*iter)->marked_)
+		{
+			iter++;
+		}
+		else
+		{
+			auto* unreachable = *iter;
+			iter = string_object::interns_.erase(iter);
+			heap_->deallocate(unreachable);
+		}
+	}
+
+	for (auto iter = heap_->objects_.begin(); iter != heap_->objects_.end();)
+	{
+		if ((*iter)->marked_)
+		{
+			(*iter)->marked_ = false;
+			iter++;
+		}
+		else
+		{
+			auto unreached = *iter;
+			iter = heap_->objects_.erase(iter);
+			heap_->deallocate(unreached);
+		}
+	}
+}

@@ -47,6 +47,7 @@ class codegen final
 		  virtual parsing::statement_visitor<void>
 {
 public:
+	friend class vm::garbage_collector;
 
 	static inline constexpr auto PATCHABLE_PLACEHOLDER = std::numeric_limits<vm::full_opcode_type>::max();
 public:

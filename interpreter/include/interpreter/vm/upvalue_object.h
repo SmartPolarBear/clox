@@ -50,6 +50,10 @@ public:
 
 private:
 	value* value_{ nullptr };
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
+
+private:
 
 	std::optional<value> closed_{ std::nullopt };
 };

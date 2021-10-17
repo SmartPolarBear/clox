@@ -64,6 +64,11 @@ public:
 		return arity_;
 	}
 
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
+
+public:
+
 	[[nodiscard]] auto body() const
 	{
 		return body_;
