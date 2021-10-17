@@ -45,7 +45,7 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 {
 	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_STRESS_GC)
 	{
-		if(gc_)
+		if (gc_)
 		{
 			gc_->collect();
 		}
@@ -66,9 +66,16 @@ void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointe
 	free(p);
 }
 
-void object_heap::use_gc(clox::interpreting::vm::garbage_collector& gc)
+object_heap& object_heap::enable_gc(clox::interpreting::vm::garbage_collector& gc)
 {
 	gc_ = &gc;
+	return *this;
+}
+
+object_heap& object_heap::remove_gc()
+{
+	gc_ = nullptr;
+	return *this;
 }
 
 

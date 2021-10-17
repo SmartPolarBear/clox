@@ -25,7 +25,8 @@
 #include <base/configuration.h>
 
 #include <driver/classic.h>
-#include "driver/driver.h"
+#include <driver/driver.h>
+#include <driver/interpreter_adapter.h>
 
 #include <helper/std_console.h>
 
@@ -48,10 +49,10 @@
 #include <sstream>
 
 #include <gsl/gsl>
-#include <driver/interpreter_adapter.h>
 
 
 using namespace std;
+using namespace gsl;
 
 using namespace clox::base;
 using namespace clox::helper;
@@ -76,11 +77,17 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 	else if (logger::instance().has_runtime_errors())return 67;
 
 	codegen gen{ heap_, rsv };
+
 	virtual_machine vm{ *cons_, heap_ };
 
 	garbage_collector gc{ *cons_, heap_, vm, gen };
 
-	heap_->use_gc(gc);
+	heap_->enable_gc(gc);
+
+	auto _ = finally([this]
+	{
+		heap_->remove_gc();
+	});
 
 	gen.generate(stmts);
 
@@ -111,7 +118,12 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 
 	garbage_collector gc{ *cons_, heap_, repl_vm_, gen };
 
-	heap_->use_gc(gc);
+	heap_->enable_gc(gc);
+
+	auto _ = finally([this]
+	{
+		heap_->remove_gc();
+	});
 
 	gen.generate(stmts);
 

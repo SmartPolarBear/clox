@@ -92,8 +92,9 @@ public:
 		deallocate_raw(val);
 	}
 
-	void use_gc(class garbage_collector& gc);
+	object_heap& enable_gc(class garbage_collector& gc);
 
+	object_heap& remove_gc();
 private:
 	raw_pointer allocate_raw(size_t size);
 
