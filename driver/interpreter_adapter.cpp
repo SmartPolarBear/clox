@@ -75,19 +75,24 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	codegen gen_{ heap_, rsv };
-	gen_.generate(stmts);
+	codegen gen{ heap_, rsv };
+	virtual_machine vm{ *cons_, heap_ };
+
+	garbage_collector gc{ *cons_, heap_, vm, gen };
+
+	heap_->use_gc(gc);
+
+	gen.generate(stmts);
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
 	if (configurable_configuration_instance().dump_assembly())
 	{
-		gen_.top_level()->function()->body()->disassemble(*cons_);
+		gen.top_level()->function()->body()->disassemble(*cons_);
 	}
 
-	virtual_machine vm{ *cons_, heap_ };
-	vm.run(gen_.top_level());
+	vm.run(gen.top_level());
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
@@ -102,18 +107,23 @@ int clox::driver::vm_interpreter_adapter::repl(const std::vector<std::shared_ptr
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	codegen gen_{ heap_, repl_resolver_ };
-	gen_.generate(stmts);
+	codegen gen{ heap_, repl_resolver_ };
+
+	garbage_collector gc{ *cons_, heap_, repl_vm_, gen };
+
+	heap_->use_gc(gc);
+
+	gen.generate(stmts);
 
 	if (configurable_configuration_instance().dump_assembly())
 	{
-		gen_.top_level()->function()->body()->disassemble(*cons_);
+		gen.top_level()->function()->body()->disassemble(*cons_);
 	}
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;
 
-	repl_vm_.run(gen_.top_level());  // FIXME
+	repl_vm_.run(gen.top_level());  // FIXME
 
 	if (logger::instance().has_errors())return 65;
 	else if (logger::instance().has_runtime_errors())return 67;

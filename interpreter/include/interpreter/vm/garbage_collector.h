@@ -38,7 +38,8 @@ class garbage_collector
 public:
 	friend class gc_recyclable;
 
-	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm);
+	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm,
+			class compiling::codegen& gen);
 
 	void collect();
 
@@ -64,6 +65,8 @@ private:
 	base::iterable_stack<object_raw_pointer> gray_stack_{};
 
 	mutable class virtual_machine* vm_{ nullptr };
+
+	mutable class compiling::codegen* gen_{ nullptr };
 
 	mutable helper::console* cons_{ nullptr };
 };

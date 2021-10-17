@@ -73,7 +73,7 @@ public:
 
 		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 		{
-			cons_->log() << std::format("At {:x} allocate {} bytes for type {}", mem, sizeof(TRaw), ret->type())
+			cons_->log() << std::format("At {:x} allocate {} bytes for type {}", (uintptr_t)mem, sizeof(TRaw), ret->type())
 						 << std::endl;
 		}
 
@@ -86,7 +86,7 @@ public:
 	{
 		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 		{
-			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", (void*)val, sizeof(*val), val->type())
+			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", (uintptr_t)val, sizeof(*val), val->type())
 						 << std::endl;
 		}
 		deallocate_raw(val);

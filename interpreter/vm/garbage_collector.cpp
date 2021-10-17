@@ -25,6 +25,8 @@
 
 #include <base/predefined.h>
 
+#include <interpreter/codegen/codegen.h>
+
 #include <interpreter/vm/garbage_collector.h>
 #include <interpreter/vm/vm.h>
 
@@ -39,10 +41,9 @@ using namespace clox::base;
 using namespace clox::interpreting::vm;
 
 garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap,
-		class virtual_machine& vm)
-		: cons_(&cons), heap_(std::move(heap)), vm_(&vm)
+		virtual_machine& vm, compiling::codegen& cg)
+		: cons_(&cons), heap_(std::move(heap)), vm_(&vm), gen_(&cg)
 {
-	heap_->use_gc(*this);
 }
 
 void clox::interpreting::vm::garbage_collector::collect()
@@ -57,6 +58,7 @@ void clox::interpreting::vm::garbage_collector::collect()
 	trace_references();
 
 	sweep();
+
 
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
@@ -99,6 +101,11 @@ void garbage_collector::mark_functions()
 	for (auto& func: vm_->functions_)
 	{
 		mark_value(func.second);
+	}
+
+	for (auto& func: gen_->functions_)
+	{
+		mark_object(func);
 	}
 }
 
@@ -144,7 +151,7 @@ void garbage_collector::blacken_object(object_raw_pointer obj)
 {
 	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
-		cons_->log() << std::format("At {:x} blacken {}", obj->printable_string())
+		cons_->log() << std::format("At {:x} blacken {}", (uintptr_t)obj, obj->printable_string())
 					 << std::endl;
 	}
 
@@ -172,8 +179,8 @@ void garbage_collector::sweep()
 	{
 		if ((*iter)->marked_)
 		{
-			iter++;
 			(*iter)->marked_ = false;
+			iter++;
 		}
 		else
 		{
