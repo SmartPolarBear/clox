@@ -19,53 +19,36 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/18/2021.
 //
 
-#pragma once
+#include <interpreter/vm/class_object.h>
+#include <interpreter/vm/garbage_collector.h>
 
-#include <scanner/scanner.h>
+#include <gsl/gsl>
 
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/function_object.h>
-#include <interpreter/vm/upvalue_object.h>
+using namespace std;
+using namespace gsl;
 
-#include <variant>
-#include <string>
 
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
+clox::interpreting::vm::class_object::class_object(std::string name)
+		: name_(std::move(name))
 {
-class closure_object final
-		: public object
+
+}
+
+
+std::string clox::interpreting::vm::class_object::printable_string()
 {
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
+	return name_;
+}
 
-public:
-	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
+clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type() const noexcept
+{
+	return object_type::OBJECT;
+}
 
-	std::string printable_string() override;
+void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
 
-	[[nodiscard]] object_type type() const noexcept override;
-
-	[[nodiscard]] function_object_raw_pointer function() const
-	{
-		return function_;
-	}
-
-	[[nodiscard]] std::vector<upvalue_object_raw_pointer>& upvalues() const
-	{
-		return upvalues_;
-	}
-
-private:
-	function_object_raw_pointer function_{};
-
-	mutable std::vector<upvalue_object_raw_pointer> upvalues_{};
-};
-
-using closure_object_raw_pointer = closure_object*;
 }

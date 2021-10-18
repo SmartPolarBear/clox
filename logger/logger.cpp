@@ -32,11 +32,11 @@ void clox::logging::logger::error(size_t line, const std::string& message)
 	errors_++;
 	if (line == 0)
 	{
-		console_->out() << format("{}", message) << endl;
+		console_->error() << format("{}", message) << endl;
 	}
 	else
 	{
-		console_->out() << format("[Line {}] Error: {}", line, message) << endl;
+		console_->error() << format("[Line {}] Error: {}", line, message) << endl;
 	}
 }
 
@@ -64,7 +64,7 @@ bool clox::logging::logger::has_errors() const
 void clox::logging::logger::runtime_error(const clox::interpreting::classic::runtime_error& re)
 {
 	runtime_errors_++;
-	console_->out() << std::format("[Line {1}, at runtime] {0}\n", re.what(), re.token().line()) << endl;
+	console_->error() << std::format("[Line {1}, at runtime] {0}\n", re.what(), re.token().line()) << endl;
 }
 
 bool clox::logging::logger::has_runtime_errors() const
@@ -85,7 +85,7 @@ void clox::logging::logger::clear_error()
 void clox::logging::logger::warning(size_t line, const string& message)
 {
 	warnings_++;
-	console_->out() << format("[Line {}] Warning: {}", line, message) << endl;
+	console_->log() << format("[Line {}] Warning: {}", line, message) << endl;
 }
 
 void clox::logging::logger::warning(const token& token, const string& msg)

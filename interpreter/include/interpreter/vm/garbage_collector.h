@@ -36,6 +36,12 @@ namespace clox::interpreting::vm
 class garbage_collector
 {
 public:
+	using size_type = size_t;
+
+	// TODO: use runtime configuration
+	static inline constexpr size_type GC_HEAP_GROW_FACTOR = 2;
+
+public:
 	friend class gc_recyclable;
 
 	explicit garbage_collector(helper::console& cons, std::shared_ptr<object_heap> heap, class virtual_machine& vm,

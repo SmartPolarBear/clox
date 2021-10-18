@@ -34,6 +34,7 @@
 #include <interpreter/vm/upvalue_object.h>
 
 #include <gsl/gsl>
+#include "interpreter/vm/class_object.h"
 
 
 using namespace std;
@@ -555,6 +556,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		call_value(closure, arg_count);
 
+		break;
+	}
+
+	case CLASS:
+	{
+		push(heap_->allocate<class_object>(next_variable_name()));
 		break;
 	}
 

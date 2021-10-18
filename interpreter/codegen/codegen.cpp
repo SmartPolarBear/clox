@@ -676,9 +676,12 @@ void clox::interpreting::compiling::codegen::visit_return_statement(const std::s
 	emit_code(rs->get_return_keyword(), V(op_code::RETURN));
 }
 
-void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& ptr)
+void clox::interpreting::compiling::codegen::visit_class_statement(const std::shared_ptr<class_statement>& class_stmt)
 {
+	auto name_constant = identifier_constant(class_stmt->get_name());
 
+	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant);
+	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
 }
 
 std::shared_ptr<vm::chunk> codegen::current_chunk()

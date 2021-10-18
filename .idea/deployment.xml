@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" serverName="Remote Development" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="WSL (3b0bc560-cc2a-4db5-90ac-aec11a163643)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="WSL (bfe2837a-a641-4c82-b5bf-23942b08542f)">
         <serverdata>
           <mappings>
@@ -17,13 +10,6 @@
         </serverdata>
       </paths>
       <paths name="WSL-ExperimentalGCC (4c2a2930-3adb-415b-a55c-85813b3e357a)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="WSL-GCC (3e5dbcee-0a22-4e21-b970-c1d16da30cb9)">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

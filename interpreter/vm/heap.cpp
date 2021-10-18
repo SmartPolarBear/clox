@@ -33,6 +33,7 @@ using namespace clox::interpreting::vm;
 
 object_heap::~object_heap()
 {
+	cons_->log() << "--end of life deallocate" << std::endl;
 	while (!objects_.empty())
 	{
 		auto back = objects_.back();
@@ -45,9 +46,10 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 {
 	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_STRESS_GC)
 	{
-		if(gc_)
+		if (gc_)
 		{
 			gc_->collect();
+			next_gc_ = size_ * garbage_collector::GC_HEAP_GROW_FACTOR;
 		}
 	}
 
@@ -58,17 +60,38 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 		throw insufficient_heap_memory{};
 	}
 
+	size_ += size;
+
+	if (gc_ && size_ > next_gc_)
+	{
+		gc_->collect();
+	}
+
 	return ret;
 }
 
-void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointer p)
+void clox::interpreting::vm::object_heap::deallocate_raw(raw_pointer raw, size_t size)
 {
-	free(p);
+	free(raw);
+	size_ -= size;
+
+	if (gc_ && size_ > next_gc_)
+	{
+		gc_->collect();
+		next_gc_ = size_ * garbage_collector::GC_HEAP_GROW_FACTOR;
+	}
 }
 
-void object_heap::use_gc(clox::interpreting::vm::garbage_collector& gc)
+object_heap& object_heap::enable_gc(clox::interpreting::vm::garbage_collector& gc)
 {
 	gc_ = &gc;
+	return *this;
+}
+
+object_heap& object_heap::remove_gc()
+{
+	gc_ = nullptr;
+	return *this;
 }
 
 

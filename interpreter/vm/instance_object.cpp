@@ -19,53 +19,30 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/18/2021.
 //
 
-#pragma once
+#include <interpreter/vm/instance_object.h>
+#include "interpreter/vm/garbage_collector.h"
 
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/function_object.h>
-#include <interpreter/vm/upvalue_object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-
-namespace clox::interpreting::vm
+clox::interpreting::vm::instance_object::instance_object(clox::interpreting::vm::class_object_raw_pointer class_obj)
+		: class_(class_obj)
 {
-class closure_object final
-		: public object
-{
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
 
-public:
-	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
-
-	std::string printable_string() override;
-
-	[[nodiscard]] object_type type() const noexcept override;
-
-	[[nodiscard]] function_object_raw_pointer function() const
-	{
-		return function_;
-	}
-
-	[[nodiscard]] std::vector<upvalue_object_raw_pointer>& upvalues() const
-	{
-		return upvalues_;
-	}
-
-private:
-	function_object_raw_pointer function_{};
-
-	mutable std::vector<upvalue_object_raw_pointer> upvalues_{};
-};
-
-using closure_object_raw_pointer = closure_object*;
 }
+
+std::string clox::interpreting::vm::instance_object::printable_string()
+{
+	return std::format("Instance of {}", class_->printable_string());
+}
+
+clox::interpreting::vm::object_type clox::interpreting::vm::instance_object::type() const noexcept
+{
+	return object_type::INSTANCE;
+}
+
+void clox::interpreting::vm::instance_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	gc_inst->mark_object(class_);
+}
+

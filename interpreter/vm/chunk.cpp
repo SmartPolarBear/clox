@@ -73,51 +73,51 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	auto op = main_op_code_of(codes_[offset]);
 	auto secondary = secondary_op_code_of(codes_[offset]);
 
-	out.out() << std::format("{0:0>8}", offset); // example: 00000001:	CONSTANT
+	out.log() << std::format("{0:0>8}", offset); // example: 00000001:	CONSTANT
 
 	constexpr size_t LINE_NUMBER_WIDTH = 10;
 	if (offset > 0 && lines_[offset] == lines_[offset - 1])
 	{
-		out.out() << std::format("{0:>{1}}  ", "|", LINE_NUMBER_WIDTH);
+		out.log() << std::format("{0:>{1}}  ", "|", LINE_NUMBER_WIDTH);
 	}
 	else
 	{
 		if (lines_[offset] == INVALID_LINE)
 		{
-			out.out() << std::format("{0:>{1}}  ", "<invalid>", LINE_NUMBER_WIDTH);
+			out.log() << std::format("{0:>{1}}  ", "<invalid>", LINE_NUMBER_WIDTH);
 		}
 		else
 		{
-			out.out() << std::format("{0:>{1}}  ", lines_[offset], LINE_NUMBER_WIDTH);
+			out.log() << std::format("{0:>{1}}  ", lines_[offset], LINE_NUMBER_WIDTH);
 		}
 	}
 
 	try
 	{
-		out.out() << std::format("[{0:0>8b}, <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
+		out.log() << std::format("[{0:0>8b}, <{1:>8}>{2:0>8}]", // len: 1+8+8+1+8+1
 				secondary,
 				op,
 				helper::enum_cast(op));
 	}
 	catch (const invalid_opcode&)
 	{
-		out.out() << std::format("{0:>27}", "<INVALID>");
+		out.log() << std::format("{0:>27}", "<INVALID>");
 	}
 
 
 	switch (op)
 	{
 	case op_code::CONSTANT:
-		out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
+		out.log() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		return offset + 2;
 
 	case op_code::POP_N:
-		out.out() << std::format(" N={}", codes_[offset + 1]) << endl;
+		out.log() << std::format(" N={}", codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	case op_code::JUMP:
 	case op_code::JUMP_IF_FALSE:
-		out.out() << std::format(" {} -> {}", offset, offset + 2 + codes_[offset + 1]) << endl;
+		out.log() << std::format(" {} -> {}", offset, offset + 2 + codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	case op_code::INC:
@@ -127,19 +127,19 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	case op_code::DEFINE:
 		if (secondary & SEC_OP_GLOBAL)
 		{
-			out.out() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
+			out.log() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
 		}
 		else if (secondary & SEC_OP_LOCAL)
 		{
-			out.out() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
+			out.log() << std::format(" (stack slot) '{}'", codes_[offset + 1]) << endl;
 		}
 		else if (secondary & SEC_OP_UPVALUE)
 		{
-			out.out() << std::format(" Upvalue {}", codes_[offset + 1]) << endl;
+			out.log() << std::format(" Upvalue {}", codes_[offset + 1]) << endl;
 		}
 		else if (secondary & SEC_OP_FUNC)
 		{
-			out.out() << std::format(" ID={}, constant {} '{}'", codes_[offset + 1], codes_[offset + 2],
+			out.log() << std::format(" ID={}, constant {} '{}'", codes_[offset + 1], codes_[offset + 2],
 					constants_[codes_[offset + 2]]) << endl;
 			return offset + 3;
 		}
@@ -149,16 +149,16 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	case op_code::PUSH:
 		if (secondary & SEC_OP_FUNC)
 		{
-			out.out() << std::format(" ID={}", codes_[offset + 1]) << endl;
+			out.log() << std::format(" ID={}", codes_[offset + 1]) << endl;
 			return offset + 2;
 		}
 
 	case op_code::LOOP:
-		out.out() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
+		out.log() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
 
 	case op_code::CALL:
-		out.out() << std::format(" {} args",
+		out.log() << std::format(" {} args",
 				codes_[offset + 1]) << endl;
 		return offset + 2;
 
@@ -172,21 +172,25 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 			{
 				auto local = codes_[offset++];
 				auto index = codes_[offset++];
-				out.out() << std::format(" {} {}{}",
+				out.log() << std::format(" {} {}{}",
 						local ? "Local" : "Upvalue", index, i == count - 1 ? "" : ",");
 			}
-			out.out() << endl;
+			out.log() << endl;
 			return offset;
 		}
 		else
 		{
-			out.out() << " (No captures specified)" << endl;
+			out.log() << " (No captures specified)" << endl;
 			return offset + 1;
 		}
 	}
 
+	case op_code::CLASS:
+		out.log() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
+		return offset + 2;
+
 	default:
-		out.out() << endl;
+		out.log() << endl;
 		return offset + 1;
 	}
 }

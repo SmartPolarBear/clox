@@ -46,6 +46,9 @@ enum class object_type
 	CLOSURE,
 	UPVALUE,
 
+	OBJECT,
+	INSTANCE,
+
 	OBJECT_TYPE_MAX,
 };
 

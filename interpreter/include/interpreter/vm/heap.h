@@ -50,7 +50,12 @@ public:
 
 	using raw_pointer = void*;
 
+	using size_type = size_t;
+
 	friend class garbage_collector;
+
+	// TODO: use runtime configuration
+	static inline constexpr size_type NEXT_GC_INITIAL = 1024;
 
 public:
 	object_heap() = delete;
@@ -73,8 +78,9 @@ public:
 
 		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 		{
-			cons_->log() << std::format("At {:x} allocate {} bytes for type {}", (uintptr_t)mem, sizeof(TRaw), ret->type())
-						 << std::endl;
+			cons_->log()
+					<< std::format("At {:x} allocate {} bytes for type {}", (uintptr_t)mem, sizeof(TRaw), ret->type())
+					<< std::endl;
 		}
 
 		return ret;
@@ -84,22 +90,31 @@ public:
 	requires std::derived_from<T, object> || std::same_as<T, object_raw_pointer>
 	void deallocate(T* val)
 	{
+		using TRaw = std::decay_t<T>;
+
 		if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 		{
-			cons_->log() << std::format("At {:x} deallocate {} bytes of type {}", (uintptr_t)val, sizeof(*val), val->type())
-						 << std::endl;
+			cons_->log()
+					<< std::format("At {:x} deallocate {} bytes of type {}", (uintptr_t)val, sizeof(*val), val->type())
+					<< std::endl;
 		}
-		deallocate_raw(val);
+		deallocate_raw(val, sizeof(TRaw));
 	}
 
-	void use_gc(class garbage_collector& gc);
+	object_heap& enable_gc(class garbage_collector& gc);
+
+	object_heap& remove_gc();
 
 private:
 	raw_pointer allocate_raw(size_t size);
 
-	void deallocate_raw(raw_pointer raw);
+	void deallocate_raw(raw_pointer raw, size_t size);
 
 	object_list_type objects_{};
+
+	size_type size_{ 0 };
+
+	size_type next_gc_{ NEXT_GC_INITIAL };
 
 	mutable class garbage_collector* gc_{};
 

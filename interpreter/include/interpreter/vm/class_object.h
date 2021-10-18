@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/24/2021.
+// Created by cleve on 10/18/2021.
 //
 
 #pragma once
@@ -38,34 +38,23 @@
 
 namespace clox::interpreting::vm
 {
-class closure_object final
+class class_object
 		: public object
 {
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
-
 public:
-	[[nodiscard]] explicit closure_object(function_object_raw_pointer func);
+	explicit class_object(std::string name);
 
 	std::string printable_string() override;
 
-	[[nodiscard]] object_type type() const noexcept override;
+	object_type type() const noexcept override;
 
-	[[nodiscard]] function_object_raw_pointer function() const
-	{
-		return function_;
-	}
-
-	[[nodiscard]] std::vector<upvalue_object_raw_pointer>& upvalues() const
-	{
-		return upvalues_;
-	}
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
 
 private:
-	function_object_raw_pointer function_{};
 
-	mutable std::vector<upvalue_object_raw_pointer> upvalues_{};
+	std::string name_{};
 };
 
-using closure_object_raw_pointer = closure_object*;
+using class_object_raw_pointer = class_object*;
 }
