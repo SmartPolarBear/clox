@@ -45,7 +45,7 @@ std::string clox::interpreting::vm::class_object::printable_string()
 
 clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type() const noexcept
 {
-	return object_type::OBJECT_TYPE_MAX;
+	return object_type::OBJECT;
 }
 
 void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)

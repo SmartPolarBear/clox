@@ -41,7 +41,6 @@ namespace clox::interpreting::vm
 class closure_object final
 		: public object
 {
-public:
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 

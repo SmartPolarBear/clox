@@ -29,6 +29,7 @@
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/function_object.h>
 #include <interpreter/vm/upvalue_object.h>
+#include <interpreter/vm/class_object.h>
 
 #include <variant>
 #include <string>
@@ -38,11 +39,11 @@
 
 namespace clox::interpreting::vm
 {
-class class_object
+class instance_object
 		: public object
 {
 public:
-	explicit class_object(std::string name);
+	explicit instance_object(class_object_raw_pointer class_obj);
 
 	std::string printable_string() override;
 
@@ -52,9 +53,6 @@ protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 
 private:
-
-	std::string name_{};
+	class_object_raw_pointer class_{};
 };
-
-using class_object_raw_pointer = class_object*;
 }
