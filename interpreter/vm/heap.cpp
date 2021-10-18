@@ -49,6 +49,7 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 		if (gc_)
 		{
 			gc_->collect();
+			next_gc_ = size_ * garbage_collector::GC_HEAP_GROW_FACTOR;
 		}
 	}
 
@@ -59,12 +60,26 @@ clox::interpreting::vm::object_heap::raw_pointer clox::interpreting::vm::object_
 		throw insufficient_heap_memory{};
 	}
 
+	size_ += size;
+
+	if (gc_ && size_ > next_gc_)
+	{
+		gc_->collect();
+	}
+
 	return ret;
 }
 
-void clox::interpreting::vm::object_heap::deallocate_raw(object_heap::raw_pointer p)
+void clox::interpreting::vm::object_heap::deallocate_raw(raw_pointer raw, size_t size)
 {
-	free(p);
+	free(raw);
+	size_ -= size;
+
+	if (gc_ && size_ > next_gc_)
+	{
+		gc_->collect();
+		next_gc_ = size_ * garbage_collector::GC_HEAP_GROW_FACTOR;
+	}
 }
 
 object_heap& object_heap::enable_gc(clox::interpreting::vm::garbage_collector& gc)

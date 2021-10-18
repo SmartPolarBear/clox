@@ -264,7 +264,7 @@ private:
 
 	bool is_false(const value& val);
 
-	bool is_true(const value& val)
+	[[maybe_unused]] bool is_true(const value& val)
 	{
 		return !is_false(val);
 	}

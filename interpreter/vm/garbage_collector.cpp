@@ -48,6 +48,7 @@ garbage_collector::garbage_collector(helper::console& cons, std::shared_ptr<obje
 
 void clox::interpreting::vm::garbage_collector::collect()
 {
+	[[maybe_unused]]auto before = heap_->size_;
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
 		cons_->log() << "-- begin gc" << endl;
@@ -59,10 +60,10 @@ void clox::interpreting::vm::garbage_collector::collect()
 
 	sweep();
 
-
 	if constexpr(runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
 	{
-		cons_->log() << "-- end gc" << endl;
+		cons_->log() << std::format("-- end gc, {} deallocated, next gc at {}", before - heap_->size_, heap_->next_gc_)
+					 << endl;
 	}
 }
 
