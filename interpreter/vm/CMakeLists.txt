@@ -6,6 +6,7 @@ target_sources(clox
         PRIVATE string_object.cpp
         PRIVATE function_object.cpp
         PRIVATE closure_object.cpp
+        PRIVATE class_object.cpp
         PRIVATE heap.cpp
         PRIVATE value.cpp
         PRIVATE upvalue_object.cpp
@@ -18,6 +19,7 @@ target_sources(clox_test
         PRIVATE string_object.cpp
         PRIVATE function_object.cpp
         PRIVATE closure_object.cpp
+        PRIVATE class_object.cpp
         PRIVATE heap.cpp
         PRIVATE value.cpp
         PRIVATE upvalue_object.cpp
