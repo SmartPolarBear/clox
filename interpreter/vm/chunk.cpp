@@ -190,6 +190,14 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 				codes_[offset + 2]) << endl;
 		return offset + 3;
 
+	case op_code::GET_PROPERTY:
+		out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
+		return offset + 2;
+
+	case op_code::SET_PROPERTY:
+		out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	default:
 		out.log() << endl;
 		return offset + 1;

@@ -568,6 +568,16 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case SET_PROPERTY:
+	{
+		break;
+	}
+
+	case GET_PROPERTY:
+	{
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
