@@ -42,7 +42,9 @@ class class_object
 		: public object
 {
 public:
-	explicit class_object(std::string name);
+	friend class instance_object;
+public:
+	explicit class_object(std::string name,size_t field_size);
 
 	std::string printable_string() override;
 
@@ -54,6 +56,8 @@ protected:
 private:
 
 	std::string name_{};
+
+	size_t field_size_{};
 };
 
 using class_object_raw_pointer = class_object*;

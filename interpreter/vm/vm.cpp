@@ -561,7 +561,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case CLASS:
 	{
-		push(heap_->allocate<class_object>(next_variable_name()));
+		auto name = next_variable_name();
+		auto fields_size = next_code();
+
+		push(heap_->allocate<class_object>(name, fields_size));
 		break;
 	}
 

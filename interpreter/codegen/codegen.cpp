@@ -680,8 +680,12 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 {
 	auto name_constant = identifier_constant(class_stmt->get_name());
 
-	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant);
+	auto class_type =
+			static_pointer_cast<lox_class_type>(current_scope()->type(class_stmt->get_name().lexeme()));
+
+	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
+
 }
 
 std::shared_ptr<vm::chunk> codegen::current_chunk()

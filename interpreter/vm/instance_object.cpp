@@ -26,7 +26,7 @@
 #include "interpreter/vm/garbage_collector.h"
 
 clox::interpreting::vm::instance_object::instance_object(clox::interpreting::vm::class_object_raw_pointer class_obj)
-		: class_(class_obj)
+		: class_(class_obj), fields_(class_obj->field_size_)
 {
 
 }

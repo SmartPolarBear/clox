@@ -186,8 +186,9 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 	}
 
 	case op_code::CLASS:
-		out.log() << std::format(" {} '{}'", codes_[offset + 1], constants_[codes_[offset + 1]]) << endl;
-		return offset + 2;
+		out.log() << std::format(" {} '{}', {} fields", codes_[offset + 1], constants_[codes_[offset + 1]],
+				codes_[offset + 2]) << endl;
+		return offset + 3;
 
 	default:
 		out.log() << endl;

@@ -54,5 +54,6 @@ protected:
 
 private:
 	class_object_raw_pointer class_{};
+	std::vector<value> fields_{};
 };
 }
