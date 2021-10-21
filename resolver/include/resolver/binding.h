@@ -43,6 +43,7 @@ enum class binding_type
 	BINDING_VARIABLE = 1,
 	BINDING_FUNCTION,
 	BINDING_OPERATOR,
+	BINDING_CLASS_EXPRESSION
 };
 
 template<typename T>
@@ -191,6 +192,42 @@ template<>
 struct binding_tag<operator_binding>
 {
 	static constexpr binding_type type = binding_type::BINDING_OPERATOR;
+};
+
+
+class class_expression_binding final
+		: public binding
+{
+public:
+	explicit class_expression_binding(std::shared_ptr<parsing::expression> e, std::shared_ptr<class lox_class_type> ct)
+	: expr_(std::move(e)), class_type_(std::move(ct))
+	{
+	}
+
+	std::shared_ptr<parsing::expression> expression() const override
+	{
+		return expr_;
+	}
+
+	std::shared_ptr<class lox_class_type> class_type()const
+	{
+		return class_type_;
+	}
+
+	binding_type type() const override
+	{
+		return binding_type::BINDING_CLASS_EXPRESSION;
+	}
+
+private:
+	std::shared_ptr<parsing::expression> expr_{ nullptr };
+	std::shared_ptr<class lox_class_type> class_type_{};
+};
+
+template<>
+struct binding_tag<class_expression_binding>
+{
+	static constexpr binding_type type = binding_type::BINDING_CLASS_EXPRESSION;
 };
 
 template<typename T>

@@ -115,6 +115,13 @@ public:
 		return types_.at(name);
 	}
 
+	template<std::derived_from<lox_type> T>
+	[[nodiscard]] std::shared_ptr<T> type_typed(const std::string& n) const
+	{
+		return std::static_pointer_cast<T>(type(n));
+	}
+
+
 	[[nodiscard]] name_table_type& names()
 	{
 		return names_;

@@ -517,12 +517,35 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
 {
+	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
+	assert(binding);
 
+	generate(ge->get_object());
+
+	auto class_type = binding->class_type();
+
+	auto iter = class_type->fields().find(ge->get_name().lexeme());
+
+	auto offset = distance(class_type->fields().begin(), iter);
+
+	emit_codes(ge->get_name(), V(vm::op_code::GET_PROPERTY), offset);
 }
 
-void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
+	auto binding = resolver_->binding_typed<class_expression_binding>(se);
+	assert(binding);
 
+	generate(se->get_object());
+	generate(se->get_val());
+
+	auto class_type = binding->class_type();
+
+	auto iter = class_type->fields().find(se->get_name().lexeme());
+
+	auto offset = distance(class_type->fields().begin(), iter);
+
+	emit_codes(se->get_name(), V(vm::op_code::SET_PROPERTY), offset);
 }
 
 void clox::interpreting::compiling::codegen::visit_expression_statement(
@@ -680,8 +703,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 {
 	auto name_constant = identifier_constant(class_stmt->get_name());
 
-	auto class_type =
-			static_pointer_cast<lox_class_type>(current_scope()->type(class_stmt->get_name().lexeme()));
+	auto class_type = current_scope()->type_typed<lox_class_type>(class_stmt->get_name().lexeme());
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
