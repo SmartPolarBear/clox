@@ -37,23 +37,34 @@
 #include <memory>
 #include <map>
 
+#include <gsl/gsl>
+
 namespace clox::interpreting::vm
 {
 class instance_object
 		: public object
 {
 public:
+	using index_type = gsl::index;
+
 	explicit instance_object(class_object_raw_pointer class_obj);
 
 	std::string printable_string() override;
 
 	object_type type() const noexcept override;
 
+	void set(index_type idx,const value &);
+
+	value get(index_type idx) const;
+
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
+
 
 private:
 	class_object_raw_pointer class_{};
 	std::vector<value> fields_{};
 };
+
+using instance_object_raw_pointer = instance_object*;
 }
