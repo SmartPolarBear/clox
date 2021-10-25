@@ -56,12 +56,12 @@ too_many_params::too_many_params(const std::shared_ptr<lox_callable_type>& func)
 }
 
 
-lox_callable_type::lox_callable_type(std::string name, return_type_variant return_type,
+lox_callable_type::lox_callable_type(const std::string& name, return_type_variant return_type,
 		param_list_type params, bool ctor)
-		: name_(std::move(name)),
+		: name_(name),
 		  return_type_(std::move(return_type)),
 		  params_(std::move(params)),
-		  lox_object_type(std::move(name), TYPE_ID_FUNC, TYPE_CLASS | FLAG_CALLABLE, object())
+		  lox_object_type(name, TYPE_ID_FUNC, TYPE_CLASS | FLAG_CALLABLE, object())
 {
 	if (ctor)
 	{
@@ -76,6 +76,10 @@ lox_callable_type::lox_callable_type(lox_callable_type::return_type_variant retu
 		  params_(std::move(params)),
 		  lox_object_type("", TYPE_ID_FUNC, TYPE_CLASS | FLAG_CALLABLE, object())
 {
+	if (ctor)
+	{
+		lox_object_type::flags_ |= FLAG_CTOR;
+	}
 }
 
 

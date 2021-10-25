@@ -267,4 +267,30 @@ private:
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
 
+// these may be useful if we support eliminate "this" in class methods
+
+//struct class_base_scope_tag
+//{
+//};
+//
+//struct class_field_scope_tag
+//{
+//};
+//
+//enum class class_field_type
+//{
+//	BASE_SCOPE,
+//	FIELD_SCOPE,
+//};
+//
+//class class_base_scope
+//{
+//
+//};
+//
+//class class_field_scope
+//{
+//
+//};
+
 }

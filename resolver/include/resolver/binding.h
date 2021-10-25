@@ -122,8 +122,8 @@ public:
 	function_binding() = default;
 
 	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
-			function_id_type id)
-			: expr_(std::move(e)), stmt_(std::move(s)), id_(id)
+			function_id_type id, bool is_ctor = false)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), is_ctor_(is_ctor)
 	{
 	}
 
@@ -142,12 +142,19 @@ public:
 		return id_;
 	}
 
+	[[nodiscard]] bool is_ctor() const
+	{
+		return is_ctor_;
+	}
+
 private:
 	std::shared_ptr<parsing::call_expression> expr_{ nullptr };
 
 	std::shared_ptr<parsing::statement> stmt_{ nullptr };
 
 	function_id_type id_{ FUNCTION_ID_INVALID };
+
+	bool is_ctor_{ false };
 };
 
 template<>
@@ -200,21 +207,21 @@ class class_expression_binding final
 {
 public:
 	explicit class_expression_binding(std::shared_ptr<parsing::expression> e, std::shared_ptr<class lox_class_type> ct)
-	: expr_(std::move(e)), class_type_(std::move(ct))
+			: expr_(std::move(e)), class_type_(std::move(ct))
 	{
 	}
 
-	std::shared_ptr<parsing::expression> expression() const override
+	[[nodiscard]] std::shared_ptr<parsing::expression> expression() const override
 	{
 		return expr_;
 	}
 
-	std::shared_ptr<class lox_class_type> class_type()const
+	[[nodiscard]] std::shared_ptr<class lox_class_type> class_type() const
 	{
 		return class_type_;
 	}
 
-	binding_type type() const override
+	[[nodiscard]] binding_type type() const override
 	{
 		return binding_type::BINDING_CLASS_EXPRESSION;
 	}

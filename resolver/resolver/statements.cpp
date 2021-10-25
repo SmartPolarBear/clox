@@ -37,6 +37,8 @@
 #include <ranges>
 #include <tuple>
 
+#include <cassert>
+
 #include <gsl/gsl>
 
 using namespace clox::parsing;
@@ -262,7 +264,19 @@ void resolver::resolve_class_members(const shared_ptr<parsing::class_statement>&
 				cur_func_type_.pop();
 			});
 
+
 			//FIXME: allocate a function id;
+
+			auto id = next_function_id(method->get_name());
+
+			// TODO: throw an exception
+			assert(id != FUNCTION_ID_INVALID);
+
+			if (!function_ids_.contains(method))
+			{
+				function_ids_.insert_or_assign(method, id);
+			}
+
 			resolve_function_body(method, decl);
 
 			if (!func_type->return_type_deduced())
