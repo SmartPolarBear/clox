@@ -26,7 +26,7 @@
 #include "interpreter/vm/garbage_collector.h"
 
 clox::interpreting::vm::instance_object::instance_object(clox::interpreting::vm::class_object_raw_pointer class_obj)
-		: class_(class_obj)
+		: class_(class_obj), fields_(class_obj->field_size_)
 {
 
 }
@@ -44,5 +44,21 @@ clox::interpreting::vm::object_type clox::interpreting::vm::instance_object::typ
 void clox::interpreting::vm::instance_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
 {
 	gc_inst->mark_object(class_);
+	for (auto& field: fields_)
+	{
+		gc_inst->mark_value(field);
+	}
+}
+
+void clox::interpreting::vm::instance_object::set(clox::interpreting::vm::instance_object::index_type idx,
+		const clox::interpreting::vm::value& val)
+{
+	fields_[idx] = val;
+}
+
+clox::interpreting::vm::value
+clox::interpreting::vm::instance_object::get(clox::interpreting::vm::instance_object::index_type idx) const
+{
+	return fields_[idx];
 }
 

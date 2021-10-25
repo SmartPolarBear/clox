@@ -238,6 +238,9 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 	}
 
 	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
+	bindings_->put<class_expression_binding>(ptr, ptr, class_type);
+
+
 	auto member_name = ptr->get_name().lexeme();
 
 	for (class_type; class_type; class_type = dynamic_pointer_cast<lox_class_type>(class_type->super()))
@@ -251,6 +254,7 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 			return class_type->methods().at(member_name);
 		}
 	}
+
 
 	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named {}",
 			class_type->printable_string(), member_name));
@@ -273,6 +277,7 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 	}
 
 	auto class_type = static_pointer_cast<lox_class_type>(object_type);
+	bindings_->put<class_expression_binding>(se, se, class_type);
 
 	auto property_type = class_type->fields()[se->get_name().lexeme()];
 

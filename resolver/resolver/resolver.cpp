@@ -168,10 +168,10 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 {
 	if (scopes_.empty())return FUNCTION_ID_INVALID;
 
-	if (function_id_counter_ >= FUNCTION_ID_MAX)
+	auto next_id = next_function_id(fs->get_name());
+	if (next_id == FUNCTION_ID_INVALID)
 	{
-		logger::instance().error(fs->get_name(), std::format("Too many functions have been declared"));
-		return FUNCTION_ID_INVALID; //TODO: may need to throw a exception
+		return next_id; // TODO: throw an exception
 	}
 
 	auto top = scopes_.peek(dist);
@@ -181,13 +181,12 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 		top->names()[fs->get_name().lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 	}
 
-	function_id_type id = function_id_counter_++;
 	if (!function_ids_.contains(fs))
 	{
-		function_ids_.insert_or_assign(fs, id);
+		function_ids_.insert_or_assign(fs, next_id);
 	}
 
-	return id;
+	return next_id;
 }
 
 
@@ -357,8 +356,18 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 
 	auto[stmt, callable]=resolve_ret.value();
 
-	bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-			static_pointer_cast<statement>(stmt), function_ids_.at(stmt));
+	if (stmt)
+	{
+		auto func_id = function_ids_.at(stmt);
+		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+				static_pointer_cast<statement>(stmt), func_id, callable->flags() & FLAG_CTOR);
+	}
+	else
+	{
+		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, callable->flags() & FLAG_CTOR);
+	}
+
 
 	return callable;
 }

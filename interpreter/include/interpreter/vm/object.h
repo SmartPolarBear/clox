@@ -64,6 +64,11 @@ public:
 		return obj.type() == object_type::STRING;
 	}
 
+	static inline bool is_instance(const object& obj)
+	{
+		return obj.type() == object_type::INSTANCE;
+	}
+
 	static bool pointer_equal(const object* lhs, const object* rhs);
 
 

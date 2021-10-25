@@ -32,6 +32,7 @@
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
 #include <interpreter/vm/upvalue_object.h>
+#include <interpreter/vm/instance_object.h>
 
 #include <gsl/gsl>
 #include "interpreter/vm/class_object.h"
@@ -561,7 +562,31 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case CLASS:
 	{
-		push(heap_->allocate<class_object>(next_variable_name()));
+		auto name = next_variable_name();
+		auto fields_size = next_code();
+
+		push(heap_->allocate<class_object>(name, fields_size));
+		break;
+	}
+
+	case SET_PROPERTY:
+	{
+		auto offset = next_code();
+		auto cls = peek_object<instance_object_raw_pointer>();
+		cls->set(offset, peek());
+		auto val = pop();
+		pop(); // remove the class instance from stack
+		push(val);
+		break;
+	}
+
+	case GET_PROPERTY:
+	{
+		auto offset = next_code();
+		auto cls = peek_object<instance_object_raw_pointer>();
+		auto val = cls->get(offset);
+		pop(); // discard the instance
+		push(val);
 		break;
 	}
 

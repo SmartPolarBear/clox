@@ -1,0 +1,13 @@
+class Cake
+{
+    var name:string;
+
+   /* constructor(){
+    }*/
+}
+
+var cake=Cake();
+cake.name="BBB";
+print cake.name;
+cake.name="AAA";
+print cake.name;

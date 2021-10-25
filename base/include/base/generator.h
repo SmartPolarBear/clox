@@ -19,52 +19,18 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 10/18/2021.
+// Created by cleve on 10/24/2021.
 //
-
 #pragma once
 
-#include <scanner/scanner.h>
+#include <coroutine>
+//
+//#include <experimental/coroutine>
+//#include <experimental/generator>
+//
+//
+//namespace clox::base
+//{
+//using std::experimental::generator;
+//}
 
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/function_object.h>
-#include <interpreter/vm/upvalue_object.h>
-#include <interpreter/vm/class_object.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-
-#include <gsl/gsl>
-
-namespace clox::interpreting::vm
-{
-class instance_object
-		: public object
-{
-public:
-	using index_type = gsl::index;
-
-	explicit instance_object(class_object_raw_pointer class_obj);
-
-	std::string printable_string() override;
-
-	object_type type() const noexcept override;
-
-	void set(index_type idx,const value &);
-
-	value get(index_type idx) const;
-
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
-
-
-private:
-	class_object_raw_pointer class_{};
-	std::vector<value> fields_{};
-};
-
-using instance_object_raw_pointer = instance_object*;
-}

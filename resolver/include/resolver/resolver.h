@@ -25,6 +25,8 @@
 #pragma once
 
 #include <base/iterable_stack.h>
+#include <base/generator.h>
+#include <logger/logger.h>
 
 #include <parser/gen/parser_classes.inc>
 
@@ -194,7 +196,8 @@ private:
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	std::shared_ptr<upvalue>
-	resolve_upvalue(const std::shared_ptr<function_scope> &cur,const std::shared_ptr<function_scope> &bottom,const std::shared_ptr<symbol> &sym);
+	resolve_upvalue(const std::shared_ptr<function_scope>& cur, const std::shared_ptr<function_scope>& bottom,
+			const std::shared_ptr<symbol>& sym);
 
 	std::shared_ptr<lox_type> resolve_function_call(const std::shared_ptr<parsing::call_expression>& call,
 			const std::shared_ptr<lox_overloaded_metatype>& callee);
@@ -311,12 +314,23 @@ private:
 		}
 	}
 
+	inline function_id_type next_function_id(const scanning::token& error_token)
+	{
+		if (function_id_counter_ >= FUNCTION_ID_MAX)
+		{
+			logging::logger::instance().error(error_token, std::format("Too many functions have been declared"));
+			return FUNCTION_ID_INVALID;
+		}
+
+		return function_id_counter_++;
+	}
+
 	std::shared_ptr<function_scope> global_scope_{ nullptr };
 
 	base::iterable_stack<std::shared_ptr<scope>> scopes_{};
 	base::iterable_stack<std::shared_ptr<function_scope>> function_scopes_{};
 
-	std::unordered_map<function_id_type ,std::shared_ptr<function_scope>> function_scope_ids_{};
+	std::unordered_map<function_id_type, std::shared_ptr<function_scope>> function_scope_ids_{};
 
 	size_t slots_in_use_{ 1 }; // first slot is always in use
 

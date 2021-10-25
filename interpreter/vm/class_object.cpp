@@ -31,10 +31,9 @@ using namespace std;
 using namespace gsl;
 
 
-clox::interpreting::vm::class_object::class_object(std::string name)
-		: name_(std::move(name))
+clox::interpreting::vm::class_object::class_object(std::string name, size_t fields_size)
+		: name_(std::move(name)), field_size_(fields_size)
 {
-
 }
 
 

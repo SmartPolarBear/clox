@@ -115,6 +115,13 @@ public:
 		return types_.at(name);
 	}
 
+	template<std::derived_from<lox_type> T>
+	[[nodiscard]] std::shared_ptr<T> type_typed(const std::string& n) const
+	{
+		return std::static_pointer_cast<T>(type(n));
+	}
+
+
 	[[nodiscard]] name_table_type& names()
 	{
 		return names_;
@@ -259,5 +266,31 @@ private:
 
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
+
+// these may be useful if we support eliminate "this" in class methods
+
+//struct class_base_scope_tag
+//{
+//};
+//
+//struct class_field_scope_tag
+//{
+//};
+//
+//enum class class_field_type
+//{
+//	BASE_SCOPE,
+//	FIELD_SCOPE,
+//};
+//
+//class class_base_scope
+//{
+//
+//};
+//
+//class class_field_scope
+//{
+//
+//};
 
 }
