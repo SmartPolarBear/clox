@@ -490,7 +490,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	{
 		if (binding->is_ctor())
 		{
-			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH),binding-> );
+			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
 		}
 
 		if (binding->statement())
@@ -786,8 +786,14 @@ void codegen::declare_local_variable(const string& name, size_t depth)
 
 uint16_t codegen::identifier_constant(const token& identifier)
 {
-	return make_constant(identifier.lexeme());
+	return identifier_constant(identifier.lexeme());
 }
+
+uint16_t codegen::identifier_constant(const string& lexeme)
+{
+	return make_constant(lexeme);
+}
+
 
 shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
@@ -863,5 +869,4 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
-
 

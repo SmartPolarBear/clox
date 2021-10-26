@@ -131,6 +131,11 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			auto id = next_code();
 			push(functions_.at(id));
 		}
+		else if (secondary & SEC_OP_CLASS)
+		{
+			auto name = next_variable_name();
+			push(globals_.at(name));
+		}
 		else
 		{
 			throw invalid_opcode{ instruction };
@@ -566,6 +571,15 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		auto fields_size = next_code();
 
 		push(heap_->allocate<class_object>(name, fields_size));
+		break;
+	}
+
+	case INSTANCE:
+	{
+		auto class_obj = peek_object<class_object_raw_pointer>();
+		pop();
+		// TODO: constructor may have arguments
+		push(heap_->allocate<instance_object>(class_obj));
 		break;
 	}
 

@@ -101,6 +101,7 @@ enum class op_code : main_opcode_base_type
 	CLOSE_UPVALUE,
 	RETURN,
 	CLASS,
+	INSTANCE,
 	INHERIT,
 	METHOD,
 	LIST_INIT,

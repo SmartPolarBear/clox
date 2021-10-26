@@ -168,6 +168,9 @@ private:
 
 	uint16_t identifier_constant(const scanning::token& identifier);
 
+	uint16_t identifier_constant(const  std::string &lexeme);
+
+
 	void set_constant(vm::full_opcode_type pos, const vm::value& val);
 
 	uint16_t make_constant(const vm::value& val);

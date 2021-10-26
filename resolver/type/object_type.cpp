@@ -198,6 +198,11 @@ bool lox_object_type::operator!=(const lox_type& another) const
 	return !(*this == another);
 }
 
+std::string lox_object_type::name() const
+{
+	return this->name_;
+}
+
 
 lox_integer_type::lox_integer_type()
 		: lox_object_type("integer", PRIMITIVE_TYPE_ID_INTEGER, TYPE_PRIMITIVE, lox_object_type::object())

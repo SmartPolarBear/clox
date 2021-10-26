@@ -152,10 +152,16 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 			out.log() << std::format(" ID={}", codes_[offset + 1]) << endl;
 			return offset + 2;
 		}
+		else if (secondary & SEC_OP_CLASS)
+		{
+			out.log() << std::format(" Name={}", constants_[codes_[offset + 1]]) << endl;
+			return offset + 2;
+		}
 
 	case op_code::LOOP:
 		out.log() << std::format(" (offset) '{}'", codes_[offset + 1]) << endl;
 		return offset + 2;
+
 
 	case op_code::CALL:
 		out.log() << std::format(" {} args",
@@ -198,6 +204,7 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
 		return offset + 2;
 
+	case op_code::INSTANCE:
 	default:
 		out.log() << endl;
 		return offset + 1;
