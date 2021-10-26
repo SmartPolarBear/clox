@@ -56,7 +56,10 @@ static constexpr global_scope_tag_type global_scope_tag{};
 
 enum class scope_types
 {
-	SCOPE = 1, FUNCTION_SCOPE
+	SCOPE = 1,
+	FUNCTION_SCOPE,
+	CLASS_BASE_SCOPE,
+	CLASS_FIELD_SCOPE,
 };
 
 class scope
@@ -267,30 +270,16 @@ private:
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
 
-// these may be useful if we support eliminate "this" in class methods
+class class_base_scope
+		: public scope
+{
 
-//struct class_base_scope_tag
-//{
-//};
-//
-//struct class_field_scope_tag
-//{
-//};
-//
-//enum class class_field_type
-//{
-//	BASE_SCOPE,
-//	FIELD_SCOPE,
-//};
-//
-//class class_base_scope
-//{
-//
-//};
-//
-//class class_field_scope
-//{
-//
-//};
+};
+
+class class_field_scope
+		: public scope
+{
+
+};
 
 }
