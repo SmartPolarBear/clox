@@ -65,6 +65,8 @@ public:
 
 	uint64_t depth() const;
 
+	std::string name()const;
+
 	bool operator<(const lox_type&) const override;
 
 	bool operator<(const lox_object_type&) const;

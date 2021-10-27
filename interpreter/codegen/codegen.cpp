@@ -486,21 +486,31 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && !binding->is_ctor())
+	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
 	{
-
-		emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
-		emit_code(ce->get_paren(), V(op_code::CLOSURE));
-
-		for (const auto& arg: ce->get_args())
+		if (binding->is_ctor())
 		{
-			generate(arg); // push arguments in the stack
+			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
+			emit_code(V(vm::op_code::INSTANCE));
 		}
 
-		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
-	}
-	else if (binding && binding->is_ctor()) // it may be a call to a default constructor
-	{
+		if (binding->statement())
+		{
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+			emit_code(ce->get_paren(), V(op_code::CLOSURE));
+
+			for (const auto& arg: ce->get_args())
+			{
+				generate(arg); // push arguments in the stack
+			}
+
+			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+
+			if (binding->is_ctor())
+			{
+				emit_code(V(vm::op_code::POP)); // Pop the default nil value
+			}
+		}
 
 	}
 	else // it is not a call expression that bind to certain function, so we directly deal with it
@@ -777,8 +787,14 @@ void codegen::declare_local_variable(const string& name, size_t depth)
 
 uint16_t codegen::identifier_constant(const token& identifier)
 {
-	return make_constant(identifier.lexeme());
+	return identifier_constant(identifier.lexeme());
 }
+
+uint16_t codegen::identifier_constant(const string& lexeme)
+{
+	return make_constant(lexeme);
+}
+
 
 shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
@@ -854,5 +870,4 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
-
 

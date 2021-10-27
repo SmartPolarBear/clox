@@ -131,6 +131,11 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			auto id = next_code();
 			push(functions_.at(id));
 		}
+		else if (secondary & SEC_OP_CLASS)
+		{
+			auto name = next_variable_name();
+			push(globals_.at(name));
+		}
 		else
 		{
 			throw invalid_opcode{ instruction };
@@ -569,10 +574,19 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case INSTANCE:
+	{
+		auto class_obj = peek_object<class_object_raw_pointer>();
+		pop();
+		// TODO: constructor may have arguments
+		push(heap_->allocate<instance_object>(class_obj));
+		break;
+	}
+
 	case SET_PROPERTY:
 	{
 		auto offset = next_code();
-		auto cls = peek_object<instance_object_raw_pointer>();
+		auto cls = peek_object<instance_object_raw_pointer>(1);
 		cls->set(offset, peek());
 		auto val = pop();
 		pop(); // remove the class instance from stack

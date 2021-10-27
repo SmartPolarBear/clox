@@ -27,6 +27,7 @@
 #include <parser/gen/parser_classes.inc>
 
 #include <resolver/lox_type.h>
+#include <resolver/class_type.h>
 #include <resolver/function.h>
 #include <resolver/symbol.h>
 
@@ -122,10 +123,17 @@ public:
 	function_binding() = default;
 
 	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
-			function_id_type id, bool is_ctor = false)
-			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), is_ctor_(is_ctor)
+			function_id_type id)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id)
 	{
 	}
+
+	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
+			function_id_type id, bool is_ctor, std::shared_ptr<resolving::lox_class_type> cls)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), is_ctor_(is_ctor), class_(std::move(cls))
+	{
+	}
+
 
 	[[nodiscard]] std::shared_ptr<parsing::expression> expression() const override
 	{
@@ -147,10 +155,17 @@ public:
 		return is_ctor_;
 	}
 
+	[[nodiscard]] std::shared_ptr<resolving::lox_class_type> ctor_class_type()
+	{
+		return class_;
+	}
+
 private:
 	std::shared_ptr<parsing::call_expression> expr_{ nullptr };
 
 	std::shared_ptr<parsing::statement> stmt_{ nullptr };
+
+	std::shared_ptr<resolving::lox_class_type> class_{ nullptr };
 
 	function_id_type id_{ FUNCTION_ID_INVALID };
 

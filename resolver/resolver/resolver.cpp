@@ -360,12 +360,14 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	{
 		auto func_id = function_ids_.at(stmt);
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), func_id, callable->flags() & FLAG_CTOR);
+				static_pointer_cast<statement>(stmt), func_id);
 	}
-	else
+	else // it's a constructor
 	{
+		auto class_type = callable->return_type();
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, callable->flags() & FLAG_CTOR);
+				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, callable->flags() & FLAG_CTOR,
+				static_pointer_cast<lox_class_type>(class_type));
 	}
 
 
