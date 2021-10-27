@@ -722,6 +722,22 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
 
+	scope_begin();
+	scope_begin();
+
+	for (const auto& method: class_stmt->get_methods())
+	{
+		generate(method);
+		auto id = resolver_->function_id(method);
+
+		//FIXME
+		assert(id.has_value());
+
+		emit_codes(method->get_name(), V(vm::op_code::METHOD), id.value());
+	}
+
+	scope_end();
+	scope_end();
 }
 
 std::shared_ptr<vm::chunk> codegen::current_chunk()

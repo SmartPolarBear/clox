@@ -2,8 +2,8 @@ class Cake
 {
     var name:string;
 
-   /* constructor(){
-    }*/
+    constructor(){
+    }
 }
 
 var cake=Cake();
