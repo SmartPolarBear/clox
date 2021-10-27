@@ -491,6 +491,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		if (binding->is_ctor())
 		{
 			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
+			emit_code(V(vm::op_code::INSTANCE));
 		}
 
 		if (binding->statement())
@@ -504,11 +505,11 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			}
 
 			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
-		}
 
-		if (binding->is_ctor())
-		{
-			emit_code(V(vm::op_code::POP)); // Pop the default nil value
+			if (binding->is_ctor())
+			{
+				emit_code(V(vm::op_code::POP)); // Pop the default nil value
+			}
 		}
 
 	}

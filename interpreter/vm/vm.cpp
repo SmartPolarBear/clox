@@ -586,7 +586,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case SET_PROPERTY:
 	{
 		auto offset = next_code();
-		auto cls = peek_object<instance_object_raw_pointer>();
+		auto cls = peek_object<instance_object_raw_pointer>(1);
 		cls->set(offset, peek());
 		auto val = pop();
 		pop(); // remove the class instance from stack
