@@ -667,7 +667,9 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto constant = emit_constant(fs->get_name(), static_cast<function_object_raw_pointer>(nullptr));
 
 	// define it as variable to follow the function overloading specification
-	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
+	// FIXME: symbol gets null for class methods
+	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());
+			symbol && symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()),
 				fs->get_name());

@@ -204,6 +204,10 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
 		return offset + 2;
 
+	case op_code::METHOD:
+		out.log() << std::format(" ID= {}", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	case op_code::INSTANCE:
 	default:
 		out.log() << endl;
