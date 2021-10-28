@@ -241,9 +241,29 @@ public:
 		return binding_type::BINDING_CLASS_EXPRESSION;
 	}
 
+	void set_as_method(const std::shared_ptr<parsing::call_expression>& ce)
+	{
+		method_ = true;
+		caller_ = ce;
+	}
+
+	[[nodiscard]] bool is_method() const
+	{
+		return method_;
+	}
+
+
+	[[nodiscard]] std::shared_ptr<parsing::call_expression> method_caller() const
+	{
+		return caller_;
+	}
+
 private:
 	std::shared_ptr<parsing::expression> expr_{ nullptr };
 	std::shared_ptr<class lox_class_type> class_type_{};
+
+	bool method_{ false };
+	std::shared_ptr<parsing::call_expression> caller_{ nullptr };
 };
 
 template<>

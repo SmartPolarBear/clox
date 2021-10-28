@@ -538,11 +538,26 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 
 	auto class_type = binding->class_type();
 
-	auto iter = class_type->fields().find(ge->get_name().lexeme());
+	if (binding->is_method())
+	{
+		auto caller_binding = resolver_->binding_typed<function_binding>(binding->method_caller());
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::PUSH), caller_binding->id());
+	}
+	else
+	{
+		if (auto field = class_type->fields().find(ge->get_name().lexeme());field != class_type->fields().end())
+		{
+			auto offset = distance(class_type->fields().begin(), field);
 
-	auto offset = distance(class_type->fields().begin(), iter);
+			emit_codes(ge->get_name(), V(vm::op_code::GET_PROPERTY), offset);
+		}
+		else
+		{
+			//FIXME: it's an error
+		}
+	}
 
-	emit_codes(ge->get_name(), V(vm::op_code::GET_PROPERTY), offset);
+
 }
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)

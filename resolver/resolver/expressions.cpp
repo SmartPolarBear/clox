@@ -339,6 +339,11 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
 	auto callee = resolve(ce->get_callee());
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
+	{
+		auto binding = bindings_->get_typed<class_expression_binding>(ce->get_callee());
+		binding->set_as_method(ce);
+	}
 
 	if (!callee)
 	{

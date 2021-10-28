@@ -606,6 +606,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case METHOD:
 	{
+
 		break;
 	}
 
