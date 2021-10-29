@@ -51,3 +51,9 @@ void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garba
 {
 
 }
+
+void clox::interpreting::vm::class_object::put_method(clox::resolving::function_id_type id,
+		clox::interpreting::vm::closure_object_raw_pointer closure)
+{
+	methods_.insert_or_assign(id, closure);
+}

@@ -578,7 +578,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
 		pop();
-		// TODO: constructor may have arguments
+		// TODO: constructor may have arguments ?
 		push(heap_->allocate<instance_object>(class_obj));
 		break;
 	}
@@ -606,7 +606,14 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case METHOD:
 	{
+		auto id = next_code();
 
+		auto method_closure = peek_object<function_object_raw_pointer>(0)->wrapper_closure();
+		auto class_obj = peek_object<class_object_raw_pointer>(1);
+
+		pop();
+
+		class_obj->put_method(method_closure);
 		break;
 	}
 

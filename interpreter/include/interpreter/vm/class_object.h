@@ -29,6 +29,9 @@
 #include <interpreter/vm/object.h>
 #include <interpreter/vm/function_object.h>
 #include <interpreter/vm/upvalue_object.h>
+#include <interpreter/vm/closure_object.h>
+
+#include <resolver/function.h>
 
 #include <variant>
 #include <string>
@@ -43,12 +46,15 @@ class class_object
 {
 public:
 	friend class instance_object;
+
 public:
-	explicit class_object(std::string name,size_t field_size);
+	explicit class_object(std::string name, size_t field_size);
 
 	std::string printable_string() override;
 
 	object_type type() const noexcept override;
+
+	void put_method(resolving::function_id_type id,closure_object_raw_pointer closure);
 
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
@@ -58,6 +64,8 @@ private:
 	std::string name_{};
 
 	size_t field_size_{};
+
+	std::unordered_map<resolving::function_id_type, closure_object_raw_pointer> methods_{};
 };
 
 using class_object_raw_pointer = class_object*;

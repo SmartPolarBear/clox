@@ -682,7 +682,6 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto constant = emit_constant(fs->get_name(), static_cast<function_object_raw_pointer>(nullptr));
 
 	// define it as variable to follow the function overloading specification
-	// FIXME: symbol gets null for class methods
 	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());
 			symbol && symbol->is_global())
 	{
@@ -691,6 +690,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	}
 	else
 	{
+		// for class method, the function object is left for METHOD op, for local function, it becomes a local variable
 		declare_local_variable(fs->get_name().lexeme());
 	}
 
@@ -738,6 +738,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
+	emit_codes(class_stmt->get_name(), VC(SEC_OP_GLOBAL, vm::op_code::GET), name_constant);
 
 	scope_begin();
 	scope_begin();
@@ -751,10 +752,13 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 		assert(id.has_value());
 
 		emit_codes(method->get_name(), V(vm::op_code::METHOD), id.value());
+
 	}
 
 	scope_end();
 	scope_end();
+
+	emit_code(V(op_code::POP)); // pop the class object
 }
 
 std::shared_ptr<vm::chunk> codegen::current_chunk()
