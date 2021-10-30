@@ -493,10 +493,13 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 {
 	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
-		emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
+		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
+				identifier_constant(binding->ctor_class_type()->name()));
 		emit_code(V(vm::op_code::INSTANCE));
 
 		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), binding->id());
+
+		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else if (binding && !binding->is_ctor()) [[likely]]
 	{
