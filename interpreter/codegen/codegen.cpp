@@ -491,15 +491,16 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
+	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
-		if (binding->is_ctor())
-		{
-			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
-			emit_code(V(vm::op_code::INSTANCE));
-		}
+		emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
+		emit_code(V(vm::op_code::INSTANCE));
 
-		if (binding->statement())
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), binding->id());
+	}
+	else if (binding && !binding->is_ctor()) [[likely]]
+	{
+		if (binding->statement()) [[likely]]
 		{
 			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
 			emit_code(ce->get_paren(), V(op_code::CLOSURE));
@@ -516,9 +517,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 				emit_code(V(vm::op_code::POP)); // Pop the default nil value
 			}
 		}
-
 	}
-	else // it is not a call expression that bind to certain function, so we directly deal with it
+	else [[unlikely]] // it is not a call expression that bind to certain function, so we directly deal with it
 	{
 		generate(ce->get_callee());
 

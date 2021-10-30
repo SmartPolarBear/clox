@@ -377,10 +377,20 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	if (stmt)
 	{
 		auto func_id = function_ids_.at(stmt);
-		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), func_id);
+		if (callable->flags() & FLAG_CTOR) [[unlikely]] // it is constructor
+		{
+			auto class_type = callable->return_type();
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, true,
+					static_pointer_cast<lox_class_type>(class_type));
+		}
+		else [[likely]]
+		{
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), func_id);
+		}
 	}
-	else // it's a constructor
+	else // it's a default constructor
 	{
 		auto class_type = callable->return_type();
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),

@@ -596,11 +596,21 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case GET_PROPERTY:
 	{
-		auto offset = next_code();
+		auto secondary = secondary_op_code_of(instruction);
+
 		auto cls = peek_object<instance_object_raw_pointer>();
-		auto val = cls->get(offset);
-		pop(); // discard the instance
-		push(val);
+
+		if (secondary & SEC_OP_FUNC) [[unlikely]]
+		{
+
+		}
+		else [[likely]]
+		{
+			auto offset = next_code();
+			auto val = cls->get(offset);
+			pop(); // discard the instance
+			push(val);
+		}
 		break;
 	}
 
