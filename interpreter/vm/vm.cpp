@@ -783,7 +783,7 @@ bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::f
 {
 	if (!inst->class_object()->contains_method(method))
 	{
-		runtime_error("Cannot bind method for class {} and ID {}", inst->class_object()->printable_string(), method);
+		runtime_error("Cannot bind method for class {} and ID {}\n", inst->class_object()->printable_string(), method);
 		return false;
 	}
 

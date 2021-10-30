@@ -197,7 +197,14 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		return offset + 3;
 
 	case op_code::GET_PROPERTY:
-		out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
+		if (secondary & SEC_OP_FUNC)
+		{
+			out.log() << std::format(" Function ID {}", codes_[offset + 1]) << endl;
+		}
+		else
+		{
+			out.log() << std::format(" Member offset {}", codes_[offset + 1]) << endl;
+		}
 		return offset + 2;
 
 	case op_code::SET_PROPERTY:
