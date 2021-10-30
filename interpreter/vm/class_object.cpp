@@ -49,7 +49,10 @@ clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type()
 
 void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
 {
-
+	for(auto &method:methods_)
+	{
+		gc_inst->mark_object(method.second);
+	}
 }
 
 void clox::interpreting::vm::class_object::put_method(clox::resolving::function_id_type id,

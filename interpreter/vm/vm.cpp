@@ -613,7 +613,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		pop();
 
-		class_obj->put_method(method_closure);
+		class_obj->put_method(id, method_closure);
 		break;
 	}
 
