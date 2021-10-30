@@ -70,5 +70,5 @@ private:
 	closure_object_raw_pointer method_{};
 };
 
-using bounded_method_object_pointer = bounded_method_object*;
+using bounded_method_object_raw_pointer = bounded_method_object*;
 }

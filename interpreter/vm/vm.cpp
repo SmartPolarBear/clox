@@ -727,12 +727,17 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 	auto obj = get<object_raw_pointer>(val);
 
-	if (obj->type() == object_type::CLOSURE)
+	if (obj->type() == object_type::CLOSURE)[[likely]]
 	{
-		auto closure = dynamic_cast<closure_object_raw_pointer> (obj);
+		auto closure = dynamic_cast<closure_object_raw_pointer>(obj);
 		call(closure, arg_count);
 	}
-	else
+	else if (obj->type() == object_type::BOUNDED_METHOD)[[likely]]
+	{
+		auto bound = dynamic_cast<bounded_method_object_raw_pointer>(obj);
+		call(bound->method(), arg_count);
+	}
+	else [[unlikely]]
 	{
 		throw invalid_value{ val };
 	}
