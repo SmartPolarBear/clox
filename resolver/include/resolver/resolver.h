@@ -267,6 +267,12 @@ private:
 
 	void scope_begin(function_id_type func_id);
 
+
+	void scope_begin(const std::shared_ptr<lox_class_type>& class_type, class_base_tag);
+
+	void scope_begin(const std::shared_ptr<lox_class_type>& class_type, class_field_tag);
+
+
 	void scope_end();
 
 

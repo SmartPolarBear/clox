@@ -36,6 +36,7 @@
 #include <resolver/function.h>
 #include <resolver/upvalue.h>
 
+#include <utility>
 #include <vector>
 #include <stack>
 #include <map>
@@ -270,16 +271,50 @@ private:
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
 
+struct class_base_tag{};
+
+static inline constexpr class_base_tag class_base;
+
 class class_base_scope
 		: public scope
 {
+public:
+	explicit class_base_scope(const std::shared_ptr<scope>& parent, std::shared_ptr<lox_class_type> class_type)
+			: scope(parent), class_type_(std::move(class_type))
+	{
+	}
+
+
+	[[nodiscard]] scope_types scope_type() noexcept override
+	{
+		return scope_types::CLASS_BASE_SCOPE;
+	}
+
+private:
+	std::shared_ptr<lox_class_type> class_type_;
 
 };
+
+struct class_field_tag{};
+
+static inline constexpr class_field_tag class_field;
 
 class class_field_scope
 		: public scope
 {
+public:
+	explicit class_field_scope(const std::shared_ptr<scope>& parent, std::shared_ptr<lox_class_type> class_type)
+			: scope(parent), class_type_(std::move(class_type))
+	{
+	}
 
+	[[nodiscard]] scope_types scope_type() noexcept override
+	{
+		return scope_types::CLASS_FIELD_SCOPE;
+	}
+
+private:
+	std::shared_ptr<lox_class_type> class_type_;
 };
 
 }

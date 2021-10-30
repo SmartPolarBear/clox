@@ -109,6 +109,11 @@ void codegen::scope_end()
 			}
 		}
 	}
+	else if (scope->scope_type() == resolving::scope_types::CLASS_BASE_SCOPE ||
+			 scope->scope_type() == resolving::scope_types::CLASS_FIELD_SCOPE)
+	{
+		// Do nothing
+	}
 	else
 	{
 		emit_codes(

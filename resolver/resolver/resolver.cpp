@@ -133,6 +133,24 @@ void resolver::scope_begin(function_id_type func_id)
 	function_scope_ids_[func_id] = next;
 }
 
+void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_base_tag)
+{
+	auto next = make_shared<class_base_scope>(scopes_.top(), class_type);
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
+}
+
+void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_field_tag)
+{
+	auto next = make_shared<class_field_scope>(scopes_.top(), class_type);
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
+}
+
 
 void resolver::scope_end()
 {
