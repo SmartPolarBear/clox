@@ -22,7 +22,53 @@
 // Created by cleve on 10/30/2021.
 //
 
-#ifndef CLOX_BOUNDED_METHOD_OBJECT_H
-#define CLOX_BOUNDED_METHOD_OBJECT_H
+#pragma once
 
-#endif //CLOX_BOUNDED_METHOD_OBJECT_H
+#include <scanner/scanner.h>
+
+#include <interpreter/vm/object.h>
+#include <interpreter/vm/function_object.h>
+#include <interpreter/vm/upvalue_object.h>
+#include <interpreter/vm/class_object.h>
+
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
+#include <gsl/gsl>
+
+namespace clox::interpreting::vm
+{
+class bounded_method_object
+		: public object
+{
+public:
+
+	explicit bounded_method_object(value receiver, closure_object_raw_pointer method);
+
+	std::string printable_string() override;
+
+	[[nodiscard]] object_type type() const noexcept override;
+
+	[[nodiscard]] value receiver() const
+	{
+		return receiver_;
+	}
+
+	[[nodiscard]] closure_object_raw_pointer method() const
+	{
+		return method_;
+	}
+
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
+
+private:
+	value receiver_{};
+	closure_object_raw_pointer method_{};
+};
+
+using bounded_method_object_pointer = bounded_method_object*;
+}

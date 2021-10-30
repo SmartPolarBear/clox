@@ -60,3 +60,14 @@ void clox::interpreting::vm::class_object::put_method(clox::resolving::function_
 {
 	methods_.insert_or_assign(id, closure);
 }
+
+bool clox::interpreting::vm::class_object::contains_method(clox::resolving::function_id_type id)
+{
+	return methods_.contains(id);
+}
+
+clox::interpreting::vm::closure_object_raw_pointer
+clox::interpreting::vm::class_object::method_at(clox::resolving::function_id_type id)
+{
+	return methods_.at(id);
+}

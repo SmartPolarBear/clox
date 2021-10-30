@@ -22,4 +22,37 @@
 // Created by cleve on 10/30/2021.
 //
 
+#include <interpreter/vm/class_object.h>
+#include <interpreter/vm/garbage_collector.h>
 #include <interpreter/vm/bounded_method_object.h>
+
+#include <gsl/gsl>
+#include <utility>
+
+using namespace std;
+using namespace gsl;
+
+using namespace clox::interpreting::vm;
+
+clox::interpreting::vm::bounded_method_object::bounded_method_object(
+		value receiver,
+		clox::interpreting::vm::closure_object_raw_pointer method)
+		: receiver_(std::move(receiver)), method_(method)
+{
+}
+
+std::string clox::interpreting::vm::bounded_method_object::printable_string()
+{
+	return method_->printable_string();
+}
+
+clox::interpreting::vm::object_type clox::interpreting::vm::bounded_method_object::type() const noexcept
+{
+	return clox::interpreting::vm::object_type::BOUNDED_METHOD;
+}
+
+void clox::interpreting::vm::bounded_method_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	gc_inst->mark_value(receiver_);
+	gc_inst->mark_object(method_);
+}

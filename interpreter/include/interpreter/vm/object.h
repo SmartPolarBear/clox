@@ -49,6 +49,8 @@ enum class object_type
 	OBJECT,
 	INSTANCE,
 
+	BOUNDED_METHOD,
+
 	OBJECT_TYPE_MAX,
 };
 

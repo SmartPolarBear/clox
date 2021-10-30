@@ -36,6 +36,7 @@
 
 #include <gsl/gsl>
 #include "interpreter/vm/class_object.h"
+#include "interpreter/vm/bounded_method_object.h"
 
 
 using namespace std;
@@ -602,7 +603,11 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		if (secondary & SEC_OP_FUNC) [[unlikely]]
 		{
-
+			auto id = next_code();
+			if (!bind_method(cls, id))
+			{
+				return { virtual_machine_status::RUNTIME_ERROR, true };
+			}
 		}
 		else [[likely]]
 		{
@@ -767,5 +772,20 @@ void virtual_machine::close_upvalues(index_type last)
 		iter->second->close();
 		iter = open_upvalues_.erase(iter);
 	}
+}
+
+bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::function_id_type method)
+{
+	if (!inst->class_object()->contains_method(method))
+	{
+		runtime_error("Cannot bind method for class {} and ID {}", inst->class_object()->printable_string(), method);
+		return false;
+	}
+
+	auto bound = heap_->allocate<bounded_method_object>(inst, inst->class_object()->method_at(method));
+	pop();
+	push(bound);
+
+	return true;
 }
 

@@ -56,6 +56,10 @@ public:
 
 	void put_method(resolving::function_id_type id,closure_object_raw_pointer closure);
 
+	[[nodiscard]] bool contains_method(resolving::function_id_type id);
+
+	[[nodiscard]] closure_object_raw_pointer method_at(resolving::function_id_type id);
+
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 
