@@ -37,12 +37,14 @@
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
+#include <interpreter/vm/instance_object.h>
 
 #include <memory>
 #include <map>
 #include <ranges>
 
 #include <gsl/gsl>
+#include "class_object.h"
 
 namespace clox::interpreting::vm
 {
@@ -337,6 +339,9 @@ private:
 	}
 
 	//
+
+	// method
+	bool bind_method(instance_object_raw_pointer class_obj, resolving::function_id_type id);
 
 	std::shared_ptr<object_heap> heap_{};
 

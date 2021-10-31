@@ -36,6 +36,8 @@
 #include <ranges>
 #include <tuple>
 
+#include <cassert>
+
 #include <gsl/gsl>
 
 using namespace clox::parsing;
@@ -131,6 +133,24 @@ void resolver::scope_begin(function_id_type func_id)
 	function_scopes_.push(next);
 
 	function_scope_ids_[func_id] = next;
+}
+
+void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_base_tag)
+{
+	auto next = make_shared<class_base_scope>(scopes_.top(), class_type);
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
+}
+
+void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_field_tag)
+{
+	auto next = make_shared<class_field_scope>(scopes_.top(), class_type);
+
+	scopes_.top()->children_.push_back(next);
+
+	scopes_.push(next);
 }
 
 
@@ -356,17 +376,37 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 
 	auto[stmt, callable]=resolve_ret.value();
 
+
 	if (stmt)
 	{
 		auto func_id = function_ids_.at(stmt);
-		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), func_id);
+		if (callable->flags() & FLAG_CTOR) [[unlikely]] // it is constructor
+		{
+			auto class_type = callable->return_type();
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_CTOR,
+					static_pointer_cast<lox_class_type>(class_type));
+		}
+		else if (call->get_callee()->get_type() == parsing::PC_TYPE_get_expression) // it's a method
+		{
+			auto class_type = callable->return_type();
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_METHOD,
+					static_pointer_cast<lox_class_type>(class_type));
+		}
+		else [[likely]]
+		{
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), func_id, 0);
+		}
 	}
-	else // it's a constructor
+	else // it's a default constructor
 	{
+		assert(callable->flags() & FLAG_CTOR);
 		auto class_type = callable->return_type();
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, callable->flags() & FLAG_CTOR,
+				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
+				function_binding::function_binding_flags::FB_CTOR,
 				static_pointer_cast<lox_class_type>(class_type));
 	}
 

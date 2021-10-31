@@ -19,55 +19,56 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 10/18/2021.
+// Created by cleve on 10/30/2021.
 //
 
+#pragma once
+
+#include <scanner/scanner.h>
+
+#include <interpreter/vm/object.h>
+#include <interpreter/vm/function_object.h>
+#include <interpreter/vm/upvalue_object.h>
 #include <interpreter/vm/class_object.h>
-#include <interpreter/vm/garbage_collector.h>
+
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
 
 #include <gsl/gsl>
 
-using namespace std;
-using namespace gsl;
-
-
-clox::interpreting::vm::class_object::class_object(std::string name, size_t fields_size)
-		: name_(std::move(name)), field_size_(fields_size)
+namespace clox::interpreting::vm
 {
-}
-
-
-std::string clox::interpreting::vm::class_object::printable_string()
+class bounded_method_object
+		: public object
 {
-	return name_;
-}
+public:
 
-clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type() const noexcept
-{
-	return object_type::OBJECT;
-}
+	explicit bounded_method_object(value receiver, closure_object_raw_pointer method);
 
-void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
-{
-	for(auto &method:methods_)
+	std::string printable_string() override;
+
+	[[nodiscard]] object_type type() const noexcept override;
+
+	[[nodiscard]] value receiver() const
 	{
-		gc_inst->mark_object(method.second);
+		return receiver_;
 	}
-}
 
-void clox::interpreting::vm::class_object::put_method(clox::resolving::function_id_type id,
-		clox::interpreting::vm::closure_object_raw_pointer closure)
-{
-	methods_.insert_or_assign(id, closure);
-}
+	[[nodiscard]] closure_object_raw_pointer method() const
+	{
+		return method_;
+	}
 
-bool clox::interpreting::vm::class_object::contains_method(clox::resolving::function_id_type id)
-{
-	return methods_.contains(id);
-}
+protected:
+	void blacken(struct garbage_collector* gc_inst) override;
 
-clox::interpreting::vm::closure_object_raw_pointer
-clox::interpreting::vm::class_object::method_at(clox::resolving::function_id_type id)
-{
-	return methods_.at(id);
+private:
+	value receiver_{};
+	closure_object_raw_pointer method_{};
+};
+
+using bounded_method_object_raw_pointer = bounded_method_object*;
 }

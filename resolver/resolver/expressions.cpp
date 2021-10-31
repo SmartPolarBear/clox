@@ -84,7 +84,7 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 				vector<shared_ptr<expression>>{ expr->get_right() });
 
 		bindings_->put<operator_binding>(expr, expr, call_expr);
-		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt));
+		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt), 0);
 
 	}
 
@@ -339,6 +339,11 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
 	auto callee = resolve(ce->get_callee());
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
+	{
+		auto binding = bindings_->get_typed<class_expression_binding>(ce->get_callee());
+		binding->set_as_method(ce);
+	}
 
 	if (!callee)
 	{
@@ -392,6 +397,7 @@ shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<str
 	// TODO
 	return std::shared_ptr<lox_type>();
 }
+
 
 
 

@@ -19,55 +19,40 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 10/18/2021.
+// Created by cleve on 10/30/2021.
 //
 
 #include <interpreter/vm/class_object.h>
 #include <interpreter/vm/garbage_collector.h>
+#include <interpreter/vm/bounded_method_object.h>
 
 #include <gsl/gsl>
+#include <utility>
 
 using namespace std;
 using namespace gsl;
 
+using namespace clox::interpreting::vm;
 
-clox::interpreting::vm::class_object::class_object(std::string name, size_t fields_size)
-		: name_(std::move(name)), field_size_(fields_size)
+clox::interpreting::vm::bounded_method_object::bounded_method_object(
+		value receiver,
+		clox::interpreting::vm::closure_object_raw_pointer method)
+		: receiver_(std::move(receiver)), method_(method)
 {
 }
 
-
-std::string clox::interpreting::vm::class_object::printable_string()
+std::string clox::interpreting::vm::bounded_method_object::printable_string()
 {
-	return name_;
+	return method_->printable_string();
 }
 
-clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type() const noexcept
+clox::interpreting::vm::object_type clox::interpreting::vm::bounded_method_object::type() const noexcept
 {
-	return object_type::OBJECT;
+	return clox::interpreting::vm::object_type::BOUNDED_METHOD;
 }
 
-void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+void clox::interpreting::vm::bounded_method_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
 {
-	for(auto &method:methods_)
-	{
-		gc_inst->mark_object(method.second);
-	}
-}
-
-void clox::interpreting::vm::class_object::put_method(clox::resolving::function_id_type id,
-		clox::interpreting::vm::closure_object_raw_pointer closure)
-{
-	methods_.insert_or_assign(id, closure);
-}
-
-bool clox::interpreting::vm::class_object::contains_method(clox::resolving::function_id_type id)
-{
-	return methods_.contains(id);
-}
-
-clox::interpreting::vm::closure_object_raw_pointer
-clox::interpreting::vm::class_object::method_at(clox::resolving::function_id_type id)
-{
-	return methods_.at(id);
+	gc_inst->mark_value(receiver_);
+	gc_inst->mark_object(method_);
 }

@@ -109,6 +109,11 @@ void codegen::scope_end()
 			}
 		}
 	}
+	else if (scope->scope_type() == resolving::scope_types::CLASS_BASE_SCOPE ||
+			 scope->scope_type() == resolving::scope_types::CLASS_FIELD_SCOPE)
+	{
+		// Do nothing
+	}
 	else
 	{
 		emit_codes(
@@ -277,9 +282,9 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	}
 }
 
-void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& te)
 {
-
+	emit_codes(te->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0);
 }
 
 void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& ptr)
@@ -486,34 +491,50 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding)
+	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
-		if (binding->is_ctor())
+		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
+				identifier_constant(binding->ctor_class_type()->name()));
+
+		if (binding->statement()) [[likely]]
 		{
-			emit_codes(VC(SEC_OP_CLASS, vm::op_code::PUSH), identifier_constant(binding->ctor_class_type()->name()));
+			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), binding->id(), ce->get_args().size());
+			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
+		}
+		else
+		{
 			emit_code(V(vm::op_code::INSTANCE));
 		}
-
-		if (binding->statement())
+	}
+	else if (binding && !binding->is_ctor()) [[likely]]
+	{
+		if (binding->is_method())
+		{
+			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
+			generate(get_expr->get_object());
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::GET_PROPERTY), binding->id());
+		}
+		else
 		{
 			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
 			emit_code(ce->get_paren(), V(op_code::CLOSURE));
+		}
 
-			for (const auto& arg: ce->get_args())
-			{
-				generate(arg); // push arguments in the stack
-			}
 
-			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
 
-			if (binding->is_ctor())
-			{
-				emit_code(V(vm::op_code::POP)); // Pop the default nil value
-			}
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+
+		if (binding->is_ctor())
+		{
+			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
 
 	}
-	else // it is not a call expression that bind to certain function, so we directly deal with it
+	else [[unlikely]] // it is not a call expression that bind to certain function, so we directly deal with it
 	{
 		generate(ce->get_callee());
 
@@ -538,11 +559,26 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 
 	auto class_type = binding->class_type();
 
-	auto iter = class_type->fields().find(ge->get_name().lexeme());
+	if (binding->is_method())
+	{
+		auto caller_binding = resolver_->binding_typed<function_binding>(binding->method_caller());
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
+	}
+	else
+	{
+		if (auto field = class_type->fields().find(ge->get_name().lexeme());field != class_type->fields().end())
+		{
+			auto offset = distance(class_type->fields().begin(), field);
 
-	auto offset = distance(class_type->fields().begin(), iter);
+			emit_codes(ge->get_name(), V(vm::op_code::GET_PROPERTY), offset);
+		}
+		else
+		{
+			//FIXME: it's an error
+		}
+	}
 
-	emit_codes(ge->get_name(), V(vm::op_code::GET_PROPERTY), offset);
+
 }
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
@@ -667,13 +703,15 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 	auto constant = emit_constant(fs->get_name(), static_cast<function_object_raw_pointer>(nullptr));
 
 	// define it as variable to follow the function overloading specification
-	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());symbol->is_global())
+	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());
+			symbol && symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()),
 				fs->get_name());
 	}
 	else
 	{
+		// for class method, the function object is left for METHOD op, for local function, it becomes a local variable
 		declare_local_variable(fs->get_name().lexeme());
 	}
 
@@ -721,7 +759,27 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
+	emit_codes(class_stmt->get_name(), VC(SEC_OP_GLOBAL, vm::op_code::GET), name_constant);
 
+	scope_begin();
+	scope_begin();
+
+	for (const auto& method: class_stmt->get_methods())
+	{
+		generate(method);
+		auto id = resolver_->function_id(method);
+
+		//FIXME
+		assert(id.has_value());
+
+		emit_codes(method->get_name(), V(vm::op_code::METHOD), id.value());
+
+	}
+
+	scope_end();
+	scope_end();
+
+	emit_code(V(op_code::POP)); // pop the class object
 }
 
 std::shared_ptr<vm::chunk> codegen::current_chunk()

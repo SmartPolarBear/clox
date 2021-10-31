@@ -51,11 +51,16 @@ public:
 
 	std::string printable_string() override;
 
-	object_type type() const noexcept override;
+	[[nodiscard]] object_type type() const noexcept override;
 
-	void set(index_type idx,const value &);
+	void set(index_type idx, const value&);
 
-	value get(index_type idx) const;
+	[[nodiscard]] value get(index_type idx) const;
+
+	[[nodiscard]] class_object_raw_pointer class_object() const
+	{
+		return class_;
+	}
 
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;

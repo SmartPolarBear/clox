@@ -2,12 +2,24 @@ class Cake
 {
     var name:string;
 
-   /* constructor(){
-    }*/
+    constructor(){
+        print "constructor";
+        this.name="CCC";
+    }
+
+    fun sayName(){
+        print "It's a "+this.name+" cake.";
+    }
 }
 
 var cake=Cake();
+print cake.name;
+cake.sayName();
+
 cake.name="BBB";
 print cake.name;
+cake.sayName();
+
 cake.name="AAA";
 print cake.name;
+cake.sayName();

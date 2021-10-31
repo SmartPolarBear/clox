@@ -36,6 +36,7 @@
 
 #include <gsl/gsl>
 #include "interpreter/vm/class_object.h"
+#include "interpreter/vm/bounded_method_object.h"
 
 
 using namespace std;
@@ -577,9 +578,35 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case INSTANCE:
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
-		pop();
-		// TODO: constructor may have arguments
-		push(heap_->allocate<instance_object>(class_obj));
+		// TODO: constructor may have arguments ?
+
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary & SEC_OP_FUNC) // will call a user-defined constructor
+		{
+			auto id = next_code();
+			auto args = next_code();
+
+			pop();
+			auto instance = heap_->allocate<instance_object>(class_obj);
+
+			push(instance);
+
+			push(instance);
+
+			if (!bind_method(instance, id))
+			{
+				return { virtual_machine_status::RUNTIME_ERROR, true };
+			}
+
+			auto bound = peek();
+			call_value(bound, args);
+		}
+		else
+		{
+			pop();
+			push(heap_->allocate<instance_object>(class_obj));
+		}
+
 		break;
 	}
 
@@ -596,11 +623,38 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case GET_PROPERTY:
 	{
-		auto offset = next_code();
+		auto secondary = secondary_op_code_of(instruction);
+
 		auto cls = peek_object<instance_object_raw_pointer>();
-		auto val = cls->get(offset);
-		pop(); // discard the instance
-		push(val);
+
+		if (secondary & SEC_OP_FUNC) [[unlikely]]
+		{
+			auto id = next_code();
+			if (!bind_method(cls, id))
+			{
+				return { virtual_machine_status::RUNTIME_ERROR, true };
+			}
+		}
+		else [[likely]]
+		{
+			auto offset = next_code();
+			auto val = cls->get(offset);
+			pop(); // discard the instance
+			push(val);
+		}
+		break;
+	}
+
+	case METHOD:
+	{
+		auto id = next_code();
+
+		auto method_closure = peek_object<function_object_raw_pointer>(0)->wrapper_closure();
+		auto class_obj = peek_object<class_object_raw_pointer>(1);
+
+		pop();
+
+		class_obj->put_method(id, method_closure);
 		break;
 	}
 
@@ -699,12 +753,18 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 
 	auto obj = get<object_raw_pointer>(val);
 
-	if (obj->type() == object_type::CLOSURE)
+	if (obj->type() == object_type::CLOSURE)[[likely]]
 	{
-		auto closure = dynamic_cast<closure_object_raw_pointer> (obj);
+		auto closure = dynamic_cast<closure_object_raw_pointer>(obj);
 		call(closure, arg_count);
 	}
-	else
+	else if (obj->type() == object_type::BOUNDED_METHOD)[[likely]]
+	{
+		auto bound = dynamic_cast<bounded_method_object_raw_pointer>(obj);
+		*(stack_.rbegin() + arg_count) = bound->receiver();
+		call(bound->method(), arg_count);
+	}
+	else [[unlikely]]
 	{
 		throw invalid_value{ val };
 	}
@@ -744,5 +804,20 @@ void virtual_machine::close_upvalues(index_type last)
 		iter->second->close();
 		iter = open_upvalues_.erase(iter);
 	}
+}
+
+bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::function_id_type method)
+{
+	if (!inst->class_object()->contains_method(method))
+	{
+		runtime_error("Cannot bind method for class {} and ID {}\n", inst->class_object()->printable_string(), method);
+		return false;
+	}
+
+	auto bound = heap_->allocate<bounded_method_object>(inst, inst->class_object()->method_at(method));
+	pop();
+	push(bound);
+
+	return true;
 }
 

@@ -172,7 +172,7 @@ void garbage_collector::sweep()
 		{
 			auto* unreachable = *iter;
 			iter = string_object::interns_.erase(iter);
-			heap_->deallocate(unreachable);
+//			heap_->deallocate(unreachable);
 		}
 	}
 
