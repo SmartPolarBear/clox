@@ -578,9 +578,35 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case INSTANCE:
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
-		pop();
 		// TODO: constructor may have arguments ?
-		push(heap_->allocate<instance_object>(class_obj));
+
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary & SEC_OP_FUNC) // will call a user-defined constructor
+		{
+			auto id = next_code();
+			auto args = next_code();
+
+			pop();
+			auto instance = heap_->allocate<instance_object>(class_obj);
+
+			push(instance);
+
+			push(instance);
+
+			if (!bind_method(instance, id))
+			{
+				return { virtual_machine_status::RUNTIME_ERROR, true };
+			}
+
+			auto bound = peek();
+			call_value(bound, args);
+		}
+		else
+		{
+			pop();
+			push(heap_->allocate<instance_object>(class_obj));
+		}
+
 		break;
 	}
 
@@ -790,6 +816,8 @@ bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::f
 	auto bound = heap_->allocate<bounded_method_object>(inst, inst->class_object()->method_at(method));
 	pop();
 	push(bound);
+
+	// FIXME: constructor returns nil, and here the instance is pop, so now the variable becomes nil
 
 	return true;
 }

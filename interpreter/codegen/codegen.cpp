@@ -495,31 +495,35 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	{
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
 				identifier_constant(binding->ctor_class_type()->name()));
-		emit_code(V(vm::op_code::INSTANCE));
 
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), binding->id());
-
-		emit_codes(V(op_code::CALL), ce->get_args().size()); // call the function
+		if (binding->statement()) [[likely]]
+		{
+			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), binding->id(), ce->get_args().size());
+			emit_code(V(vm::op_code::POP));
+		}
+		else
+		{
+			emit_code(V(vm::op_code::INSTANCE));
+		}
 	}
 	else if (binding && !binding->is_ctor()) [[likely]]
 	{
-		if (binding->statement()) [[likely]]
+
+		emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+		emit_code(ce->get_paren(), V(op_code::CLOSURE));
+
+		for (const auto& arg: ce->get_args())
 		{
-			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
-			emit_code(ce->get_paren(), V(op_code::CLOSURE));
-
-			for (const auto& arg: ce->get_args())
-			{
-				generate(arg); // push arguments in the stack
-			}
-
-			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
-
-			if (binding->is_ctor())
-			{
-				emit_code(V(vm::op_code::POP)); // Pop the default nil value
-			}
+			generate(arg); // push arguments in the stack
 		}
+
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+
+		if (binding->is_ctor())
+		{
+			emit_code(V(vm::op_code::POP)); // Pop the default nil value
+		}
+
 	}
 	else [[unlikely]] // it is not a call expression that bind to certain function, so we directly deal with it
 	{

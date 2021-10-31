@@ -216,6 +216,12 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		return offset + 2;
 
 	case op_code::INSTANCE:
+		if (secondary & SEC_OP_FUNC)
+		{
+			out.log() << std::format(" ID= {}, {} args.", codes_[offset + 1], codes_[offset + 2]) << endl;
+			return offset + 3;
+		}
+		[[fallthrough]];
 	default:
 		out.log() << endl;
 		return offset + 1;
