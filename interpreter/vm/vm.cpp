@@ -761,7 +761,7 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 	else if (obj->type() == object_type::BOUNDED_METHOD)[[likely]]
 	{
 		auto bound = dynamic_cast<bounded_method_object_raw_pointer>(obj);
-		*(stack_.rbegin() + arg_count + 1) = bound->receiver();
+		*(stack_.rbegin() + arg_count) = bound->receiver();
 		call(bound->method(), arg_count);
 	}
 	else [[unlikely]]
