@@ -508,14 +508,18 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	}
 	else if (binding && !binding->is_ctor()) [[likely]]
 	{
-		auto push_opcode = VC(SEC_OP_FUNC, op_code::PUSH);
 		if (binding->is_method())
 		{
-			push_opcode = VC(SEC_OP_FUNC, op_code::GET_PROPERTY);
+			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
+			generate(get_expr->get_object());
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::GET_PROPERTY), binding->id());
+		}
+		else
+		{
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+			emit_code(ce->get_paren(), V(op_code::CLOSURE));
 		}
 
-		emit_codes(ce->get_paren(), push_opcode, binding->id());
-		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
 		{
