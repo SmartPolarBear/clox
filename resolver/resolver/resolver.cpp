@@ -36,6 +36,8 @@
 #include <ranges>
 #include <tuple>
 
+#include <cassert>
+
 #include <gsl/gsl>
 
 using namespace clox::parsing;
@@ -374,6 +376,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 
 	auto[stmt, callable]=resolve_ret.value();
 
+
 	if (stmt)
 	{
 		auto func_id = function_ids_.at(stmt);
@@ -381,20 +384,29 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		{
 			auto class_type = callable->return_type();
 			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-					static_pointer_cast<statement>(stmt), func_id, true,
+					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_CTOR,
+					static_pointer_cast<lox_class_type>(class_type));
+		}
+		else if (call->get_callee()->get_type() == parsing::PC_TYPE_get_expression) // it's a method
+		{
+			auto class_type = callable->return_type();
+			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
+					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_METHOD,
 					static_pointer_cast<lox_class_type>(class_type));
 		}
 		else [[likely]]
 		{
 			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-					static_pointer_cast<statement>(stmt), func_id);
+					static_pointer_cast<statement>(stmt), func_id, 0);
 		}
 	}
 	else // it's a default constructor
 	{
+		assert(callable->flags() & FLAG_CTOR);
 		auto class_type = callable->return_type();
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
-				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR, callable->flags() & FLAG_CTOR,
+				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
+				function_binding::function_binding_flags::FB_CTOR,
 				static_pointer_cast<lox_class_type>(class_type));
 	}
 

@@ -761,6 +761,7 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 	else if (obj->type() == object_type::BOUNDED_METHOD)[[likely]]
 	{
 		auto bound = dynamic_cast<bounded_method_object_raw_pointer>(obj);
+		*(stack_.rbegin() + arg_count + 1) = bound->receiver();
 		call(bound->method(), arg_count);
 	}
 	else [[unlikely]]
@@ -816,8 +817,6 @@ bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::f
 	auto bound = heap_->allocate<bounded_method_object>(inst, inst->class_object()->method_at(method));
 	pop();
 	push(bound);
-
-	// FIXME: constructor returns nil, and here the instance is pop, so now the variable becomes nil
 
 	return true;
 }

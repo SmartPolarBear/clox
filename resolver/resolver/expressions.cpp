@@ -84,7 +84,7 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 				vector<shared_ptr<expression>>{ expr->get_right() });
 
 		bindings_->put<operator_binding>(expr, expr, call_expr);
-		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt));
+		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt), 0);
 
 	}
 

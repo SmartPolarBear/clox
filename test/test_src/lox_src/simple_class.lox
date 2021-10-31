@@ -5,10 +5,17 @@ class Cake
     constructor(){
         print "constructor";
     }
+
+    fun sayName(){
+        print "It's a "+this.name+"cake.";
+    }
 }
 
 var cake=Cake();
 cake.name="BBB";
 print cake.name;
+cake.sayName();
+
 cake.name="AAA";
 print cake.name;
+cake.sayName();

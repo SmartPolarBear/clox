@@ -115,6 +115,12 @@ class function_binding final
 		: public binding
 {
 public:
+	enum function_binding_flags : uint32_t
+	{
+		FB_CTOR = 1 << 1,
+		FB_METHOD = 1 << 2,
+	};
+
 	[[nodiscard]] binding_type type() const override
 	{
 		return binding_type::BINDING_FUNCTION;
@@ -123,14 +129,14 @@ public:
 	function_binding() = default;
 
 	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
-			function_id_type id)
-			: expr_(std::move(e)), stmt_(std::move(s)), id_(id)
+			function_id_type id, uint32_t flags)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), flags_(flags)
 	{
 	}
 
 	explicit function_binding(std::shared_ptr<parsing::call_expression> e, std::shared_ptr<parsing::statement> s,
-			function_id_type id, bool is_ctor, std::shared_ptr<resolving::lox_class_type> cls)
-			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), is_ctor_(is_ctor), class_(std::move(cls))
+			function_id_type id, uint32_t flags, std::shared_ptr<resolving::lox_class_type> cls)
+			: expr_(std::move(e)), stmt_(std::move(s)), id_(id), flags_(flags), class_(std::move(cls))
 	{
 	}
 
@@ -152,7 +158,12 @@ public:
 
 	[[nodiscard]] bool is_ctor() const
 	{
-		return is_ctor_;
+		return flags_ & FB_CTOR;
+	}
+
+	[[nodiscard]] bool is_method() const
+	{
+		return flags_ & FB_METHOD;
 	}
 
 	[[nodiscard]] std::shared_ptr<resolving::lox_class_type> ctor_class_type()
@@ -169,7 +180,7 @@ private:
 
 	function_id_type id_{ FUNCTION_ID_INVALID };
 
-	bool is_ctor_{ false };
+	uint32_t flags_{ 0 };
 };
 
 template<>

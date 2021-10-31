@@ -282,9 +282,9 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 	}
 }
 
-void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_this_expression(const std::shared_ptr<this_expression>& te)
 {
-
+	emit_codes(te->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0);
 }
 
 void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& ptr)
@@ -499,7 +499,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		if (binding->statement()) [[likely]]
 		{
 			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), binding->id(), ce->get_args().size());
-			emit_code(V(vm::op_code::POP));
+			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else
 		{
@@ -508,8 +508,13 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	}
 	else if (binding && !binding->is_ctor()) [[likely]]
 	{
+		auto push_opcode = VC(SEC_OP_FUNC, op_code::PUSH);
+		if (binding->is_method())
+		{
+			push_opcode = VC(SEC_OP_FUNC, op_code::GET_PROPERTY);
+		}
 
-		emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+		emit_codes(ce->get_paren(), push_opcode, binding->id());
 		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
 		for (const auto& arg: ce->get_args())
@@ -553,7 +558,7 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 	if (binding->is_method())
 	{
 		auto caller_binding = resolver_->binding_typed<function_binding>(binding->method_caller());
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::PUSH), caller_binding->id());
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
 	}
 	else
 	{
