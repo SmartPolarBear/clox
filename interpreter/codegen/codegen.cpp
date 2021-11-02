@@ -512,7 +512,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		{
 			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
 			generate(get_expr->get_object());
-			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::GET_PROPERTY), binding->id());
+//			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::GET_PROPERTY), binding->id());
 		}
 		else
 		{
