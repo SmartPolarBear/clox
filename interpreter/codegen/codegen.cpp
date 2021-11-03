@@ -512,7 +512,6 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		{
 			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
 			generate(get_expr->get_object());
-//			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::GET_PROPERTY), binding->id());
 		}
 		else
 		{
@@ -526,12 +525,20 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			generate(arg); // push arguments in the stack
 		}
 
-		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+		if (binding->is_method()) [[unlikely]]
+		{
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), binding->id(), ce->get_args().size()); // invoke the method
+		}
+		else [[likely]]
+		{
+			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+		}
 
 		if (binding->is_ctor())
 		{
 			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
+
 
 	}
 	else [[unlikely]] // it is not a call expression that bind to certain function, so we directly deal with it

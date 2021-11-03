@@ -658,6 +658,20 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case INVOKE:
+	{
+		auto id = next_code();
+		auto args = next_code();
+
+		auto inst = peek_object<instance_object_raw_pointer>(args);
+
+		auto func = inst->class_object()->method_at(id);
+
+		call(func, args);
+
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
