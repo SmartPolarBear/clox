@@ -60,6 +60,8 @@ public:
 
 	[[nodiscard]] closure_object_raw_pointer method_at(resolving::function_id_type id);
 
+	void inherit(class_object *cls);
+
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 

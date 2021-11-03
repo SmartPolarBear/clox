@@ -672,6 +672,18 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case INHERIT:
+	{
+		auto base = peek_object<class_object_raw_pointer>();
+		auto sub = peek_object<class_object_raw_pointer>(1);
+
+		sub->inherit(base);
+
+		pop();
+
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}

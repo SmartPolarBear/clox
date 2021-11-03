@@ -49,7 +49,7 @@ clox::interpreting::vm::object_type clox::interpreting::vm::class_object::type()
 
 void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
 {
-	for(auto &method:methods_)
+	for (auto& method: methods_)
 	{
 		gc_inst->mark_object(method.second);
 	}
@@ -70,4 +70,12 @@ clox::interpreting::vm::closure_object_raw_pointer
 clox::interpreting::vm::class_object::method_at(clox::resolving::function_id_type id)
 {
 	return methods_.at(id);
+}
+
+void clox::interpreting::vm::class_object::inherit(clox::interpreting::vm::class_object* cls)
+{
+	for (const auto& m: cls->methods_)
+	{
+		methods_.insert(m);
+	}
 }

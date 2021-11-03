@@ -765,6 +765,12 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 	auto class_type = current_scope()->type_typed<lox_class_type>(class_stmt->get_name().lexeme());
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
+	if(class_stmt->get_base_class())
+	{
+		generate(class_stmt->get_base_class());
+		emit_codes(class_stmt->get_name(), V(op_code::INHERIT));
+	}
+
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
 	emit_codes(class_stmt->get_name(), VC(SEC_OP_GLOBAL, vm::op_code::GET), name_constant);
 

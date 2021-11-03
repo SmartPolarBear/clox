@@ -1,4 +1,11 @@
-class Cake
+class Fuckable{
+    fun fuck()
+    {
+        print "fuck";
+    }
+}
+
+class Cake : Fuckable
 {
     var name:string;
 
@@ -23,3 +30,5 @@ cake.sayName();
 cake.name="AAA";
 print cake.name;
 cake.sayName();
+
+cake.fuck();
