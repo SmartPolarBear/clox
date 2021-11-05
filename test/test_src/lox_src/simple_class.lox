@@ -17,6 +17,11 @@ class Cake : Fuckable
     fun sayName(){
         print "It's a "+this.name+" cake.";
     }
+
+    fun fuck(){
+        print "Said by children:";
+        base.fuck();
+    }
 }
 
 var cake=Cake();
@@ -32,3 +37,6 @@ print cake.name;
 cake.sayName();
 
 cake.fuck();
+
+auto fuck_fun=cake.fuck;
+fuck_fun();

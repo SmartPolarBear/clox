@@ -287,8 +287,27 @@ void clox::interpreting::compiling::codegen::visit_this_expression(const std::sh
 	emit_codes(te->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0);
 }
 
-void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
+	auto base = variable_lookup("base");
+
+	if (!base)
+	{
+		throw internal_codegen_error{ "Name lookup failure" };
+	}
+
+	if (base->is_captured())
+	{
+		emit_codes(be->get_keyword(), VC(SEC_OP_UPVALUE, op_code::GET), base->get_upvalue()->current_index());
+	}
+	else if (base->is_global())
+	{
+		emit_codes(be->get_keyword(), VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant("base"));
+	}
+	else if (base->is_local())
+	{
+		emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), base->slot_index());
+	}
 
 }
 
@@ -765,7 +784,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 	auto class_type = current_scope()->type_typed<lox_class_type>(class_stmt->get_name().lexeme());
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
-	if(class_stmt->get_base_class())
+	if (class_stmt->get_base_class())
 	{
 		generate(class_stmt->get_base_class());
 		emit_codes(class_stmt->get_name(), V(op_code::INHERIT));
@@ -775,6 +794,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 	emit_codes(class_stmt->get_name(), VC(SEC_OP_GLOBAL, vm::op_code::GET), name_constant);
 
 	scope_begin();
+
 	scope_begin();
 
 	for (const auto& method: class_stmt->get_methods())
