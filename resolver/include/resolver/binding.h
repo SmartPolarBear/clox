@@ -119,6 +119,7 @@ public:
 	{
 		FB_CTOR = 1 << 1,
 		FB_METHOD = 1 << 2,
+		FB_BASE = 1 << 3,
 	};
 
 	[[nodiscard]] binding_type type() const override

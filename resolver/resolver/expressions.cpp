@@ -345,6 +345,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		binding->set_as_method(ce);
 	}
 
+
 	if (!callee)
 	{
 		throw logic_error{ "callee isn't nullable" };

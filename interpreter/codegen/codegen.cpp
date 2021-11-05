@@ -510,10 +510,23 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)[[unlikely]]
+	{
+		generate(ce->get_callee());
+
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
+
+
+	}
+	else if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
 				identifier_constant(binding->ctor_class_type()->name()));
+
+		//FIXME: args?
 
 		if (binding->statement()) [[likely]]
 		{
