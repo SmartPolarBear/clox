@@ -383,8 +383,9 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)
 	{
+		auto func = bindings_->get_typed<function_binding>(ce);
 		auto binding = bindings_->get_typed<base_binding>(ce->get_callee());
-		binding->set_field_id(callable->id());
+		binding->set_field_id(func->id());
 	}
 
 
