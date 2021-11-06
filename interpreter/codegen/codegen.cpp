@@ -289,28 +289,19 @@ void clox::interpreting::compiling::codegen::visit_this_expression(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
-	auto base = variable_lookup("base");
+	emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0); // get this object
 
-	if (!base)
-	{
-		throw internal_codegen_error{ "Name lookup failure" };
-	}
+	auto binding = resolver_->binding_typed<base_binding>(be);
+	assert(binding);
 
-	if (base->is_captured())
+	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
 	{
-		emit_codes(be->get_keyword(), VC(SEC_OP_UPVALUE, op_code::GET), base->get_upvalue()->current_index());
+		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
 	}
-	else if (base->is_global())
+	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
 	{
-		emit_codes(be->get_keyword(), VC(SEC_OP_GLOBAL, op_code::GET), identifier_constant("base"));
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
 	}
-	else if (base->is_local())
-	{
-		emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), base->slot_index());
-	}
-
-	emit_codes(V(vm::op_code::GET_SUPER), identifier_constant(be->get_member()));
-
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(

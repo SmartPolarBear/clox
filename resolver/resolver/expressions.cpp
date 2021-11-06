@@ -322,13 +322,19 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 
 	auto class_type = static_pointer_cast<lox_class_type>(symbol->type());
 
+
 	if (class_type->methods().contains(be->get_member().lexeme()))
 	{
-		return class_type->methods().at(be->get_member().lexeme());
+		auto ret = class_type->methods().at(be->get_member().lexeme());
+		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::METHOD, -1);
+		return ret;
 	}
 	else if (class_type->fields().contains(be->get_member().lexeme()))
 	{
-		return class_type->fields().at(be->get_member().lexeme());
+		auto ret = class_type->fields().at(be->get_member().lexeme());
+		auto dist = distance(class_type->fields().begin(), class_type->fields().find(be->get_member().lexeme()));
+		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::FIELD, dist);
+		return ret;
 	}
 
 	return type_error(be->get_member(),
@@ -339,6 +345,7 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<parsing::call_expression>& ce)
 {
 	auto callee = resolve(ce->get_callee());
+
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
 	{
 		auto binding = bindings_->get_typed<class_expression_binding>(ce->get_callee());
@@ -373,6 +380,13 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	}
 
 	auto return_type = callable->return_type();
+
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)
+	{
+		auto binding = bindings_->get_typed<base_binding>(ce->get_callee());
+		binding->set_field_id(callable->id());
+	}
+
 
 	if (lox_type::is_class(*return_type))
 	{

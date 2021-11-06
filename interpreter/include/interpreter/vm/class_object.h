@@ -62,6 +62,8 @@ public:
 
 	void inherit(class_object *cls);
 
+	class_object* super(int32_t index);
+
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 
@@ -70,6 +72,8 @@ private:
 	std::string name_{};
 
 	size_t field_size_{};
+
+	std::vector<class_object*> supers_{};
 
 	std::unordered_map<resolving::function_id_type, closure_object_raw_pointer> methods_{};
 };

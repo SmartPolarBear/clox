@@ -684,6 +684,30 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case GET_SUPER:
+	{
+		auto this_inst = peek_object<instance_object_raw_pointer>();
+
+		auto index = next_code();
+		auto field_id = next_code();
+
+		auto secondary = secondary_op_code_of(instruction);
+
+		if (secondary & SEC_OP_LOCAL)
+		{
+			// TODO
+		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			if (!bind_method(this_inst->class_object()->super(index), field_id))
+			{
+				return { virtual_machine_status::RUNTIME_ERROR, true };
+			}
+		}
+
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}
@@ -841,6 +865,21 @@ bool virtual_machine::bind_method(instance_object_raw_pointer inst, resolving::f
 	}
 
 	auto bound = heap_->allocate<bounded_method_object>(inst, inst->class_object()->method_at(method));
+	pop();
+	push(bound);
+
+	return true;
+}
+
+bool virtual_machine::bind_method(class_object_raw_pointer class_obj, clox::resolving::function_id_type method)
+{
+	if (!class_obj->contains_method(method))
+	{
+		runtime_error("Cannot bind method for class {} and ID {}\n", class_obj->printable_string(), method);
+		return false;
+	}
+
+	auto bound = heap_->allocate<bounded_method_object>(class_obj, class_obj->method_at(method));
 	pop();
 	push(bound);
 

@@ -341,6 +341,8 @@ private:
 	//
 
 	// method
+	bool bind_method(class_object_raw_pointer class_obj, resolving::function_id_type id);
+
 	bool bind_method(instance_object_raw_pointer class_obj, resolving::function_id_type id);
 
 	std::shared_ptr<object_heap> heap_{};

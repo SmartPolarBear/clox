@@ -53,6 +53,11 @@ void clox::interpreting::vm::class_object::blacken(clox::interpreting::vm::garba
 	{
 		gc_inst->mark_object(method.second);
 	}
+
+	for (auto& super: supers_)
+	{
+		gc_inst->mark_object(super);
+	}
 }
 
 void clox::interpreting::vm::class_object::put_method(clox::resolving::function_id_type id,
@@ -74,8 +79,14 @@ clox::interpreting::vm::class_object::method_at(clox::resolving::function_id_typ
 
 void clox::interpreting::vm::class_object::inherit(clox::interpreting::vm::class_object* cls)
 {
+	supers_.push_back(cls);
 	for (const auto& m: cls->methods_)
 	{
 		methods_.insert(m);
 	}
+}
+
+clox::interpreting::vm::class_object* clox::interpreting::vm::class_object::super(int32_t index)
+{
+	return supers_.at(index);
 }
