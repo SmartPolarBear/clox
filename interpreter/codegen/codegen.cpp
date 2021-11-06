@@ -309,6 +309,8 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 		emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), base->slot_index());
 	}
 
+	emit_codes(V(vm::op_code::GET_SUPER), identifier_constant(be->get_member()));
+
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
@@ -519,7 +521,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			generate(arg); // push arguments in the stack
 		}
 
-
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
@@ -527,6 +529,10 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 				identifier_constant(binding->ctor_class_type()->name()));
 
 		//FIXME: args?
+//		for (const auto& arg: ce->get_args())
+//		{
+//			generate(arg); // push arguments in the stack
+//		}
 
 		if (binding->statement()) [[likely]]
 		{
