@@ -35,6 +35,7 @@
 #include <optional>
 #include <utility>
 #include <variant>
+#include <cassert>
 
 namespace clox::resolving
 {
@@ -44,7 +45,8 @@ enum class binding_type
 	BINDING_VARIABLE = 1,
 	BINDING_FUNCTION,
 	BINDING_OPERATOR,
-	BINDING_CLASS_EXPRESSION
+	BINDING_CLASS_EXPRESSION,
+	BINDING_BASE
 };
 
 template<typename T>
@@ -119,6 +121,7 @@ public:
 	{
 		FB_CTOR = 1 << 1,
 		FB_METHOD = 1 << 2,
+		FB_BASE = 1 << 3,
 	};
 
 	[[nodiscard]] binding_type type() const override
@@ -281,6 +284,66 @@ template<>
 struct binding_tag<class_expression_binding>
 {
 	static constexpr binding_type type = binding_type::BINDING_CLASS_EXPRESSION;
+};
+
+class base_binding final
+		: public binding
+{
+public:
+	enum class base_field_type
+	{
+		FIELD, METHOD
+	};
+
+	explicit base_binding(std::shared_ptr<parsing::expression> e, int32_t base_index, base_field_type type,
+			int32_t field_id)
+			: expr_(std::move(e)), base_index_(base_index), field_type_(type), field_id_(field_id)
+	{
+	}
+
+	std::shared_ptr<parsing::expression> expression() const override
+	{
+		return expr_;
+	}
+
+	binding_type type() const override
+	{
+		return binding_type::BINDING_BASE;
+	}
+
+	int32_t index() const
+	{
+		return base_index_;
+	}
+
+	int32_t field_id() const
+	{
+		assert(field_id_ != -1);
+		return field_id_;
+	}
+
+	auto field_type() const
+	{
+		return field_type_;
+	}
+
+	void set_field_id(int32_t id)
+	{
+		field_id_ = id;
+	}
+
+private:
+	std::shared_ptr<parsing::expression> expr_{ nullptr };
+	int32_t base_index_{ -1 };
+
+	base_field_type field_type_{};
+	int32_t field_id_{ -1 };
+};
+
+template<>
+struct binding_tag<base_binding>
+{
+	static constexpr binding_type type = binding_type::BINDING_BASE;
 };
 
 template<typename T>

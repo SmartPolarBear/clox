@@ -1,4 +1,11 @@
-class Cake
+class Fuckable{
+    fun fuck()
+    {
+        print "fuck";
+    }
+}
+
+class Cake : Fuckable
 {
     var name:string;
 
@@ -10,9 +17,16 @@ class Cake
     fun sayName(){
         print "It's a "+this.name+" cake.";
     }
+
+    fun fuck(){
+        print "Said by children:";
+        base.fuck();
+    }
 }
 
 var cake=Cake();
+
+/*
 print cake.name;
 cake.sayName();
 
@@ -23,3 +37,7 @@ cake.sayName();
 cake.name="AAA";
 print cake.name;
 cake.sayName();
+*/
+
+
+cake.fuck();

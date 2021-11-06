@@ -219,6 +219,17 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		out.log() << std::format(" ID= {}, {} args", codes_[offset + 1], codes_[offset + 2]) << endl;
 		return offset + 3;
 
+	case op_code::GET_SUPER:
+		if (secondary & SEC_OP_LOCAL)
+		{
+			out.log() << std::format("{}th base, {}th member", codes_[offset + 1], codes_[offset + 2]) << endl;
+		}
+		else if (secondary & SEC_OP_FUNC)
+		{
+			out.log() << std::format("{}th base, method ID: {}", codes_[offset + 1], codes_[offset + 2]) << endl;
+		}
+		return offset + 3;
+
 	case op_code::INSTANCE:
 		if (secondary & SEC_OP_FUNC)
 		{

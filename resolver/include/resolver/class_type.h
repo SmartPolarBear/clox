@@ -39,6 +39,7 @@ public:
 	using type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_type>>;
 	using callable_type_map_type = std::unordered_map<std::string, std::shared_ptr<lox_overloaded_metatype>>;
 
+	using super_list_type = std::vector<std::shared_ptr<lox_object_type>>;
 public:
 	[[nodiscard]] explicit lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
 			type_map_type fields = type_map_type{},
@@ -61,6 +62,9 @@ public:
 private:
 	type_map_type fields_{};
 	callable_type_map_type methods_{};
+
+	// To support multiple super (one base, multiple interfaces) in the future
+	super_list_type supers_{};
 
 	static type_id id_counter_;
 };

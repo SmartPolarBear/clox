@@ -37,6 +37,7 @@ clox::resolving::lox_class_type::lox_class_type(std::string name, const std::sha
 		  methods_(std::move(methods)),
 		  lox_object_type(std::move(name), ++id_counter_, TYPE_CLASS, parent)
 {
+	supers_.push_back(parent);
 }
 
 void lox_class_type::put_method(const std::string& name, const std::shared_ptr<parsing::statement>& stmt,

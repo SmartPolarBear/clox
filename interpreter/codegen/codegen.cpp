@@ -287,9 +287,21 @@ void clox::interpreting::compiling::codegen::visit_this_expression(const std::sh
 	emit_codes(te->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0);
 }
 
-void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& ptr)
+void clox::interpreting::compiling::codegen::visit_base_expression(const std::shared_ptr<base_expression>& be)
 {
+	emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0); // get this object
 
+	auto binding = resolver_->binding_typed<base_binding>(be);
+	assert(binding);
+
+	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
+	{
+		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+	}
+	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
+	{
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+	}
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
@@ -491,10 +503,27 @@ clox::interpreting::compiling::codegen::visit_logical_expression(const std::shar
 
 void clox::interpreting::compiling::codegen::visit_call_expression(const std::shared_ptr<call_expression>& ce)
 {
-	if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)[[unlikely]]
+	{
+		generate(ce->get_callee());
+
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
+
+		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
+	}
+	else if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
 	{
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
 				identifier_constant(binding->ctor_class_type()->name()));
+
+		//FIXME: args?
+//		for (const auto& arg: ce->get_args())
+//		{
+//			generate(arg); // push arguments in the stack
+//		}
 
 		if (binding->statement()) [[likely]]
 		{
@@ -765,10 +794,17 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 	auto class_type = current_scope()->type_typed<lox_class_type>(class_stmt->get_name().lexeme());
 
 	emit_codes(class_stmt->get_name(), V(op_code::CLASS), name_constant, class_type->fields().size());
+	if (class_stmt->get_base_class())
+	{
+		generate(class_stmt->get_base_class());
+		emit_codes(class_stmt->get_name(), V(op_code::INHERIT));
+	}
+
 	define_global_variable(class_stmt->get_name().lexeme(), name_constant, class_stmt->get_name());
 	emit_codes(class_stmt->get_name(), VC(SEC_OP_GLOBAL, vm::op_code::GET), name_constant);
 
 	scope_begin();
+
 	scope_begin();
 
 	for (const auto& method: class_stmt->get_methods())
