@@ -108,6 +108,6 @@ TEST_F(CommentTest, BadCommentTest)
 	int ret = run_code(cons, test_interpreter_adapater::get(cons), bad_comment_code());
 	ASSERT_NE(ret, 0);
 
-	auto output = cons.get_written_text();
+	auto output = cons.get_error_text();
 	ASSERT_NE(output.find("Error: Unclosed block comment found."), string::npos);
 }
