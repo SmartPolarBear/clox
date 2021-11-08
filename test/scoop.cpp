@@ -128,6 +128,6 @@ TEST_F(ScoopTest, ReplicateVariables)
 	int ret = run_code(cons,test_interpreter_adapater::get(cons), replicated_vars_);
 	ASSERT_NE(ret, 0);
 
-	auto output = cons.get_written_text();
+	auto output = cons.get_error_text();
 	ASSERT_NE(output.find(replicated_vars_out_), string::npos);
 }

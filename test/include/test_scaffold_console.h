@@ -41,6 +41,10 @@ public:
 
 	[[nodiscard]] std::string get_written_text() const;
 
+	[[nodiscard]] std::string get_error_text() const;
+
+	[[nodiscard]] std::string get_log_text() const;
+
 	std::ostream& error() override;
 
 	std::string read() override;
@@ -53,9 +57,12 @@ public:
 
 	std::istream& in() override;
 
+	std::ostream& log() override;
+
 private:
 	std::stringstream out_ss_{};
 	std::stringstream in_ss_{};
 	std::stringstream error_ss_{};
+	std::stringstream log_ss_{};
 
 };

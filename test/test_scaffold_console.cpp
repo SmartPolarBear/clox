@@ -62,6 +62,18 @@ std::string test_scaffold_console::get_written_text() const
 	return out_ss_.str();
 }
 
+std::string test_scaffold_console::get_error_text() const
+{
+	return error_ss_.str();
+}
+
+std::string test_scaffold_console::get_log_text() const
+{
+	return log_ss_.str();
+}
+
+
+
 std::string test_scaffold_console::read()
 {
 	std::string ret{};
@@ -85,5 +97,10 @@ std::optional<std::string> test_scaffold_console::read_line()
 ostream& test_scaffold_console::error()
 {
 	return error_ss_;
+}
+
+ostream& test_scaffold_console::log()
+{
+	return log_ss_;
 }
 
