@@ -61,11 +61,17 @@ endif ()
 if (ENABLE_DEBUG_STRESS_GC)
     target_compile_definitions(clox
             PRIVATE -DDEBUG_STRESS_GC=1)
+else ()
+    target_compile_definitions(clox
+            PRIVATE -DDEBUG_STRESS_GC=0)
 endif ()
 
 if (ENABLE_DEBUG_LOGGING_GC)
     target_compile_definitions(clox
             PRIVATE -DDEBUG_LOGGING_GC=1)
+else ()
+    target_compile_definitions(clox
+            PRIVATE -DDEBUG_LOGGING_GC=0)
 endif ()
 
 
