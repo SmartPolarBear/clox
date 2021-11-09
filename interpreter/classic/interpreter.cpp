@@ -688,6 +688,7 @@ evaluating_result interpreter::visit_this_expression(const std::shared_ptr<this_
 evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_expression>& expr)
 {
 	// FIXME: should support fields
+	// FIXME: new annotation scheme for AST nodes is required, for now there are multiple bindings for one expression
 	auto symbol = locals_->get_typed<variable_binding>(expr); // it must exist granted by the resolver
 	auto dist = symbol->depth();
 
