@@ -85,13 +85,13 @@ TEST_F(ClassTest, ClassTest)
 	ASSERT_NE(output.find(class_out_), string::npos);
 }
 
-TEST_F(ClassTest, InheritanceTest)
-{
-	test_scaffold_console cons{};
-
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), inheritance);
-	ASSERT_EQ(ret, 0);
-
-	auto output = cons.get_written_text();
-	ASSERT_NE(output.find(inheritance_out_), string::npos);
-}
+//TEST_F(ClassTest, InheritanceTest)
+//{
+//	test_scaffold_console cons{};
+//
+//	int ret = run_code(cons,test_interpreter_adapater::get(cons), inheritance);
+//	ASSERT_EQ(ret, 0);
+//
+//	auto output = cons.get_written_text();
+//	ASSERT_NE(output.find(inheritance_out_), string::npos);
+//}

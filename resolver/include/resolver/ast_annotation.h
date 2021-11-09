@@ -19,58 +19,31 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 6/18/2021.
+// Created by cleve on 11/9/2021.
 //
 
 #pragma once
 
-#include <resolver/ast_annotation.h>
+#include <vector>
 
-#include <format>
-#include <string>
-
-namespace clox::parsing
+namespace clox::resolving
 {
 
-enum class function_statement_type
+enum ast_annotation_type
 {
-	FST_FUNCTION = 1,
-	FST_METHOD,
-	FST_OPERATOR,
-	FST_CTOR
+
 };
 
+class ast_annotation
+{
+public:
+	virtual ast_annotation_type type() = 0;
+};
 
-class statement :
-		public parser_class_base,
-		public resolving::annotatable_ast_node_base
+class annotatable_ast_node_base
 {
 protected:
-	std::weak_ptr<expression> parent_node_{};
+	std::vector<std::shared_ptr<ast_annotation>> ast_annotations_{};
 };
 
-}
-
-namespace std
-{
-template<>
-struct std::formatter<clox::parsing::function_statement_type> : std::formatter<std::string>
-{
-	auto format(clox::parsing::function_statement_type p, format_context& ctx)
-	{
-		switch (p)
-		{
-		case clox::parsing::function_statement_type::FST_CTOR:
-			return formatter<std::string>::format("constructor", ctx);
-		case clox::parsing::function_statement_type::FST_FUNCTION:
-			return formatter<std::string>::format("function", ctx);
-		case clox::parsing::function_statement_type::FST_METHOD:
-			return formatter<std::string>::format("method", ctx);
-		case clox::parsing::function_statement_type::FST_OPERATOR:
-			return formatter<std::string>::format("operator", ctx);
-		default:
-			throw invalid_argument{ "p" };
-		}
-	}
-};
 }
