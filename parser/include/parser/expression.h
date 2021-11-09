@@ -20,9 +20,8 @@ class expression :
 		public parser_class_base,
 		public resolving::annotatable_ast_node_base
 {
-public:
-	// TODO: new annotation facility
-
+protected:
+	std::weak_ptr<expression> parent_node_{};
 };
 
 /// \brief base class for type_expression
