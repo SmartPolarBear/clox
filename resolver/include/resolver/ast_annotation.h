@@ -42,8 +42,24 @@ public:
 
 class annotatable_ast_node_base
 {
+public:
+	void annotate(const std::shared_ptr<ast_annotation>& annotation)
+	{
+		ast_annotations_.insert_or_assign(annotation->type(), annotation);
+	}
+
+	bool contains_annotation(ast_annotation_type t)
+	{
+		return ast_annotations_.contains(t);
+	}
+
+	std::shared_ptr<ast_annotation> get_annotation(ast_annotation_type t)
+	{
+		return ast_annotations_.at(t);
+	}
+
 protected:
-	std::vector<std::shared_ptr<ast_annotation>> ast_annotations_{};
+	std::unordered_map<ast_annotation_type, std::shared_ptr<ast_annotation>> ast_annotations_{};
 };
 
 }

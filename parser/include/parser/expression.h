@@ -17,11 +17,10 @@ namespace clox::parsing
 
 /// \brief base class for all expressions defined in parser_classes.inc
 class expression :
-		public parser_class_base,
+		public parser_class_base<expression>,
 		public resolving::annotatable_ast_node_base
 {
-protected:
-	std::weak_ptr<expression> parent_node_{};
+
 };
 
 /// \brief base class for type_expression
