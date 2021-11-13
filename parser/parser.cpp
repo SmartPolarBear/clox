@@ -48,7 +48,7 @@ std::shared_ptr<expression> parser::comma()
 		auto op = previous();
 		auto right = conditional();
 
-		expr = make_shared<binary_expression>(expr, op, right);
+		expr = set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 	}
 
 	return expr;

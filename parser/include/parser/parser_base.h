@@ -54,4 +54,12 @@ public:
 protected:
 	std::weak_ptr<T> parent_node_{};
 };
+
+template<typename T, typename ...TArgs>
+std::shared_ptr<T> set_parent(std::shared_ptr<T> parent, TArgs... args)
+{
+	(args.set_parent_node(parent), ...);
+	return parent;
+}
+
 }
