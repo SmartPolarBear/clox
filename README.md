@@ -31,9 +31,9 @@ This project is built with
 
 ## Roadmap  
 
-|Naive CLOX|Typed CLOX|CLOXc
-|----------|----------|---------|
-✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)**  |  ✅ Extended language features (Mainly OOP) <br> ✅ Unit test coverage <br> ✅ Refined REPL experience | 🔄 Make CLOX a static-typed language. <br> 🔄 Compile Typed-CLOX to bytecode <br> 🔄 Virtual machine for the bytecode <br> 🔄 Basic mark-sweep garbage collecting <br> ❌ LOX standard library |
+| Naive CLOX                                                                                                                                             | Typed CLOX                                                                                         | CLOXc                                                                                                                                                                                     | Future CLOX                                                                                                        |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| ✅ Basic language features<br><br> **Release: [First preview version of clox interpreter](https://github.com/SmartPolarBear/clox/releases/tag/v0.1.0)** | ✅ Extended language features (Mainly OOP) <br> ✅ Unit test coverage <br> ✅ Refined REPL experience | ✅ Make CLOX a static-typed language. <br> ✅ Compile Typed-CLOX to bytecode <br> ✅ Virtual machine for the bytecode <br> ✅ Basic mark-sweep garbage collecting <br> ❌ LOX standard library | 🔄 Support Interfaces or prototypes <br> 🔄 Builtin arrays and maps <br> 🔄 Advanced GC <br> ❌ Generic programming | 
 
 ✅ Supported | 🔄 In progress | ❌ In plan  
 
@@ -46,13 +46,13 @@ To extend the language and equip it with type system, several changes in grammar
 
 #### Vision of the Type System
 
-|Feature|Status|
-|-------|------|
-|Primitive types like `integer`|✅|
-|Class types|✅|
-|Basic type checking|✅|
-|Union type and nullable type|🔄|
-|Checks for nullability|❌|  
+| Feature                        | Status |
+|--------------------------------|--------|
+| Primitive types like `integer` | ✅      |
+| Class types                    | ✅      |
+| Basic type checking            | ✅      |
+| Union type and nullable type   | 🔄     |
+| Checks for nullability         | ❌      |  
 
 #### Changes from Original LOX
 
