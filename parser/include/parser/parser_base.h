@@ -27,12 +27,31 @@
 
 namespace clox::parsing
 {
+template<typename T>
 class parser_class_base
 {
 public:
+	bool has_parent_node() const
+	{
+		return parent_node_;
+	}
+
+	std::shared_ptr<T> parent_node() const
+	{
+		return parent_node_.lock();
+	}
+
+	void set_parent_node(const std::shared_ptr<T>& pa)
+	{
+		parent_node_ = std::weak_ptr<T>{ pa };
+	}
+
 	[[nodiscard]] virtual parser_class_type get_type() const
 	{
 		return parser_class_type::PC_TYPE_invalid;
 	};
+
+protected:
+	std::weak_ptr<T> parent_node_{};
 };
 }
