@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <format>
+#include <ranges>
 
 using namespace clox::parsing;
 using namespace clox::scanning;
@@ -63,7 +64,8 @@ std::shared_ptr<expression> parser::conditional()
 		auto true_expr = this->expr();
 		auto colon = consume(scanning::token_type::COLON, "Invalid ternary expression: missing ':' clause.");
 		auto false_expr = this->conditional();
-		expr = make_shared<ternary_expression>(expr, qmark, true_expr, colon, false_expr);
+		expr = set_parent(make_shared<ternary_expression>(expr, qmark, true_expr, colon, false_expr), expr, true_expr,
+				false_expr);
 	}
 
 	return expr;
@@ -82,12 +84,13 @@ std::shared_ptr<expression> parser::assigment()
 		if (expr->get_type() == PC_TYPE_var_expression)
 		{
 			auto name = dynamic_pointer_cast<var_expression>(expr)->get_name();
-			return make_shared<assignment_expression>(name, val);
+			return set_parent(make_shared<assignment_expression>(name, val), val);
 		}
 		else if (expr->get_type() == PC_TYPE_get_expression)
 		{
 			auto ge = static_pointer_cast<get_expression>(expr);
-			return make_shared<set_expression>(ge->get_object(), ge->get_name(), val);
+			return set_parent(make_shared<set_expression>(ge->get_object(), ge->get_name(), val), ge->get_object(),
+					val);
 		}
 
 		// No throw, because of no need for synchronization
@@ -105,7 +108,7 @@ std::shared_ptr<expression> parser::logical_or()
 	{
 		auto op = previous();
 		auto rhs = logical_and();
-		expr = make_shared<logical_expression>(expr, op, rhs);
+		expr = set_parent(make_shared<logical_expression>(expr, op, rhs), expr, rhs);
 	}
 
 	return expr;
@@ -119,7 +122,7 @@ std::shared_ptr<expression> parser::logical_and()
 	{
 		auto op = previous();
 		auto rhs = equality();
-		expr = make_shared<logical_expression>(expr, op, rhs);
+		expr = set_parent(make_shared<logical_expression>(expr, op, rhs), expr, rhs);
 	}
 
 	return expr;
@@ -134,7 +137,7 @@ std::shared_ptr<expression> clox::parsing::parser::equality()
 		token op = previous();
 		auto right = comparison();
 
-		expr = make_shared<binary_expression>(expr, op, right);
+		expr = set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 	}
 
 	return expr;
@@ -149,7 +152,7 @@ std::shared_ptr<expression> clox::parsing::parser::comparison()
 		token op = previous();
 		auto right = term();
 
-		expr = make_shared<binary_expression>(expr, op, right);
+		expr = set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 	}
 
 	return expr;
@@ -163,7 +166,7 @@ std::shared_ptr<expression> parser::term()
 	{
 		token op = previous();
 		auto right = factor();
-		expr = make_shared<binary_expression>(expr, op, right);
+		expr = set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 	}
 
 	return expr;
@@ -177,7 +180,7 @@ std::shared_ptr<expression> parser::factor()
 	{
 		auto op = previous();
 		auto right = unary();
-		expr = make_shared<binary_expression>(expr, op, right);
+		expr = set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 
 	}
 
@@ -191,7 +194,7 @@ std::shared_ptr<expression> parser::unary()
 		auto op = previous();
 		auto right = unary();
 
-		return make_shared<unary_expression>(op, right);
+		return set_parent(make_shared<unary_expression>(op, right), right);
 	}
 
 	return exponent();
@@ -204,7 +207,7 @@ std::shared_ptr<expression> parser::exponent()
 	{
 		auto op = previous();
 		auto right = unary();
-		return make_shared<binary_expression>(expr, op, right);
+		return set_parent(make_shared<binary_expression>(expr, op, right), expr, right);
 	}
 	return expr;
 }
@@ -216,7 +219,7 @@ std::shared_ptr<expression> parser::prefix()
 		auto op = previous();
 		auto right = unary();
 
-		return make_shared<unary_expression>(op, right);
+		return set_parent(make_shared<unary_expression>(op, right), right);
 	}
 
 	return postfix();
@@ -228,13 +231,13 @@ std::shared_ptr<expression> parser::postfix()
 
 	if (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
 	{
-		left = make_shared<postfix_expression>(left, previous(), nullptr);
+		left = set_parent(make_shared<postfix_expression>(left, previous(), nullptr), left);
 	}
 	else if (match({ token_type::LEFT_BRACKET }))
 	{
 		auto op = previous();
 		auto index_expr = expr();
-		left = make_shared<postfix_expression>(left, op, index_expr);
+		left = set_parent(make_shared<postfix_expression>(left, op, index_expr), left, index_expr);
 	}
 
 	return left;
@@ -314,7 +317,12 @@ std::shared_ptr<expression> parser::lambda()
 
 		auto body = block(); // it will eat the '}' token
 
-		return make_shared<lambda_expression>(lparen, params, ret_type, body);
+		return set_parent(make_shared<lambda_expression>(lparen, params, ret_type, body),
+				params |
+				views::transform([](const std::pair<clox::scanning::token, std::shared_ptr<type_expression>>& p)
+				{
+					return p.second;
+				}), ret_type, body);
 	}
 	else
 	{
@@ -334,7 +342,7 @@ std::shared_ptr<expression> parser::call()
 		else if (match({ token_type::DOT }))
 		{
 			auto name = consume(scanning::token_type::IDENTIFIER, "Property name is expected after '.' .");
-			expr = make_shared<get_expression>(expr, name);
+			expr = set_parent(make_shared<get_expression>(expr, name), expr);
 		}
 		else
 		{
@@ -362,7 +370,7 @@ std::shared_ptr<expression> parser::call_finish_parse(const shared_ptr<expressio
 	}
 
 	token paren = consume(scanning::token_type::RIGHT_PAREN, "')' is expected for argument list.");
-	return make_shared<call_expression>(callee, paren, args);
+	return set_parent(make_shared<call_expression>(callee, paren, args), callee, args);
 }
 
 

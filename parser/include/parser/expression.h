@@ -17,7 +17,7 @@ namespace clox::parsing
 
 /// \brief base class for all expressions defined in parser_classes.inc
 class expression :
-		public parser_class_base<expression>,
+		public parser_class_base,
 		public resolving::annotatable_ast_node_base
 {
 
