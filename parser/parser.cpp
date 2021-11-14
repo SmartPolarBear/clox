@@ -400,7 +400,7 @@ std::shared_ptr<expression> parser::primary()
 		auto expr = this->expr();
 		consume(scanning::token_type::RIGHT_PAREN, "')' is expected after the expression");
 
-		return make_shared<grouping_expression>(expr);
+		return set_parent(make_shared<grouping_expression>(expr), expr);
 	}
 
 	throw error(peek(), "Expression is expected.");
@@ -491,7 +491,8 @@ std::shared_ptr<statement> parser::stmt()
 	}
 	else if (match({ token_type::LEFT_BRACE }))
 	{
-		return make_shared<block_statement>(block_statement{ block() });
+		auto blk = block();
+		return set_parent(make_shared<block_statement>(blk), blk);
 	}
 	else
 	{
@@ -504,14 +505,14 @@ std::shared_ptr<statement> parser::print_stmt()
 	auto keyword = previous();
 	auto val = expr();
 	consume(token_type::SEMICOLON, "';' is expected after a value.");
-	return make_shared<print_statement>(keyword, val);
+	return set_parent(make_shared<print_statement>(keyword, val), val);
 }
 
 std::shared_ptr<statement> parser::expr_stmt()
 {
 	auto e = expr();
 	consume(token_type::SEMICOLON, "';' is expected after a value.");
-	return make_shared<expression_statement>(e);
+	return set_parent(make_shared<expression_statement>(e), e);
 }
 
 std::shared_ptr<statement> parser::declaration()
@@ -594,7 +595,11 @@ std::shared_ptr<statement> parser::func_declaration(function_statement_type type
 
 	auto body = block();
 
-	return make_shared<function_statement>(name, type, params, ret_type, body);
+	return set_parent(make_shared<function_statement>(name, type, params, ret_type, body),
+			params | views::transform([](const std::pair<clox::scanning::token, std::shared_ptr<type_expression>>& p)
+			{
+				return p.second;
+			}), ret_type, body);
 }
 
 std::shared_ptr<statement> parser::var_statement()
@@ -613,7 +618,7 @@ std::shared_ptr<statement> parser::var_statement()
 		initializer = initializer_expr();
 	}
 
-	return make_shared<variable_statement>(name, type, initializer);
+	return set_parent(make_shared<variable_statement>(name, type, initializer), type, initializer);
 }
 
 
@@ -654,7 +659,8 @@ std::shared_ptr<statement> parser::if_stmt()
 		false_stmt = stmt();
 	}
 
-	return make_shared<if_statement>(cond, lparen, else_keyword, true_stmt, false_stmt);
+	return set_parent(make_shared<if_statement>(cond, lparen, else_keyword, true_stmt, false_stmt), cond, true_stmt,
+			false_stmt);
 }
 
 std::shared_ptr<statement> parser::return_stmt()
@@ -667,7 +673,7 @@ std::shared_ptr<statement> parser::return_stmt()
 	}
 
 	consume(scanning::token_type::SEMICOLON, "';' is expected after return value.");
-	return make_shared<return_statement>(ret_keyword, val);
+	return set_parent(make_shared<return_statement>(ret_keyword, val), val);
 }
 
 
@@ -679,7 +685,7 @@ std::shared_ptr<statement> parser::while_stmt()
 
 	auto body = stmt();
 
-	return make_shared<while_statement>(cond, lparen, body);
+	return set_parent(make_shared<while_statement>(cond, lparen, body), cond, body);
 }
 
 std::shared_ptr<statement> parser::for_stmt()
@@ -729,7 +735,9 @@ parser::foreach_finish_parse(const shared_ptr<statement>& initializer, const tok
 	auto iterable = expr();
 	consume(scanning::token_type::RIGHT_PAREN, "')' is expected after for clauses.");
 
-	auto ret = make_shared<foreach_statement>(lparen, initializer, in_keyword, iterable, stmt());
+	auto body = stmt();
+	auto ret = set_parent(make_shared<foreach_statement>(lparen, initializer, in_keyword, iterable, body), initializer,
+			iterable, body);
 
 	return ret;
 }
@@ -758,20 +766,22 @@ parser::plain_for_finish_parse(const shared_ptr<statement>& initializer, const c
 
 	if (increment)
 	{
-		body = make_shared<block_statement>(vector<shared_ptr<statement>>{
+		auto blk = vector<shared_ptr<statement>>{
 				body,
-				make_shared<expression_statement>(increment) });
+				make_shared<expression_statement>(increment) };
+		body = set_parent(make_shared<block_statement>(blk), blk);
 	}
 
 	if (!cond)cond = make_shared<literal_expression>(lparen, true);
 
-	body = make_shared<while_statement>(cond, lparen, body);
+	body = set_parent(make_shared<while_statement>(cond, lparen, body), cond, body);
 
 	if (initializer)
 	{
-		body = make_shared<block_statement>(vector<shared_ptr<statement>>{
+		auto blk = vector<shared_ptr<statement>>{
 				initializer,
-				body });
+				body };
+		body = set_parent(make_shared<block_statement>(blk), blk);
 	}
 
 	return body;

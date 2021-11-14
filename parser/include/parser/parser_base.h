@@ -57,10 +57,12 @@ protected:
 	std::weak_ptr<parser_class_base> parent_node_{};
 };
 
-template<typename T, typename TChild> requires (!std::ranges::range<TChild>)
+template<typename T, typename TChild>
+requires (!std::ranges::range<TChild>)
 void __single_set_parent(std::shared_ptr<T> parent, TChild child)
 {
-	child->set_parent_node(parent);
+	if (child)
+		child->set_parent_node(parent);
 }
 
 template<typename T, typename TChildren>
@@ -69,7 +71,7 @@ void __single_set_parent(std::shared_ptr<T> parent, TChildren children)
 {
 	for (auto child: children)
 	{
-		child->set_parent_node(parent);
+		if (child)child->set_parent_node(parent);
 	}
 }
 
