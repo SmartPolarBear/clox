@@ -23,27 +23,29 @@
 //
 #pragma once
 
+#include <concepts>
+
 #include <parser/gen/parser_classes.inc>
 
 namespace clox::parsing
 {
-template<typename T>
+
 class parser_class_base
 {
 public:
 	bool has_parent_node() const
 	{
-		return parent_node_;
+		return !parent_node_.expired();
 	}
 
-	std::shared_ptr<T> parent_node() const
+	[[nodiscard]] std::shared_ptr<parser_class_base> parent_node() const
 	{
 		return parent_node_.lock();
 	}
 
-	void set_parent_node(const std::shared_ptr<T>& pa)
+	void set_parent_node(const std::shared_ptr<parser_class_base>& pa)
 	{
-		parent_node_ = std::weak_ptr<T>{ pa };
+		parent_node_ = std::weak_ptr<parser_class_base>{ pa };
 	}
 
 	[[nodiscard]] virtual parser_class_type get_type() const
@@ -52,6 +54,32 @@ public:
 	};
 
 protected:
-	std::weak_ptr<T> parent_node_{};
+	std::weak_ptr<parser_class_base> parent_node_{};
 };
+
+template<typename T, typename TChild>
+requires (!std::ranges::range<TChild>)
+void __single_set_parent(std::shared_ptr<T> parent, TChild child)
+{
+	if (child)
+		child->set_parent_node(parent);
+}
+
+template<typename T, typename TChildren>
+requires std::ranges::range<TChildren>
+void __single_set_parent(std::shared_ptr<T> parent, TChildren children)
+{
+	for (auto child: children)
+	{
+		if (child)child->set_parent_node(parent);
+	}
+}
+
+template<typename T, typename ...TChildren>
+std::shared_ptr<T> set_parent(std::shared_ptr<T> parent, TChildren... children)
+{
+	(__single_set_parent(parent, children), ...);
+	return parent;
+}
+
 }

@@ -42,7 +42,7 @@ enum class function_statement_type
 
 
 class statement :
-		public parser_class_base<statement>,
+		public parser_class_base,
 		public resolving::annotatable_ast_node_base
 {
 };

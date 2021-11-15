@@ -1,7 +1,7 @@
 # CLOX
 Interpreter and compiler implemented in modern C++ for the lox programing language described in [Crafting Interpreters](https://craftinginterpreters.com/) with extensions in grammars and other features. 
 
-In a long run_code, this project will support compile to binary and JIT with LLVM.  
+In a long run, this project will support JIT and JIT-based run time optimizations.    
 
 ![example workflow](https://github.com/SmartPolarBear/clox/actions/workflows/build_and_test.yml/badge.svg)    
 [![issues](https://img.shields.io/github/issues/SmartPolarBear/clox)](https://github.com/SmartPolarBear/clox/issues)
@@ -26,8 +26,20 @@ This project is built with
 - [google/googletest](https://github.com/google/googletest)    
 
 ## Usage  
-`clox` to enter REPL mode.    
-`clox --file <source file>` to run_code a file.  
+A bare `clox` to enter REPL mode.    
+
+Or with the following arguments:  
+
+| Shorthand | Full             | Description                                                               | Default |
+|-----------|------------------|---------------------------------------------------------------------------|---------|
+| -h        | --help           | shows help message and exits                                              | false   |
+| -v        | --version        | prints version information and exits                                      | false   |
+| -f        | --file           | the script to run_code                                                    | ""      |
+| -a        | --classic        | Use classic (tree-walker) interpreter instead of bytecode virtual machine | false   |
+| -t        | --show-ast       | Show AST structure                                                        | false   |
+| -d        | --show-assembly  | Show assembly code                                                        | false   |
+| -vd       | --verbose-debug  | Verbose debug output.                                                     | false   |
+| -t        | --time-statistic | Show time statistic like the runtime, compile time, etc.                  | false   |   
 
 ## Roadmap  
 
