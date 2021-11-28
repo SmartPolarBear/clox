@@ -285,7 +285,7 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 	auto class_type = static_pointer_cast<lox_class_type>(object_type);
 
 	bindings_->put<class_expression_binding>(se, se, class_type);
-	ptr->annotate<class_annotation>(class_type);
+	se->annotate<class_annotation>(class_type);
 
 	auto property_type = class_type->fields()[se->get_name().lexeme()];
 
