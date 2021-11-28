@@ -50,6 +50,14 @@ public:
 class annotatable_ast_node_base
 {
 public:
+	template<typename TAnnotation, class... Args>
+	void annotate(Args&& ... args)
+	{
+		auto annotation = std::make_shared<TAnnotation>(std::forward<Args>(args)...);
+		ast_annotations_.insert_or_assign(annotation->type(), annotation);
+	}
+
+
 	void annotate(const std::shared_ptr<ast_annotation>& annotation)
 	{
 		ast_annotations_.insert_or_assign(annotation->type(), annotation);
