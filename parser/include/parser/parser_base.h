@@ -23,12 +23,52 @@
 //
 #pragma once
 
-#include <concepts>
 
 #include <parser/gen/parser_classes.inc>
 
+#include <concepts>
+
+
 namespace clox::parsing
 {
+
+enum ast_annotation_type
+{
+	AST_ANNOTATION_VARIABLE = 1,
+	AST_ANNOTATION_FUNCTION,
+	AST_ANNOTATION_OPERATOR,
+	AST_ANNOTATION_CLASS,
+	AST_ANNOTATION_BASE,
+};
+
+class ast_annotation
+{
+public:
+	virtual ast_annotation_type type() const = 0;
+};
+
+class annotatable_ast_node_base
+{
+public:
+	void annotate(const std::shared_ptr<ast_annotation>& annotation)
+	{
+		ast_annotations_.insert_or_assign(annotation->type(), annotation);
+	}
+
+	bool contains_annotation(ast_annotation_type t)
+	{
+		return ast_annotations_.contains(t);
+	}
+
+	std::shared_ptr<ast_annotation> get_annotation(ast_annotation_type t)
+	{
+		return ast_annotations_.at(t);
+	}
+
+protected:
+	std::unordered_map<ast_annotation_type, std::shared_ptr<ast_annotation>> ast_annotations_{};
+};
+
 
 class parser_class_base
 {

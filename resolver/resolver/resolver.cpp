@@ -24,6 +24,8 @@
 
 #include <resolver/resolver.h>
 
+#include <resolver/ast_annotation.h>
+
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>

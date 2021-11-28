@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <resolver/ast_annotation.h>
+
 
 #include <format>
 #include <string>
@@ -43,7 +43,7 @@ enum class function_statement_type
 
 class statement :
 		public parser_class_base,
-		public resolving::annotatable_ast_node_base
+		public parsing::annotatable_ast_node_base
 {
 };
 
