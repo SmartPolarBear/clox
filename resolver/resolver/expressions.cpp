@@ -346,7 +346,7 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 		auto dist = distance(class_type->fields().begin(), class_type->fields().find(be->get_member().lexeme()));
 
 		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::FIELD, dist);
-		be->annotate<base_annotation>(0, base_annotation::base_field_type::FIELD, dist)
+		be->annotate<base_annotation>(0, base_annotation::base_field_type::FIELD, dist);
 
 		return ret;
 	}
