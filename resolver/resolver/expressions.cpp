@@ -364,6 +364,9 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	{
 		auto binding = bindings_->get_typed<class_expression_binding>(ce->get_callee());
 		binding->set_as_method(ce);
+
+		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
+		annotation->set_as_method(ce);
 	}
 
 
@@ -400,6 +403,9 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		auto func = bindings_->get_typed<function_binding>(ce);
 		auto binding = bindings_->get_typed<base_binding>(ce->get_callee());
 		binding->set_field_id(func->id());
+
+		auto annotation = ce->get_callee()->get_annotation<base_annotation>();
+		annotation->set_field_id(ce->get_annotation<function_annotation>()->id());
 	}
 
 

@@ -29,6 +29,12 @@
 #include <concepts>
 
 
+namespace clox::resolving
+{
+template<typename T>
+struct annotation_tag;
+}
+
 namespace clox::parsing
 {
 
@@ -71,6 +77,12 @@ public:
 	std::shared_ptr<ast_annotation> get_annotation(ast_annotation_type t)
 	{
 		return ast_annotations_.at(t);
+	}
+
+	template<std::derived_from<ast_annotation> T>
+	std::shared_ptr<T> get_annotation()
+	{
+		return std::static_pointer_cast<T>(get_annotation(resolving::annotation_tag<T>::type));
 	}
 
 protected:
