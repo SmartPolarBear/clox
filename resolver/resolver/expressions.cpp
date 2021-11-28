@@ -38,6 +38,7 @@
 #include <tuple>
 
 #include <gsl/gsl>
+#include "resolver/ast_annotation.h"
 
 using namespace clox::parsing;
 using namespace clox::logging;
@@ -84,7 +85,12 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 				vector<shared_ptr<expression>>{ expr->get_right() });
 
 		bindings_->put<operator_binding>(expr, expr, call_expr);
+
+		expr->annotate<operator_annotation>(call_expr);
+
 		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt), 0);
+
+		call_expr->annotate<function_annotation>(stmt, function_ids_.at(stmt), 0);
 
 	}
 
@@ -239,7 +245,7 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 
 	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
 	bindings_->put<class_expression_binding>(ptr, ptr, class_type);
-
+	ptr->annotate<class_annotation>(class_type);
 
 	auto member_name = ptr->get_name().lexeme();
 
@@ -277,7 +283,9 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 	}
 
 	auto class_type = static_pointer_cast<lox_class_type>(object_type);
+
 	bindings_->put<class_expression_binding>(se, se, class_type);
+	se->annotate<class_annotation>(class_type);
 
 	auto property_type = class_type->fields()[se->get_name().lexeme()];
 
@@ -326,14 +334,20 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 	if (class_type->methods().contains(be->get_member().lexeme()))
 	{
 		auto ret = class_type->methods().at(be->get_member().lexeme());
+
 		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::METHOD, -1);
+		be->annotate<base_annotation>(0, base_annotation::base_field_type::METHOD, -1);
+
 		return ret;
 	}
 	else if (class_type->fields().contains(be->get_member().lexeme()))
 	{
 		auto ret = class_type->fields().at(be->get_member().lexeme());
 		auto dist = distance(class_type->fields().begin(), class_type->fields().find(be->get_member().lexeme()));
+
 		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::FIELD, dist);
+		be->annotate<base_annotation>(0, base_annotation::base_field_type::FIELD, dist);
+
 		return ret;
 	}
 

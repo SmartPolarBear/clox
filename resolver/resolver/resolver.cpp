@@ -24,6 +24,8 @@
 
 #include <resolver/resolver.h>
 
+#include <resolver/ast_annotation.h>
+
 #include <resolver/lox_type.h>
 #include <resolver/object_type.h>
 #include <resolver/callable_type.h>
@@ -283,10 +285,12 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
 				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);
 				bindings_->put<variable_binding>(expr, expr, depth, ret, upvalue);
+				expr->annotate<variable_annotation>(depth, ret, upvalue);
 			}
 			else
 			{
 				bindings_->put<variable_binding>(expr, expr, depth, ret);
+				expr->annotate<variable_annotation>(depth, ret);
 			}
 
 
@@ -386,6 +390,10 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
 					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_CTOR,
 					static_pointer_cast<lox_class_type>(class_type));
+
+			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id,
+					function_binding::function_binding_flags::FB_CTOR,
+					static_pointer_cast<lox_class_type>(class_type));
 		}
 		else if (call->get_callee()->get_type() == parsing::PC_TYPE_get_expression) // it's a method
 		{
@@ -393,11 +401,15 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
 					static_pointer_cast<statement>(stmt), func_id, function_binding::function_binding_flags::FB_METHOD,
 					static_pointer_cast<lox_class_type>(class_type));
+			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id,
+					function_binding::function_binding_flags::FB_METHOD,
+					static_pointer_cast<lox_class_type>(class_type));
 		}
 		else [[likely]]
 		{
 			bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
 					static_pointer_cast<statement>(stmt), func_id, 0);
+			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id, 0);
 		}
 	}
 	else // it's a default constructor
@@ -406,6 +418,9 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		auto class_type = callable->return_type();
 		bindings_->put<function_binding>(call, static_pointer_cast<call_expression>(call),
 				static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
+				function_binding::function_binding_flags::FB_CTOR,
+				static_pointer_cast<lox_class_type>(class_type));
+		call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
 				function_binding::function_binding_flags::FB_CTOR,
 				static_pointer_cast<lox_class_type>(class_type));
 	}
