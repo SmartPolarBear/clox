@@ -37,6 +37,7 @@
 #include <ranges>
 
 #include <gsl/gsl>
+#include "resolver/ast_annotation.h"
 
 using namespace std;
 using namespace gsl;
@@ -180,12 +181,17 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
+//	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
+//	{
+//		generate(binding->operator_implementation_call());
+//		return;
+//	}
+
+	if (auto annotation = be->get_annotation<operator_annotation>();annotation)
 	{
-		generate(binding->operator_implementation_call());
+		generate(annotation->operator_implementation_call());
 		return;
 	}
-
 
 	generate(be->get_left());
 
@@ -291,17 +297,29 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 {
 	emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0); // get this object
 
-	auto binding = resolver_->binding_typed<base_binding>(be);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<base_binding>(be);
+//	assert(binding);
 
-	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
+//
+//	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
+//	{
+//		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+//	}
+//	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
+//	{
+//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+//	}
+
+	auto annotation = be->get_annotation<base_annotation>();
+	if (annotation->field_type() == resolving::base_annotation::base_field_type::FIELD)
 	{
-		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), annotation->index(), annotation->field_id());
 	}
-	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
+	else if (annotation->field_type() == resolving::base_annotation::base_field_type::METHOD)
 	{
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), annotation->index(), annotation->field_id());
 	}
+
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
@@ -588,17 +606,21 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
 {
-	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
+//	assert(binding);
+
+	auto annotation = ge->get_annotation<class_annotation>();
 
 	generate(ge->get_object());
 
-	auto class_type = binding->class_type();
+	auto class_type = annotation->class_type();
 
-	if (binding->is_method())
+	if (annotation->is_method())
 	{
-		auto caller_binding = resolver_->binding_typed<function_binding>(binding->method_caller());
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
+//		auto caller_binding = resolver_->binding_typed<function_binding>(annotation->method_caller());
+//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
+		auto caller_anno = annotation->method_caller()->get_annotation<function_annotation>();
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_anno->id());
 	}
 	else
 	{
@@ -619,13 +641,15 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
-	auto binding = resolver_->binding_typed<class_expression_binding>(se);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<class_expression_binding>(se);
+//	assert(binding);
+
+	auto annotation = se->get_annotation<class_annotation>();
 
 	generate(se->get_object());
 	generate(se->get_val());
 
-	auto class_type = binding->class_type();
+	auto class_type = annotation->class_type();
 
 	auto iter = class_type->fields().find(se->get_name().lexeme());
 
