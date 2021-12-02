@@ -60,7 +60,7 @@ public:
 	friend class lox_function;
 
 public:
-	[[nodiscard]] explicit interpreter(helper::console& cons, std::shared_ptr<resolving::binding_table> table);
+	[[nodiscard]] explicit interpreter(helper::console& cons);
 
 public:
 
@@ -160,6 +160,5 @@ private:
 	std::shared_ptr<classic::environment> globals_{ nullptr };
 	std::shared_ptr<classic::environment> environment_{ nullptr };
 
-	std::shared_ptr<resolving::binding_table> locals_{};
 };
 }

@@ -172,7 +172,6 @@ public:
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
-	[[nodiscard, deprecated("This gives out too many information")]] std::shared_ptr<binding_table> bindings() const;
 
 
 	[[nodiscard]] std::shared_ptr<scope> global_scope() const

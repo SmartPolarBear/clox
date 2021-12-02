@@ -40,7 +40,7 @@ public:
 	explicit classic_interpreter_adapter(helper::console& cons)
 			: cons_(&cons),
 			  repl_resolver_(),
-			  repl_intp_(cons, repl_resolver_.bindings())
+			  repl_intp_(cons)
 	{
 	}
 

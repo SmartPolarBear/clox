@@ -429,10 +429,6 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	return callable;
 }
 
-std::shared_ptr<binding_table> resolver::bindings() const
-{
-	return bindings_;
-}
 
 optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt) const
 {

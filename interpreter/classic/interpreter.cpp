@@ -33,6 +33,8 @@
 #include <interpreter/classic/return.h>
 #include <interpreter/classic/environment.h>
 
+#include <resolver/ast_annotation.h>
+
 #include <logger/logger.h>
 
 #include <iostream>
@@ -49,12 +51,11 @@ using namespace clox::interpreting;
 using namespace clox::interpreting::classic;
 
 
-interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
+interpreter::interpreter(helper::console& cons)
 		: expression_visitor<evaluating_result>(),
 		  statement_visitor<void>(),
 		  globals_(std::make_shared<classic::environment>()),
-		  console_(&cons),
-		  locals_(std::move(table))
+		  console_(&cons)
 {
 	environment_ = globals_;
 	install_native_functions();
@@ -64,12 +65,10 @@ interpreter::interpreter(helper::console& cons, shared_ptr<binding_table> table)
 clox::interpreting::classic::evaluating_result
 clox::interpreting::classic::interpreter::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	if (locals_->contains(be))
+	if (auto annotation = be->get_annotation<operator_annotation>();annotation)
 	{
-		if (auto op_binding = locals_->get_typed<operator_binding>(be);op_binding)
-		{
-			return evaluate(op_binding->operator_implementation_call());
-		}
+		return evaluate(annotation->operator_implementation_call());
+
 		throw clox::interpreting::classic::runtime_error(be->get_op(),
 				std::format("Internal compiler error: wrong binding."));
 	}
@@ -519,11 +518,11 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 	}
 	else if (holds_alternative<overloaded_functions>(callee))
 	{
-		if (auto func_binding = locals_->get_typed<function_binding>(ce);func_binding)
+		if (auto annotation = ce->get_annotation<function_annotation>();annotation)
 		{
-			func = get<overloaded_functions>(callee).at(func_binding->statement());
+			func = get<overloaded_functions>(callee).at(annotation->statement());
 		}
-		else if (!func_binding)
+		else if (!annotation)
 		{
 			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
 															  "Internal: function binding required." };
@@ -558,7 +557,7 @@ void interpreter::visit_return_statement(const std::shared_ptr<return_statement>
 
 std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, const shared_ptr<expression>& expr)
 {
-	auto local = locals_->get_typed<variable_binding>(expr);
+	auto local = expr->get_annotation<variable_annotation>(); //locals_->get_typed<variable_binding>(expr);
 	if (!local)
 	{
 		return globals_->get(tk);
@@ -579,7 +578,7 @@ std::optional<evaluating_result> interpreter::variable_lookup(const token& tk, c
 void
 interpreter::variable_assign(const token& tk, const shared_ptr<parsing::expression>& expr, const evaluating_result& val)
 {
-	auto local = locals_->get_typed<variable_binding>(expr);
+	auto local = expr->get_annotation<variable_annotation>(); //locals_->get_typed<variable_binding>(expr);
 	if (!local)
 	{
 		globals_->assign(tk, val);
@@ -689,7 +688,7 @@ evaluating_result interpreter::visit_base_expression(const std::shared_ptr<base_
 {
 	// FIXME: should support fields
 	// FIXME: new annotation scheme for AST nodes is required, for now there are multiple bindings for one expression
-	auto symbol = locals_->get_typed<variable_binding>(expr); // it must exist granted by the resolver
+	auto symbol = expr->get_annotation<variable_annotation>(); //locals_->get_typed<variable_binding>(expr); // it must exist granted by the resolver
 	auto dist = symbol->depth();
 
 	auto base = static_pointer_cast<lox_class>(get<shared_ptr<callable>>(environment_->get_at("base", dist).value()));

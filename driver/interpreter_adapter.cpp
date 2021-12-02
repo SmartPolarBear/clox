@@ -69,7 +69,7 @@ int clox::driver::vm_interpreter_adapter::full_code(const std::vector<std::share
 {
 	resolver rsv{};
 
-	classic::interpreter the_interpreter{ *cons_, rsv.bindings() };
+	classic::interpreter the_interpreter{ *cons_ };
 
 	rsv.resolve(stmts);
 
