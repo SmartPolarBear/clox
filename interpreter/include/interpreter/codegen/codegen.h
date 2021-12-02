@@ -36,6 +36,7 @@
 
 #include <resolver/binding.h>
 #include <resolver/resolver.h>
+#include <resolver/ast_annotation.h>
 
 #include <concepts>
 #include <string>
@@ -138,7 +139,7 @@ private:
 
 	std::shared_ptr<resolving::named_symbol> variable_lookup(const std::string& name);
 
-	std::shared_ptr<resolving::variable_binding> variable_lookup(const std::shared_ptr<parsing::expression>& expr);
+	std::shared_ptr<resolving::variable_annotation> variable_lookup(const std::shared_ptr<parsing::expression>& expr);
 
 	void emit_code(const scanning::token& lead_token, vm::full_opcode_type byte);
 
@@ -168,7 +169,7 @@ private:
 
 	uint16_t identifier_constant(const scanning::token& identifier);
 
-	uint16_t identifier_constant(const  std::string &lexeme);
+	uint16_t identifier_constant(const std::string& lexeme);
 
 
 	void set_constant(vm::full_opcode_type pos, const vm::value& val);

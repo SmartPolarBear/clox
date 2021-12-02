@@ -37,11 +37,6 @@
 namespace clox::resolving
 {
 
-
-template<typename T>
-struct annotation_tag;
-
-
 class variable_annotation final
 		: public parsing::ast_annotation
 {

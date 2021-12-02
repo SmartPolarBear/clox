@@ -37,6 +37,7 @@
 #include <ranges>
 
 #include <gsl/gsl>
+#include "resolver/ast_annotation.h"
 
 using namespace std;
 using namespace gsl;
@@ -180,12 +181,17 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
+//	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
+//	{
+//		generate(binding->operator_implementation_call());
+//		return;
+//	}
+
+	if (auto annotation = be->get_annotation<operator_annotation>();annotation)
 	{
-		generate(binding->operator_implementation_call());
+		generate(annotation->operator_implementation_call());
 		return;
 	}
-
 
 	generate(be->get_left());
 
@@ -291,17 +297,29 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 {
 	emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0); // get this object
 
-	auto binding = resolver_->binding_typed<base_binding>(be);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<base_binding>(be);
+//	assert(binding);
 
-	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
+//
+//	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
+//	{
+//		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+//	}
+//	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
+//	{
+//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+//	}
+
+	auto annotation = be->get_annotation<base_annotation>();
+	if (annotation->field_type() == resolving::base_annotation::base_field_type::FIELD)
 	{
-		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), annotation->index(), annotation->field_id());
 	}
-	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
+	else if (annotation->field_type() == resolving::base_annotation::base_field_type::METHOD)
 	{
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), annotation->index(), annotation->field_id());
 	}
+
 }
 
 void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
@@ -514,10 +532,11 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
-	else if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
+	else if (auto annotation = ce->get_annotation<function_annotation>();annotation &&
+																		 annotation->is_ctor()) [[unlikely]]
 	{
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
-				identifier_constant(binding->ctor_class_type()->name()));
+				identifier_constant(annotation->ctor_class_type()->name()));
 
 		//FIXME: args?
 //		for (const auto& arg: ce->get_args())
@@ -525,9 +544,9 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 //			generate(arg); // push arguments in the stack
 //		}
 
-		if (binding->statement()) [[likely]]
+		if (annotation->statement()) [[likely]]
 		{
-			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), binding->id(), ce->get_args().size());
+			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
 			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else
@@ -535,16 +554,16 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			emit_code(V(vm::op_code::INSTANCE));
 		}
 	}
-	else if (binding && !binding->is_ctor()) [[likely]]
+	else if (annotation && !annotation->is_ctor()) [[likely]]
 	{
-		if (binding->is_method())
+		if (annotation->is_method())
 		{
 			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
 			generate(get_expr->get_object());
 		}
 		else
 		{
-			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), annotation->id());
 			emit_code(ce->get_paren(), V(op_code::CLOSURE));
 		}
 
@@ -554,16 +573,16 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			generate(arg); // push arguments in the stack
 		}
 
-		if (binding->is_method()) [[unlikely]]
+		if (annotation->is_method()) [[unlikely]]
 		{
-			emit_codes(ce->get_paren(), V(op_code::INVOKE), binding->id(), ce->get_args().size()); // invoke the method
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
 		}
 		else [[likely]]
 		{
 			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 		}
 
-		if (binding->is_ctor())
+		if (annotation->is_ctor())
 		{
 			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
@@ -588,17 +607,21 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
 {
-	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
+//	assert(binding);
+
+	auto annotation = ge->get_annotation<class_annotation>();
 
 	generate(ge->get_object());
 
-	auto class_type = binding->class_type();
+	auto class_type = annotation->class_type();
 
-	if (binding->is_method())
+	if (annotation->is_method())
 	{
-		auto caller_binding = resolver_->binding_typed<function_binding>(binding->method_caller());
-		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
+//		auto caller_binding = resolver_->binding_typed<function_binding>(annotation->method_caller());
+//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
+		auto caller_anno = annotation->method_caller()->get_annotation<function_annotation>();
+		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_anno->id());
 	}
 	else
 	{
@@ -619,13 +642,15 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
-	auto binding = resolver_->binding_typed<class_expression_binding>(se);
-	assert(binding);
+//	auto binding = resolver_->binding_typed<class_expression_binding>(se);
+//	assert(binding);
+
+	auto annotation = se->get_annotation<class_annotation>();
 
 	generate(se->get_object());
 	generate(se->get_val());
 
-	auto class_type = binding->class_type();
+	auto class_type = annotation->class_type();
 
 	auto iter = class_type->fields().find(se->get_name().lexeme());
 
@@ -902,10 +927,16 @@ shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 	return current_scope()->find_name<named_symbol>(name);
 }
 
-std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
+//std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
+//{
+//	auto binding = resolver_->binding_typed<variable_binding>(expr);
+//	return binding;
+//}
+
+std::shared_ptr<resolving::variable_annotation> codegen::variable_lookup(const shared_ptr<expression>& expr)
 {
-	auto binding = resolver_->binding_typed<variable_binding>(expr);
-	return binding;
+//	auto binding = resolver_->binding_typed<variable_binding>(expr);
+	return expr->get_annotation<variable_annotation>();
 }
 
 vm::chunk::difference_type codegen::emit_jump(const token& lead_token, vm::full_opcode_type jmp)

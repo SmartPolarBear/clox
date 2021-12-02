@@ -172,15 +172,7 @@ public:
 
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
-	[[nodiscard, deprecated("This gives out too many information")]] std::shared_ptr<binding_table> bindings() const;
 
-	[[nodiscard]]std::shared_ptr<binding> binding(const std::shared_ptr<parsing::expression>& e) const;
-
-	template<typename T>
-	[[nodiscard]] std::shared_ptr<T> binding_typed(const std::shared_ptr<parsing::expression>& e) const
-	{
-		return bindings_->get_typed<T>(e);
-	}
 
 	[[nodiscard]] std::shared_ptr<scope> global_scope() const
 	{
@@ -346,8 +338,6 @@ private:
 	std::stack<std::shared_ptr<lox_callable_type>> cur_func_type_{};
 	std::stack<function_id_type> cur_func_id_{};
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
-
-	std::shared_ptr<binding_table> bindings_{ nullptr };
 
 	std::unordered_map<std::shared_ptr<parsing::statement>, function_id_type> function_ids_;
 

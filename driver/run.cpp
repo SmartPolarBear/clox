@@ -70,7 +70,7 @@ int clox::driver::run_file(helper::console& cons, const std::shared_ptr<interpre
 int clox::driver::run_repl(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter)
 {
 	resolver rsv{};
-	classic::interpreter the_interpreter{ cons, rsv.bindings() };
+	classic::interpreter the_interpreter{ cons};
 
 //	auto ck = make_shared<vm::chunk>("test");
 //	auto idx = ck->add_constant(244.0f);

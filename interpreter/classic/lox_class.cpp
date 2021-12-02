@@ -30,11 +30,16 @@
 #include <interpreter/classic/lox_function.h>
 #include <interpreter/classic/lox_class.h>
 
+#include <resolver/ast_annotation.h>
+
+
 using namespace std;
 
 using namespace clox::interpreting;
 using namespace clox::interpreting::classic;
 
+
+using namespace clox::resolving;
 
 evaluating_result
 lox_class::call(interpreter* the_interpreter,
@@ -45,10 +50,10 @@ lox_class::call(interpreter* the_interpreter,
 	if (auto ctor_ret = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor_ret)
 	{
 		auto ctor = ctor_ret.value();
-		if (auto binding = the_interpreter->locals_->get_typed<resolving::function_binding>(caller);binding)
+		if (auto annotation =caller->get_annotation<function_annotation>();annotation)
 		{
 			static_pointer_cast<lox_function>(
-					ctor.at(static_pointer_cast<resolving::function_binding>(binding)->statement()))->bind(
+					ctor.at(annotation->statement()))->bind(
 					inst)->call(
 					the_interpreter, caller, args);
 
