@@ -84,11 +84,9 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 		auto call_expr = make_shared<call_expression>(get_expr, virtual_paren,
 				vector<shared_ptr<expression>>{ expr->get_right() });
 
-		bindings_->put<operator_binding>(expr, expr, call_expr);
 
 		expr->annotate<operator_annotation>(call_expr);
 
-		bindings_->put<function_binding>(call_expr, call_expr, stmt, function_ids_.at(stmt), 0);
 
 		call_expr->annotate<function_annotation>(stmt, function_ids_.at(stmt), 0);
 
@@ -244,7 +242,6 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 	}
 
 	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
-	bindings_->put<class_expression_binding>(ptr, ptr, class_type);
 	ptr->annotate<class_annotation>(class_type);
 
 	auto member_name = ptr->get_name().lexeme();
@@ -284,7 +281,6 @@ std::shared_ptr<lox_type> resolver::visit_set_expression(const std::shared_ptr<s
 
 	auto class_type = static_pointer_cast<lox_class_type>(object_type);
 
-	bindings_->put<class_expression_binding>(se, se, class_type);
 	se->annotate<class_annotation>(class_type);
 
 	auto property_type = class_type->fields()[se->get_name().lexeme()];
@@ -335,7 +331,6 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 	{
 		auto ret = class_type->methods().at(be->get_member().lexeme());
 
-		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::METHOD, -1);
 		be->annotate<base_annotation>(0, base_annotation::base_field_type::METHOD, -1);
 
 		return ret;
@@ -345,7 +340,6 @@ std::shared_ptr<lox_type> resolver::visit_base_expression(const std::shared_ptr<
 		auto ret = class_type->fields().at(be->get_member().lexeme());
 		auto dist = distance(class_type->fields().begin(), class_type->fields().find(be->get_member().lexeme()));
 
-		bindings_->put<base_binding>(be, be, 0, base_binding::base_field_type::FIELD, dist);
 		be->annotate<base_annotation>(0, base_annotation::base_field_type::FIELD, dist);
 
 		return ret;
@@ -362,8 +356,6 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
 	{
-		auto binding = bindings_->get_typed<class_expression_binding>(ce->get_callee());
-		binding->set_as_method(ce);
 
 		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
 		annotation->set_as_method(ce);
@@ -400,9 +392,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)
 	{
-		auto func = bindings_->get_typed<function_binding>(ce);
-		auto binding = bindings_->get_typed<base_binding>(ce->get_callee());
-		binding->set_field_id(func->id());
+
 
 		auto annotation = ce->get_callee()->get_annotation<base_annotation>();
 		annotation->set_field_id(ce->get_annotation<function_annotation>()->id());

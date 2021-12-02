@@ -339,8 +339,6 @@ private:
 	std::stack<function_id_type> cur_func_id_{};
 	std::stack<std::shared_ptr<lox_class_type>> cur_class_type_{};
 
-	std::shared_ptr<binding_table> bindings_{ nullptr };
-
 	std::unordered_map<std::shared_ptr<parsing::statement>, function_id_type> function_ids_;
 
 	function_id_type function_id_counter_{ FUNCTION_ID_BEGIN };
