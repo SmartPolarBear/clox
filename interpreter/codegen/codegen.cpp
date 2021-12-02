@@ -532,10 +532,11 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
-	else if (auto binding = resolver_->binding_typed<function_binding>(ce);binding && binding->is_ctor()) [[unlikely]]
+	else if (auto annotation = ce->get_annotation<function_annotation>();annotation &&
+																		 annotation->is_ctor()) [[unlikely]]
 	{
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
-				identifier_constant(binding->ctor_class_type()->name()));
+				identifier_constant(annotation->ctor_class_type()->name()));
 
 		//FIXME: args?
 //		for (const auto& arg: ce->get_args())
@@ -543,9 +544,9 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 //			generate(arg); // push arguments in the stack
 //		}
 
-		if (binding->statement()) [[likely]]
+		if (annotation->statement()) [[likely]]
 		{
-			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), binding->id(), ce->get_args().size());
+			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
 			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else
@@ -553,16 +554,16 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			emit_code(V(vm::op_code::INSTANCE));
 		}
 	}
-	else if (binding && !binding->is_ctor()) [[likely]]
+	else if (annotation && !annotation->is_ctor()) [[likely]]
 	{
-		if (binding->is_method())
+		if (annotation->is_method())
 		{
 			auto get_expr = static_pointer_cast<get_expression>(ce->get_callee());
 			generate(get_expr->get_object());
 		}
 		else
 		{
-			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), binding->id());
+			emit_codes(ce->get_paren(), VC(SEC_OP_FUNC, op_code::PUSH), annotation->id());
 			emit_code(ce->get_paren(), V(op_code::CLOSURE));
 		}
 
@@ -572,16 +573,16 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			generate(arg); // push arguments in the stack
 		}
 
-		if (binding->is_method()) [[unlikely]]
+		if (annotation->is_method()) [[unlikely]]
 		{
-			emit_codes(ce->get_paren(), V(op_code::INVOKE), binding->id(), ce->get_args().size()); // invoke the method
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
 		}
 		else [[likely]]
 		{
 			emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 		}
 
-		if (binding->is_ctor())
+		if (annotation->is_ctor())
 		{
 			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
@@ -926,10 +927,16 @@ shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 	return current_scope()->find_name<named_symbol>(name);
 }
 
-std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
+//std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
+//{
+//	auto binding = resolver_->binding_typed<variable_binding>(expr);
+//	return binding;
+//}
+
+std::shared_ptr<resolving::variable_annotation> codegen::variable_lookup(const shared_ptr<expression>& expr)
 {
-	auto binding = resolver_->binding_typed<variable_binding>(expr);
-	return binding;
+//	auto binding = resolver_->binding_typed<variable_binding>(expr);
+	return expr->get_annotation<variable_annotation>();
 }
 
 vm::chunk::difference_type codegen::emit_jump(const token& lead_token, vm::full_opcode_type jmp)
