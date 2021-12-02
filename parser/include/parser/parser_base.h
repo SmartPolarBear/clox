@@ -76,7 +76,11 @@ public:
 
 	std::shared_ptr<ast_annotation> get_annotation(ast_annotation_type t)
 	{
-		return ast_annotations_.at(t);
+		if(contains_annotation(t))
+		{
+			return ast_annotations_.at(t);
+		}
+		return nullptr;
 	}
 
 	template<std::derived_from<ast_annotation> T>

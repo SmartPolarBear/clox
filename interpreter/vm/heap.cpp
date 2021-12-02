@@ -33,7 +33,10 @@ using namespace clox::interpreting::vm;
 
 object_heap::~object_heap()
 {
-	cons_->log() << "--end of life deallocate" << std::endl;
+	if constexpr (base::runtime_predefined_configuration::ENABLE_DEBUG_LOGGING_GC)
+	{
+		cons_->log() << "--end of life deallocate" << std::endl;
+	}
 	while (!objects_.empty())
 	{
 		auto back = objects_.back();
