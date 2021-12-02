@@ -174,13 +174,6 @@ public:
 
 	[[nodiscard, deprecated("This gives out too many information")]] std::shared_ptr<binding_table> bindings() const;
 
-	[[nodiscard]]std::shared_ptr<binding> binding(const std::shared_ptr<parsing::expression>& e) const;
-
-	template<typename T>
-	[[nodiscard]] std::shared_ptr<T> binding_typed(const std::shared_ptr<parsing::expression>& e) const
-	{
-		return bindings_->get_typed<T>(e);
-	}
 
 	[[nodiscard]] std::shared_ptr<scope> global_scope() const
 	{
