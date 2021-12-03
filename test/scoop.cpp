@@ -99,16 +99,16 @@ TEST_F(ScoopTest, BindTest)
 	ASSERT_NE(output.find("global\nlocal"), string::npos);
 }
 
-//TEST_F(ScoopTest, ClosureTest)
-//{
-//	test_scaffold_console cons{};
-//
-//	int ret = run_code(cons,test_interpreter_adapater::get(cons), closure_);
-//	ASSERT_EQ(ret, 0);
-//
-//	auto output = cons.get_written_text();
-//	ASSERT_NE(output.find(closure_out_), string::npos);
-//}
+TEST_F(ScoopTest, ClosureTest)
+{
+	test_scaffold_console cons{};
+
+	int ret = run_code(cons,test_interpreter_adapater::get(cons), closure_);
+	ASSERT_EQ(ret, 0);
+
+	auto output = cons.get_written_text();
+	ASSERT_NE(output.find(closure_out_), string::npos);
+}
 
 TEST_F(ScoopTest, ScoopTest)
 {
