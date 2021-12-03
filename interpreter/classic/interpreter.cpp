@@ -510,24 +510,51 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 	}
 
 
-	shared_ptr<callable> func{ nullptr };
+	shared_ptr<callable> func = std::visit([&ce](auto&& val) -> shared_ptr<callable>
+	{
+		using T = std::decay_t<decltype(val)>;
+		if constexpr (std::is_same_v<T, shared_ptr<callable>>)
+		{
+			return val;
+		}
+		else if constexpr(std::is_same_v<T, overloaded_functions>)
+		{
+			if (auto annotation = ce->get_annotation<function_annotation>();annotation)
+			{
+				return val.at(annotation->statement());
+			}
+			else if (!annotation)
+			{
+//			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
+//															  "Internal: function binding required." };
+				//FIXME
+				return val.begin()->second;
+			}
+		}
+		
+		return nullptr;
 
-	if (holds_alternative<shared_ptr<callable>>(callee))
-	{
-		func = get<shared_ptr<callable>>(callee);
-	}
-	else if (holds_alternative<overloaded_functions>(callee))
-	{
-		if (auto annotation = ce->get_annotation<function_annotation>();annotation)
-		{
-			func = get<overloaded_functions>(callee).at(annotation->statement());
-		}
-		else if (!annotation)
-		{
-			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
-															  "Internal: function binding required." };
-		}
-	}
+	}, callee);
+
+
+//	if (holds_alternative<shared_ptr<callable>>(callee))
+//	{
+//		func = get<shared_ptr<callable>>(callee);
+//	}
+//	else if (holds_alternative<overloaded_functions>(callee))
+//	{
+//		if (auto annotation = ce->get_annotation<function_annotation>();annotation)
+//		{
+//			func = get<overloaded_functions>(callee).at(annotation->statement());
+//		}
+//		else if (!annotation)
+//		{
+////			throw clox::interpreting::classic::runtime_error{ ce->get_paren(),
+////															  "Internal: function binding required." };
+//			//FIXME
+//			func = get<>()
+//		}
+//	}
 
 	return func->call(this, ce, args);
 }
