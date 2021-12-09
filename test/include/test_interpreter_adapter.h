@@ -33,6 +33,7 @@ class test_interpreter_adapater
 {
 public:
 	using adapter_type = clox::driver::classic_interpreter_adapter;
+//	using adapter_type = clox::driver::vm_interpreter_adapter;
 
 	static std::shared_ptr<clox::driver::interpreter_adapter> get(
 			clox::helper::console& cons);
