@@ -372,6 +372,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	auto resolve_ret = callee->get(args);
 	if (!resolve_ret.has_value())
 	{
+		// FIXME: constructor args are bad
 		return type_error(call->get_paren(), "Incompatible parameter type");
 	}
 
