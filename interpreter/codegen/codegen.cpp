@@ -539,10 +539,10 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 				identifier_constant(annotation->ctor_class_type()->name()));
 
 		//FIXME: args?
-//		for (const auto& arg: ce->get_args())
-//		{
-//			generate(arg); // push arguments in the stack
-//		}
+		for (const auto& arg: ce->get_args())
+		{
+			generate(arg); // push arguments in the stack
+		}
 
 		if (annotation->statement()) [[likely]]
 		{

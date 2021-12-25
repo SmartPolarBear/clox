@@ -141,7 +141,7 @@ private:
 				top_call_frame().function()->body()->line_of(top_call_frame().ip()),
 				top_call_frame().function()->body()->filename()) << std::endl;
 
-		cons_->error() << std::format(fmt, args...);
+		cons_->error() << std::format(fmt, args...) << "\n";
 
 		cons_->error() << "Call stack:" << std::endl;
 		for (auto& frm: call_frames_ | std::ranges::views::reverse)

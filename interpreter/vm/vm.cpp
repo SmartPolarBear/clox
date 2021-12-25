@@ -39,6 +39,9 @@
 #include "interpreter/vm/bounded_method_object.h"
 
 
+#define DEBUG_NO_CATCH
+
+
 using namespace std;
 using namespace gsl;
 
@@ -71,20 +74,27 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 {
 	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
+#ifndef DEBUG_NO_CATCH
 		try
 		{
-			chunk::code_type instruction = *top_call_frame().ip()++;
-			auto[status, exit] = run_code(instruction, top_call_frame());
-			if (exit)
-			{
-				return status.value_or(virtual_machine_status::OK);
-			}
+#endif
+
+		chunk::code_type instruction = *top_call_frame().ip()++;
+		auto[status, exit] = run_code(instruction, top_call_frame());
+		if (exit)
+		{
+			return status.value_or(virtual_machine_status::OK);
+		}
+
+#ifndef DEBUG_NO_CATCH
 		}
 		catch (const exception& e)
 		{
 			runtime_error("{}", e.what());
 			return virtual_machine_status::RUNTIME_ERROR;
 		}
+#endif
+
 	}
 
 	return virtual_machine_status::OK;
