@@ -535,18 +535,20 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	else if (auto annotation = ce->get_annotation<function_annotation>();annotation &&
 																		 annotation->is_ctor()) [[unlikely]]
 	{
+
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
 				identifier_constant(annotation->ctor_class_type()->name()));
-
-		//FIXME: args?
-		for (const auto& arg: ce->get_args())
-		{
-			generate(arg); // push arguments in the stack
-		}
 
 		if (annotation->statement()) [[likely]]
 		{
 			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
+
+			// TODO: OP_INSTANCE SHOULD NOT BE RESPONSIBLE FOR CALL CTORS
+			for (const auto& arg: ce->get_args())
+			{
+				generate(arg); // push arguments in the stack
+			}
+
 			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else

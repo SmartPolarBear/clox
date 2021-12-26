@@ -585,7 +585,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case INSTANCE:
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
-		// TODO: constructor may have arguments ?
 
 		auto secondary = secondary_op_code_of(instruction);
 		if (secondary & SEC_OP_FUNC) // will call a user-defined constructor
@@ -594,12 +593,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			auto args = next_code();
 
 			pop();
+
 			auto instance = heap_->allocate<instance_object>(class_obj);
 
 			push(instance);
 
 			push(instance);
-
 			if (!bind_method(instance, id))
 			{
 				return { virtual_machine_status::RUNTIME_ERROR, true };
