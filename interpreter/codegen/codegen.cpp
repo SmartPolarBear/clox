@@ -541,13 +541,16 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		if (annotation->statement()) [[likely]]
 		{
-			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
+//			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
+			emit_code(V(vm::op_code::INSTANCE));
 
 			// TODO: OP_INSTANCE SHOULD NOT BE RESPONSIBLE FOR CALL CTORS
 			for (const auto& arg: ce->get_args())
 			{
 				generate(arg); // push arguments in the stack
 			}
+
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
 
 			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}

@@ -216,6 +216,7 @@ void resolver::define_name(const clox::scanning::token& tk, const std::shared_pt
 	define_name(tk.lexeme(), type, dist);
 }
 
+// FIXME: this and base should not increase slots_in_use_
 void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist)
 {
 	if (scopes_.empty())return;

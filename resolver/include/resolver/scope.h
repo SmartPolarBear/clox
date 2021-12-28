@@ -63,8 +63,15 @@ enum class scope_types
 	CLASS_FIELD_SCOPE,
 };
 
+class scope_base
+{
+public:
+	virtual size_t slot_count() = 0;
+};
+
 class scope
-		: public std::enable_shared_from_this<scope>
+		: public scope_base,
+		  public std::enable_shared_from_this<scope>
 {
 public:
 	friend class scope_iterator;
@@ -131,6 +138,11 @@ public:
 		return names_;
 	}
 
+	size_t slot_count() override
+	{
+		return names_.size();
+	}
+
 	[[nodiscard]] name_table_type::value_type::second_type name(const std::string& name) const
 	{
 		return names_.at(name);
@@ -185,8 +197,6 @@ private:
 
 	mutable function_id_type container_func_{};
 
-	mutable name_table_type names_{};
-
 	mutable type_table_type types_{};
 
 	mutable size_t visit_count_{ 0 };
@@ -199,6 +209,8 @@ private:
 
 	mutable std::weak_ptr<scope> parent_{};
 
+protected:
+	mutable name_table_type names_{};
 };
 
 class function_scope
@@ -271,7 +283,9 @@ private:
 	mutable std::optional<scope_list_type::iterator> last_function_{};
 };
 
-struct class_base_tag{};
+struct class_base_tag
+{
+};
 
 static inline constexpr class_base_tag class_base;
 
@@ -290,12 +304,19 @@ public:
 		return scope_types::CLASS_BASE_SCOPE;
 	}
 
+	size_t slot_count() override
+	{
+		return names_.empty() ? 0 : names_.size() - 1;
+	}
+
 private:
 	std::shared_ptr<lox_class_type> class_type_;
 
 };
 
-struct class_field_tag{};
+struct class_field_tag
+{
+};
 
 static inline constexpr class_field_tag class_field;
 
@@ -311,6 +332,11 @@ public:
 	[[nodiscard]] scope_types scope_type() noexcept override
 	{
 		return scope_types::CLASS_FIELD_SCOPE;
+	}
+
+	size_t slot_count() override
+	{
+		return names_.size();
 	}
 
 private:
