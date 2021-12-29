@@ -273,9 +273,9 @@ private:
 
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 
-	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0);
+	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0,bool occupy_slot=true);
 
-	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0);
+	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0,bool occupy_slot=true);
 
 	/// define name for callable
 	/// \param tk
@@ -329,7 +329,7 @@ private:
 
 	std::unordered_map<function_id_type, std::shared_ptr<function_scope>> function_scope_ids_{};
 
-	static inline constexpr size_t BASE_THIS_VIRTUAL_SLOT = SIZE_MAX;
+	static inline constexpr size_t VIRTUAL_UNUSED_SLOT = SIZE_MAX;
 	size_t slots_in_use_{ 1 }; // first slot is always in use
 
 	std::stack<env_function_type> cur_func_{};

@@ -741,9 +741,9 @@ chunk::code_type virtual_machine::next_code()
 
 value virtual_machine::pop()
 {
+	assert(stack_.size() != 1);
 	auto ret = stack_.back();
 	stack_.pop_back();
-	assert(!stack_.empty());
 	return ret;
 }
 

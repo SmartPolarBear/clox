@@ -552,7 +552,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
 
-			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
+//			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else
 		{

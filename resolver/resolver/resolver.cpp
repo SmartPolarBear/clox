@@ -212,13 +212,14 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 }
 
 
-void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
+void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist,
+		bool occupy_slot)
 {
-	define_name(tk.lexeme(), type, dist);
+	define_name(tk.lexeme(), type, dist, occupy_slot);
 }
 
 // FIXME: this and base should not increase slots_in_use_
-void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist)
+void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist, bool occupy_slot)
 {
 	if (scopes_.empty())return;
 
@@ -228,10 +229,10 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type);
 	}
-	else if (tk.contains("base") || tk.contains("this"))
+	else if (!occupy_slot) // it's in a class member, so it does not occupy a slot
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
-				BASE_THIS_VIRTUAL_SLOT);
+				VIRTUAL_UNUSED_SLOT);
 	}
 	else
 	{

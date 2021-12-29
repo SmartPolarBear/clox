@@ -306,7 +306,8 @@ public:
 
 	size_t slot_count() override
 	{
-		return names_.empty() ? 0 : names_.size() - 1;
+//		return names_.empty() ? 0 : names_.size() - 1;
+		return 0; // base should not occupy a slot
 	}
 
 private:
@@ -336,7 +337,8 @@ public:
 
 	size_t slot_count() override
 	{
-		return names_.size();
+		return names_.empty() ? 0 : names_.size() - 1;
+//		return names_.size();
 	}
 
 private:
