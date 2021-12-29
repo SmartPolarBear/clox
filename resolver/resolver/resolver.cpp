@@ -158,7 +158,8 @@ void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_f
 void resolver::scope_end()
 {
 	auto top = scopes_.top();
-	slots_in_use_ -= top->names().size();
+//	slots_in_use_ -= top->names().size();
+	slots_in_use_ -= top->slot_count();
 
 	scopes_.pop();
 
@@ -226,6 +227,11 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	if (target->is_global())
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type);
+	}
+	else if (tk.contains("base") || tk.contains("this"))
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
+				BASE_THIS_VIRTUAL_SLOT);
 	}
 	else
 	{

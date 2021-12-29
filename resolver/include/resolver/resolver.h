@@ -173,7 +173,6 @@ public:
 	std::shared_ptr<lox_type> resolve(const std::shared_ptr<parsing::expression>& expr);
 
 
-
 	[[nodiscard]] std::shared_ptr<scope> global_scope() const
 	{
 		return global_scope_;
@@ -330,6 +329,7 @@ private:
 
 	std::unordered_map<function_id_type, std::shared_ptr<function_scope>> function_scope_ids_{};
 
+	static inline constexpr size_t BASE_THIS_VIRTUAL_SLOT = SIZE_MAX;
 	size_t slots_in_use_{ 1 }; // first slot is always in use
 
 	std::stack<env_function_type> cur_func_{};
