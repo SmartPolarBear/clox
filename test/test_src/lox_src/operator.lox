@@ -1,23 +1,26 @@
 class fuck{
     var v:integer;
 
-    fun init(val:integer){
-        v=val;
+    constructor(val:integer){
+        print val;
+       // this.v=val;
     }
 
     fun output(){
-        print v;
+        print this.v;
     }
 
+/*
     operator ==(another:fuck){
-        print v;
+        print this.v;
         print another.v;
-        return v==another.v;
+        return this.v==another.v;
     }
+*/
 }
 
 var f1=fuck(1);
-var f2=fuck(2);
+/*var f2=fuck(2);
 var f3=fuck(2);
 
 print f1==f2;
@@ -28,3 +31,4 @@ print f3==f1;
 
 print f2==f3;
 print f3==f2;
+*/

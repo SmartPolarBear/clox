@@ -237,7 +237,6 @@ lox_overloaded_metatype::overloading_resolve(std::vector<std::shared_ptr<lox_typ
 
 	type_id_diff diff = INT64_MAX;
 	std::shared_ptr<lox_overloaded_node> next{ nullptr };
-	bool found = false;
 
 	for (auto& iter: node->next_)
 	{

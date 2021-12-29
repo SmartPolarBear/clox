@@ -158,7 +158,8 @@ void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_f
 void resolver::scope_end()
 {
 	auto top = scopes_.top();
-	slots_in_use_ -= top->names().size();
+//	slots_in_use_ -= top->names().size();
+	slots_in_use_ -= top->slot_count();
 
 	scopes_.pop();
 
@@ -211,12 +212,14 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 }
 
 
-void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist)
+void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist,
+		bool occupy_slot)
 {
-	define_name(tk.lexeme(), type, dist);
+	define_name(tk.lexeme(), type, dist, occupy_slot);
 }
 
-void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist)
+// FIXME: this and base should not increase slots_in_use_
+void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, size_t dist, bool occupy_slot)
 {
 	if (scopes_.empty())return;
 
@@ -225,6 +228,11 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	if (target->is_global())
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type);
+	}
+	else if (!occupy_slot) // it's in a class member, so it does not occupy a slot
+	{
+		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
+				VIRTUAL_UNUSED_SLOT);
 	}
 	else
 	{
@@ -372,6 +380,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	auto resolve_ret = callee->get(args);
 	if (!resolve_ret.has_value())
 	{
+		// FIXME: constructor args are bad
 		return type_error(call->get_paren(), "Incompatible parameter type");
 	}
 

@@ -147,11 +147,11 @@ void resolver::visit_class_statement(const std::shared_ptr<class_statement>& cls
 
 	scope_begin(class_type, class_base);
 	declare_name("base", cls->get_name());
-	define_name("base", base_class_type); // base is not an instance.
+	define_name("base", base_class_type, 0, false); // base is not an instance.
 
 	scope_begin(class_type, class_field);
 	declare_name("this", cls->get_name());
-	define_name("this", this_type);
+	define_name("this", this_type, 0, false);
 
 	auto _ = finally([this]
 	{
@@ -356,7 +356,7 @@ void resolver::visit_variable_statement(const std::shared_ptr<parsing::variable_
 		var_type = make_shared<lox_instance_type>(static_pointer_cast<lox_object_type>(var_type));
 	}
 
-	this->define_name(stmt->get_name(), var_type);
+	this->define_name(stmt->get_name(), var_type, 0, cur_class_.top() == env_class_type::CT_NONE);
 }
 
 void resolver::visit_block_statement(const std::shared_ptr<parsing::block_statement>& blk)

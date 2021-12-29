@@ -39,6 +39,9 @@
 #include "interpreter/vm/bounded_method_object.h"
 
 
+#define DEBUG_NO_CATCH
+
+
 using namespace std;
 using namespace gsl;
 
@@ -71,20 +74,27 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 {
 	for (; top_call_frame().ip() != top_call_frame().function()->body()->end();)
 	{
+#ifndef DEBUG_NO_CATCH
 		try
 		{
-			chunk::code_type instruction = *top_call_frame().ip()++;
-			auto[status, exit] = run_code(instruction, top_call_frame());
-			if (exit)
-			{
-				return status.value_or(virtual_machine_status::OK);
-			}
+#endif
+
+		chunk::code_type instruction = *top_call_frame().ip()++;
+		auto[status, exit] = run_code(instruction, top_call_frame());
+		if (exit)
+		{
+			return status.value_or(virtual_machine_status::OK);
+		}
+
+#ifndef DEBUG_NO_CATCH
 		}
 		catch (const exception& e)
 		{
 			runtime_error("{}", e.what());
 			return virtual_machine_status::RUNTIME_ERROR;
 		}
+#endif
+
 	}
 
 	return virtual_machine_status::OK;
@@ -575,7 +585,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case INSTANCE:
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
-		// TODO: constructor may have arguments ?
 
 		auto secondary = secondary_op_code_of(instruction);
 		if (secondary & SEC_OP_FUNC) // will call a user-defined constructor
@@ -584,12 +593,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 			auto args = next_code();
 
 			pop();
+
 			auto instance = heap_->allocate<instance_object>(class_obj);
 
 			push(instance);
 
 			push(instance);
-
 			if (!bind_method(instance, id))
 			{
 				return { virtual_machine_status::RUNTIME_ERROR, true };
@@ -732,9 +741,9 @@ chunk::code_type virtual_machine::next_code()
 
 value virtual_machine::pop()
 {
+	assert(stack_.size() != 1);
 	auto ret = stack_.back();
 	stack_.pop_back();
-	assert(!stack_.empty());
 	return ret;
 }
 
