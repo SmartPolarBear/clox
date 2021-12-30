@@ -586,32 +586,10 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
 
-		auto secondary = secondary_op_code_of(instruction);
-		if (secondary & SEC_OP_FUNC) // will call a user-defined constructor
-		{
-			auto id = next_code();
-			auto args = next_code();
 
-			pop();
+		pop();
+		push(heap_->allocate<instance_object>(class_obj));
 
-			auto instance = heap_->allocate<instance_object>(class_obj);
-
-			push(instance);
-
-			push(instance);
-			if (!bind_method(instance, id))
-			{
-				return { virtual_machine_status::RUNTIME_ERROR, true };
-			}
-
-			auto bound = peek();
-			call_value(bound, args);
-		}
-		else
-		{
-			pop();
-			push(heap_->allocate<instance_object>(class_obj));
-		}
 
 		break;
 	}

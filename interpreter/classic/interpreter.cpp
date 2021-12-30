@@ -519,7 +519,7 @@ evaluating_result interpreter::visit_call_expression(const std::shared_ptr<call_
 		}
 		else if constexpr(std::is_same_v<T, overloaded_functions>)
 		{
-			if (auto annotation = ce->get_annotation<function_annotation>();annotation)
+			if (auto annotation = ce->get_annotation<call_annotation>();annotation)
 			{
 				return val.at(annotation->statement());
 			}

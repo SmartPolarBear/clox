@@ -532,8 +532,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
-	else if (auto annotation = ce->get_annotation<function_annotation>();annotation &&
-																		 annotation->is_ctor()) [[unlikely]]
+	else if (auto annotation = ce->get_annotation<call_annotation>();annotation &&
+																	 annotation->is_ctor()) [[unlikely]]
 	{
 
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
@@ -550,7 +550,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 				generate(arg); // push arguments in the stack
 			}
 
-			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(),
+					ce->get_args().size()); // invoke the method
 
 //			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
@@ -580,7 +581,8 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		if (annotation->is_method()) [[unlikely]]
 		{
-			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(), ce->get_args().size()); // invoke the method
+			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(),
+					ce->get_args().size()); // invoke the method
 		}
 		else [[likely]]
 		{
@@ -625,7 +627,7 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 	{
 //		auto caller_binding = resolver_->binding_typed<function_binding>(annotation->method_caller());
 //		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
-		auto caller_anno = annotation->method_caller()->get_annotation<function_annotation>();
+		auto caller_anno = annotation->method_caller()->get_annotation<call_annotation>();
 		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_anno->id());
 	}
 	else
@@ -806,13 +808,22 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	scope_end();
 
-	auto func = function_pop();
-	set_constant(constant, func);
+	if (auto anno = fs->get_annotation<function_annotation>();anno)
+	{
+		auto func = function_pop(true);
+		set_constant(constant, func);
+	}
+	else
+	{
+		auto func = function_pop();
+		set_constant(constant, func);
+	}
 
 }
 
 void clox::interpreting::compiling::codegen::visit_return_statement(const std::shared_ptr<return_statement>& rs)
 {
+	// FIXME: return this for constructor
 	generate(rs->get_val());
 	emit_code(rs->get_return_keyword(), V(op_code::RETURN));
 }
@@ -980,11 +991,18 @@ void codegen::function_push(vm::function_object_raw_pointer func)
 	functions_.push_back(func);
 }
 
-vm::function_object_raw_pointer codegen::function_pop()
+vm::function_object_raw_pointer codegen::function_pop(bool is_in_ctor)
 {
 	//TODO: print disassembly when errors occur
-
-	emit_return();
+	if (is_in_ctor)
+	{
+		emit_codes(VC(SEC_OP_LOCAL, op_code::GET), 0);
+		emit_code(V(op_code::RETURN));
+	}
+	else
+	{
+		emit_return();
+	}
 
 	auto top = function_top();
 	functions_.pop_back();

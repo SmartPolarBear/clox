@@ -29,6 +29,7 @@
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/array_type.h>
+#include <resolver/ast_annotation.h>
 
 #include <logger/logger.h>
 
@@ -120,6 +121,11 @@ void resolver::resolve_function_body(const shared_ptr<parsing::function_statemen
 	}
 
 	resolve(func->get_body()); // resolve the body
+
+	if (type == env_function_type::FT_CTOR)
+	{
+		func->annotate<function_annotation>(func, func_type, nullptr /*FIXME*/);
+	}
 }
 
 
@@ -436,6 +442,7 @@ void resolver::visit_function_statement(const std::shared_ptr<parsing::function_
 	{
 		func_type->set_return_type(make_shared<lox_void_type>());
 	}
+
 }
 
 void resolver::visit_return_statement(const std::shared_ptr<parsing::return_statement>& rs)

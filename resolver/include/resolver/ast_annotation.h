@@ -89,6 +89,47 @@ class function_annotation final
 		: public parsing::ast_annotation
 {
 public:
+	explicit function_annotation(std::shared_ptr<parsing::statement> s,
+			std::shared_ptr<resolving::lox_callable_type> callable, std::shared_ptr<resolving::lox_class_type> cls)
+			: stmt_(std::move(s)), callable_(std::move(callable)), class_(std::move(cls))
+	{
+	}
+
+	[[nodiscard]] parsing::ast_annotation_type type() const override
+	{
+		return parsing::AST_ANNOTATION_FUNCTION;
+	}
+
+	[[nodiscard]] std::shared_ptr<resolving::lox_callable_type> callable_type()
+	{
+		return callable_;
+	}
+
+	[[nodiscard]] std::shared_ptr<resolving::lox_class_type> class_type()
+	{
+		return class_;
+	}
+
+private:
+	std::shared_ptr<parsing::statement> stmt_{ nullptr };
+
+
+	std::shared_ptr<resolving::lox_callable_type> callable_{ nullptr };
+	std::shared_ptr<resolving::lox_class_type> class_{ nullptr };
+
+};
+
+template<>
+struct annotation_tag<function_annotation>
+{
+	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_FUNCTION;
+};
+
+
+class call_annotation final
+		: public parsing::ast_annotation
+{
+public:
 	enum function_binding_flags : uint32_t
 	{
 		FB_CTOR = 1 << 1,
@@ -98,18 +139,18 @@ public:
 
 	[[nodiscard]] parsing::ast_annotation_type type() const override
 	{
-		return parsing::ast_annotation_type::AST_ANNOTATION_FUNCTION;
+		return parsing::ast_annotation_type::AST_ANNOTATION_CALL;
 	}
 
-	function_annotation() = default;
+	call_annotation() = default;
 
-	explicit function_annotation(std::shared_ptr<parsing::statement> s,
+	explicit call_annotation(std::shared_ptr<parsing::statement> s,
 			function_id_type id, uint32_t flags)
 			: stmt_(std::move(s)), id_(id), flags_(flags)
 	{
 	}
 
-	explicit function_annotation(std::shared_ptr<parsing::statement> s,
+	explicit call_annotation(std::shared_ptr<parsing::statement> s,
 			function_id_type id, uint32_t flags, std::shared_ptr<resolving::lox_class_type> cls)
 			: stmt_(std::move(s)), id_(id), flags_(flags), class_(std::move(cls))
 	{
@@ -152,9 +193,9 @@ private:
 };
 
 template<>
-struct annotation_tag<function_annotation>
+struct annotation_tag<call_annotation>
 {
-	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_FUNCTION;
+	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_CALL;
 };
 
 
