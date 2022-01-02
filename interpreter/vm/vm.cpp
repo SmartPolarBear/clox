@@ -653,6 +653,12 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		call(func, args);
 
+		auto secondary = secondary_op_code_of(instruction);
+		if (secondary == SEC_OP_CTOR) // workaround the first POP instruction for any function
+		{
+			push(inst);
+		}
+
 		break;
 	}
 

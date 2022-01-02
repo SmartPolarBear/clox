@@ -1,6 +1,7 @@
 class fuck{
     var v:integer;
 
+    // FIXME: there is a redundant POP
     constructor(){
         this.v=123;
     }
@@ -22,9 +23,7 @@ class fuck{
 
 }
 
-//var f1=fuck(1);
-var f1=fuck();
-
+var f1=fuck(1);
 f1.output();
 
 /*

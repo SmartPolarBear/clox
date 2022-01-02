@@ -550,7 +550,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 				generate(arg); // push arguments in the stack
 			}
 
-			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(),
+			emit_codes(ce->get_paren(), VC(SEC_OP_CTOR, op_code::INVOKE), annotation->id(),
 					ce->get_args().size()); // invoke the method
 
 //			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
@@ -591,7 +591,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		if (annotation->is_ctor())
 		{
-			emit_code(V(vm::op_code::POP)); // Pop the default nil value
+//			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
 
 
