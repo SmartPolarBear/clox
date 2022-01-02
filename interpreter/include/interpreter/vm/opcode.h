@@ -129,6 +129,7 @@ enum secondary_op_code : secondary_opcode_base_type
 	SEC_OP_FUNC = 1 << 5,
 	SEC_OP_CLASS = 1 << 6,
 	SEC_OP_CAPTURE = 1 << 7,
+	SEC_OP_CTOR = 1 << 8,
 
 	SEC_OPCODE_ENUM_MAX,
 };

@@ -88,7 +88,7 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 		expr->annotate<operator_annotation>(call_expr);
 
 
-		call_expr->annotate<function_annotation>(stmt, function_ids_.at(stmt), 0);
+		call_expr->annotate<call_annotation>(stmt, function_ids_.at(stmt), 0);
 
 	}
 
@@ -395,7 +395,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 
 		auto annotation = ce->get_callee()->get_annotation<base_annotation>();
-		annotation->set_field_id(ce->get_annotation<function_annotation>()->id());
+		annotation->set_field_id(ce->get_annotation<call_annotation>()->id());
 	}
 
 

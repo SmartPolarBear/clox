@@ -50,7 +50,7 @@ lox_class::call(interpreter* the_interpreter,
 	if (auto ctor_ret = lookup_method(scanning::scanner::keyword_from_type(scanning::token_type::CONSTRUCTOR));ctor_ret)
 	{
 		auto ctor = ctor_ret.value();
-		if (auto annotation =caller->get_annotation<function_annotation>();annotation)
+		if (auto annotation =caller->get_annotation<call_annotation>();annotation)
 		{
 			static_pointer_cast<lox_function>(
 					ctor.at(annotation->statement()))->bind(

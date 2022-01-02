@@ -129,7 +129,7 @@ private:
 
 	void function_push(vm::function_object_raw_pointer func);
 
-	vm::function_object_raw_pointer function_pop();
+	vm::function_object_raw_pointer function_pop(bool is_in_ctor = false);
 
 	vm::function_object_raw_pointer function_top();
 

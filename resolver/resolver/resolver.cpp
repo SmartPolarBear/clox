@@ -229,7 +229,7 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type);
 	}
-	else if (!occupy_slot) // it's in a class member, so it does not occupy a slot
+	else if (!occupy_slot) // it does not occupy a slot
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
 				VIRTUAL_UNUSED_SLOT);
@@ -394,7 +394,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		{
 			auto class_type = callable->return_type();
 
-			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id,
+			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id,
 					function_binding::function_binding_flags::FB_CTOR,
 					static_pointer_cast<lox_class_type>(class_type));
 		}
@@ -402,14 +402,14 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		{
 			auto class_type = callable->return_type();
 
-			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id,
+			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id,
 					function_binding::function_binding_flags::FB_METHOD,
 					static_pointer_cast<lox_class_type>(class_type));
 		}
 		else [[likely]]
 		{
 
-			call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), func_id, 0);
+			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id, 0);
 		}
 	}
 	else // it's a default constructor
@@ -417,7 +417,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		assert(callable->flags() & FLAG_CTOR);
 		auto class_type = callable->return_type();
 
-		call->annotate<function_annotation>(static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
+		call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
 				function_binding::function_binding_flags::FB_CTOR,
 				static_pointer_cast<lox_class_type>(class_type));
 	}
