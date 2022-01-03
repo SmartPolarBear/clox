@@ -24,14 +24,8 @@ class fuck{
 }
 
 var f1=fuck(1);
-f1.output();
-
-/*
 var f2=fuck(2);
 var f3=fuck(2);
-
-f2.output();
-f3.output();
 
 
 print f1==f2;
@@ -42,4 +36,3 @@ print f3==f1;
 
 print f2==f3;
 print f3==f2;
-*/
