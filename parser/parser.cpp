@@ -901,6 +901,8 @@ std::shared_ptr<type_expression> parser::variable_type()
 std::shared_ptr<expression> parser::initializer_list_expr()
 {
 	auto keyword = previous();
+	consume(token_type::LEFT_BRACE, "Initializer list must start with '}'");
+
 	vector<shared_ptr<expression>> init_items{ initializer_expr() };
 	while (match({ token_type::COMMA }))
 	{
@@ -917,6 +919,8 @@ std::shared_ptr<expression> parser::initializer_list_expr()
 std::shared_ptr<expression> parser::map_initializer_list_expr()
 {
 	auto keyword = previous();
+	consume(token_type::LEFT_BRACE, "Initializer list must start with '}'");
+
 	vector<pair<shared_ptr<expression>, shared_ptr<expression>>> init_items{};
 
 	init_items.emplace_back(initializer_expr(), initializer_expr());
