@@ -65,8 +65,11 @@ public:
 
 	void visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
 
-	void visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
+	void visit_list_initializer_expression(const std::shared_ptr<parsing::list_initializer_expression>& ptr) override;
 
+	void visit_map_initializer_expression(const std::shared_ptr<parsing::map_initializer_expression>& ptr) override;
+
+public:
 	void visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
 
 	void visit_literal_expression(const std::shared_ptr<parsing::literal_expression>& ptr) override;

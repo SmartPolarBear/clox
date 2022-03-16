@@ -102,15 +102,19 @@ private:
 	std::shared_ptr<expression> conditional();
 
 	/// initializer -> conditional (not expr because comma expression will lead to ambiguity
-	///               | '{' initializer_list '}'
-	///			      | '{' initializer_list ',' '}'
+	///               | list '{' initializer_list '}'
+	///			      | map '{' map_initializer_list '}'
 	/// \return
 	std::shared_ptr<expression> initializer_expr();
 
 	/// initializer_list -> initializer (',' initializer)*
-	///
 	/// \return
 	std::shared_ptr<expression> initializer_list_expr();
+
+	/// initializer_pair -> initializer ":" initializer
+	/// map_initializer_list -> initializer_pair (',' initializer_pair)*
+	/// \return
+	std::shared_ptr<expression> map_initializer_list_expr();
 
 	/// assignment -> IDENTIFIER "=" assignment
 	///               | logical_or
@@ -163,7 +167,7 @@ private:
 	/// lambda_body -> IDENTIFIER "(" parameters? ")" ":" typeExpr  block ;
 	/// parameter ->  IDENTIFIER ":" typeExpr
 	/// parameters -> parameter ( "," parameter )* ;
-	/// lambda -> lambda_expr | call
+	/// lambda -> lambda_expr | collection_initializer
 	std::shared_ptr<expression> lambda();
 
 	/// call -> primary ( "(" arguments? ")" )* ;
@@ -210,12 +214,11 @@ private:
 
 	std::shared_ptr<statement> var_declaration();
 
-	/// type_expr -> non_union_type ;
+	/// type_expr ->  type_expr (PIPE non_union_type)?
 	/// \return
 	std::shared_ptr<type_expression> type_expr();
 
-	/// non_union_type -> callable_type | variable_type ("[" array_len "]")
-	/// array_len -> expr
+	/// non_union_type -> callable_type  | list[non_union_type] | map[non_union_type,non_union_type] ;
 	/// \return
 	std::shared_ptr<type_expression> non_union_type();
 

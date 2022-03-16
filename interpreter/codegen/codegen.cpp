@@ -322,12 +322,6 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 
 }
 
-void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
-		const std::shared_ptr<initializer_list_expression>& ptr)
-{
-
-}
-
 void
 clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr<postfix_expression>& pfe)
 {
@@ -1025,4 +1019,15 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
+
+void codegen::visit_list_initializer_expression(const std::shared_ptr<struct list_initializer_expression>& ptr)
+{
+
+}
+
+void codegen::visit_map_initializer_expression(const std::shared_ptr<struct map_initializer_expression>& ptr)
+{
+
+}
+
 

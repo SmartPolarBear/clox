@@ -64,7 +64,7 @@ enum class token_type
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, IN,
 	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
-	SIZEOF, ARRAY, OPERATOR, CONSTRUCTOR,
+	SIZEOF, LIST, MAP, OPERATOR, CONSTRUCTOR,
 
 	FEND, // not EOF because it conflicts with Microsoft's STL
 	VIRTUAL // virtual token which is not generated from code
@@ -192,7 +192,8 @@ private:
 			{ "while",       token_type::WHILE },
 			{ "using",       token_type::USING },
 			{ "sizeof",      token_type::SIZEOF },
-			{ "array",       token_type::ARRAY },
+			{ "list",        token_type::LIST },
+			{ "map",         token_type::MAP },
 			{ "operator",    token_type::OPERATOR },
 			{ "constructor", token_type::CONSTRUCTOR }
 	};

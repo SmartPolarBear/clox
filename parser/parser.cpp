@@ -227,7 +227,7 @@ std::shared_ptr<expression> parser::prefix()
 
 std::shared_ptr<expression> parser::postfix()
 {
-	auto left = call();
+	auto left = lambda();
 
 	if (match({ token_type::PLUS_PLUS, token_type::MINUS_MINUS }))
 	{
@@ -245,41 +245,6 @@ std::shared_ptr<expression> parser::postfix()
 
 std::shared_ptr<expression> parser::lambda()
 {
-//	consume(token_type::LEFT_PAREN, std::format("'(' is expected after {} name.", type));
-//
-//	std::vector<std::pair<clox::scanning::token, std::shared_ptr<type_expression>>> params{};
-//
-//	if (!check(scanning::token_type::RIGHT_PAREN))
-//	{
-//		do
-//		{
-//			if (params.size() >= FUNC_ARG_LIST_MAX)
-//			{
-//				error(peek(), std::format("Too many arguments. Only {} are allowed.", FUNC_ARG_LIST_MAX));
-//			}
-//
-//			auto param = consume(scanning::token_type::IDENTIFIER, "Parameter names are expected.");
-//			consume(token_type::COLON, std::format("Type is required for parameter {}", param.lexeme()));
-//			auto param_type = type_expr();
-//
-//			params.emplace_back(param, param_type);
-//		} while (match({ token_type::COMMA }));
-//	}
-//
-//	consume(token_type::RIGHT_PAREN, std::format("')' is expected after {} name.", type));
-//
-//	decltype(type_expr()) ret_type{ nullptr };
-//	if (peek().type() == token_type::COLON)
-//	{
-//		consume(token_type::COLON, std::format("Return type is required for callable {}", name.lexeme()));
-//		ret_type = type_expr();
-//	}
-//
-//	consume(token_type::LEFT_BRACE, std::format("'{{' is expected after {} declaration and before its body.", type));
-//
-//	auto body = block();
-//
-//	return make_shared<function_statement>(name, type, params, ret_type, body);
 	if (match({ token_type::FUN }))
 	{
 		auto lparen = consume(token_type::LEFT_PAREN, "'(' is expected after fun keyword in lambda expression.");
@@ -808,7 +773,7 @@ std::shared_ptr<statement> parser::class_declaration()
 
 	while (!check(scanning::token_type::RIGHT_BRACE) && !is_end())
 	{
-		auto[type, stmt]=class_member();
+		auto [type, stmt] = class_member();
 		switch (type)
 		{
 		case token_type::VAR:
@@ -859,7 +824,7 @@ std::tuple<clox::scanning::token_type, std::shared_ptr<statement>> parser::class
 std::shared_ptr<type_expression> parser::type_expr()
 {
 	auto left = non_union_type();
-	if (match({ token_type::PIPE }))
+	while (match({ token_type::PIPE }))
 	{
 		auto pipe = previous();
 		auto right = non_union_type();
@@ -876,18 +841,25 @@ std::shared_ptr<type_expression> parser::non_union_type()
 	{
 		type = callable_type();
 	}
+	else if (match({ token_type::LIST }))
+	{
+		auto list = previous();
+		auto bracket = consume(token_type::LEFT_BRACKET, "Type specifier [type] is required after a list");
+		auto element_type = type_expr();
+		consume(token_type::RIGHT_BRACKET, "Missing ']' for type specifier of list ");
+	}
+	else if (match({ token_type::MAP }))
+	{
+		auto list = previous();
+		auto bracket = consume(token_type::LEFT_BRACKET, "Type specifier [type] is required after a map");
+		auto element_type = type_expr();
+		consume(token_type::RIGHT_BRACKET, "Missing ']' for type specifier of map ");
+	}
 	else
 	{
 		type = variable_type();
 	}
 
-	while (match({ token_type::LEFT_BRACKET }))
-	{
-		auto bracket = previous();
-		type = make_shared<array_type_expression>(type, bracket);
-
-		consume(token_type::RIGHT_BRACKET, "enclosing ] is needed after array length.");
-	}
 
 	return type;
 }
@@ -926,28 +898,54 @@ std::shared_ptr<type_expression> parser::variable_type()
 	return make_shared<variable_type_expression>(name);
 }
 
-std::shared_ptr<expression> parser::initializer_expr()
-{
-	if (match({ token_type::LEFT_BRACE }))
-	{
-		auto init_list_expr = initializer_list_expr();
-
-		while (match({ token_type::COMMA })); // Do nothing ( consume trailing commas like {1,2,3,,,} )
-
-		consume(token_type::RIGHT_BRACE, "Initializer list must be enclosed by '}'");
-
-		return init_list_expr;
-	}
-
-	return conditional();
-}
-
 std::shared_ptr<expression> parser::initializer_list_expr()
 {
+	auto keyword = previous();
 	vector<shared_ptr<expression>> init_items{ initializer_expr() };
 	while (match({ token_type::COMMA }))
 	{
 		init_items.push_back(initializer_expr());
 	}
-	return make_shared<initializer_list_expression>(init_items);
+
+	while (match({ token_type::COMMA })); // Do nothing ( consume trailing commas like {1,2,3,,,} )
+
+	consume(token_type::RIGHT_BRACE, "Initializer list must be enclosed by '}'");
+
+	return make_shared<list_initializer_expression>(keyword, init_items);
 }
+
+std::shared_ptr<expression> parser::map_initializer_list_expr()
+{
+	auto keyword = previous();
+	vector<pair<shared_ptr<expression>, shared_ptr<expression>>> init_items{};
+
+	init_items.emplace_back(initializer_expr(), initializer_expr());
+
+	while (match({ token_type::COMMA }))
+	{
+		auto first = initializer_expr(), second = initializer_expr();
+		init_items.emplace_back(first, second);
+	}
+
+	while (match({ token_type::COMMA })); // Do nothing ( consume trailing commas like {1,2,3,,,} )
+
+	consume(token_type::RIGHT_BRACE, "Initializer list must be enclosed by '}'");
+
+	return make_shared<map_initializer_expression>(keyword, init_items);
+}
+
+
+std::shared_ptr<expression> parser::initializer_expr()
+{
+	if (match({ token_type::LIST }))
+	{
+		return initializer_list_expr();
+	}
+	else if (match({ token_type::MAP }))
+	{
+		return map_initializer_list_expr();
+	}
+
+	return conditional();
+}
+

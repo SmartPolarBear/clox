@@ -407,22 +407,35 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	return return_type;
 }
 
-shared_ptr<lox_type>
-resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
-{
-	vector<shared_ptr<lox_type>> items{};
-	for (const auto& item: ile->get_items())
-	{
-		items.push_back(resolve(item));
-	}
-	return make_shared<initializer_list_type>(items);
-}
+//shared_ptr<lox_type>
+//resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
+//{
+//	vector<shared_ptr<lox_type>> items{};
+//	for (const auto& item: ile->get_items())
+//	{
+//		items.push_back(resolve(item));
+//	}
+//	return make_shared<initializer_list_type>(items);
+//}
 
 shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<struct lambda_expression>& ptr)
 {
 	// TODO
 	return std::shared_ptr<lox_type>();
 }
+
+shared_ptr<lox_type>
+resolver::visit_list_initializer_expression(const std::shared_ptr<struct list_initializer_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}
+
+shared_ptr<lox_type>
+resolver::visit_map_initializer_expression(const std::shared_ptr<struct map_initializer_expression>& ptr)
+{
+	return std::shared_ptr<lox_type>();
+}
+
 
 
 
