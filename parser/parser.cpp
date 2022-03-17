@@ -235,9 +235,12 @@ std::shared_ptr<expression> parser::postfix()
 	}
 	else if (match({ token_type::LEFT_BRACKET }))
 	{
-		auto op = previous();
+		auto lb = previous();
+
 		auto index_expr = expr();
-		left = set_parent(make_shared<postfix_expression>(left, op, index_expr), left, index_expr);
+		left = set_parent(make_shared<postfix_expression>(left, lb, index_expr), left, index_expr);
+
+		consume(token_type::RIGHT_BRACKET, "']' is expected after index");
 	}
 
 	return left;

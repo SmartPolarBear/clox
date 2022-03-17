@@ -159,7 +159,7 @@ private:
 	/// \return
 	std::shared_ptr<expression> prefix();
 
-	/// postfix -> primary ("--"|"++")* | lambda ;
+	/// postfix -> primary ("--"|"++")* | primary "[" lambda "]" | lambda ;
 	/// \return
 	std::shared_ptr<expression> postfix();
 
