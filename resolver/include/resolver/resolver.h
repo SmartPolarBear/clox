@@ -248,7 +248,8 @@ private:
 
 	type_compatibility check_type_unary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left);
 
-	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& right);
+	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& l,
+			const std::shared_ptr<lox_type>& r);
 
 
 	type_compatibility check_type_ternary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,

@@ -29,6 +29,8 @@
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/operators.h>
+#include <resolver/list_type.h>
+#include <resolver/map_type.h>
 
 #include <logger/logger.h>
 
@@ -224,7 +226,7 @@ resolver::check_type_binary_expression_class(const clox::scanning::token& tk, co
 	auto op_methods = left_class->methods().at(tk.lexeme());
 	if (auto m = op_methods->get({ right });m)
 	{
-		auto &[stmt, method] =m.value();
+		auto& [stmt, method] = m.value();
 
 		return make_tuple(method->return_type(), true, m);
 	}
@@ -274,35 +276,76 @@ resolver::check_type_unary_expression(const clox::scanning::token& tk, const sha
 }
 
 type_compatibility
-resolver::check_type_postfix_expression(const clox::scanning::token& tk, const shared_ptr<lox_type>& r)
+resolver::check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& l,
+		const std::shared_ptr<lox_type>& r)
 {
-	shared_ptr<lox_type> right{ r };
+	shared_ptr<lox_type> left{ l };
 
-	if (lox_type::is_instance(*right))right = static_pointer_cast<lox_instance_type>(right)->underlying_type();
+	if (lox_type::is_instance(*left))
+	{
+		left = static_pointer_cast<lox_instance_type>(left)->underlying_type();
+	}
 
 	switch (tk.type())
 	{
+	case scanning::token_type::LEFT_BRACKET:
+		if (left->id() == TYPE_ID_LIST)
+		{
+			if (!lox_type::unify(*lox_object_type::integer(), *r))
+			{
+				return make_tuple(type_error(tk, std::format(R"( List indexer can only be integer, but {} is got )",
+								left->printable_string())),
+						false,
+						false);
+			}
+			else
+			{
+				auto list_type = static_pointer_cast<lox_list_type>(left);
+				return make_tuple(list_type->element_type(), true, false);
+			}
+		}
+		else if (left->id() == TYPE_ID_MAP)
+		{
+			auto map_type = static_pointer_cast<lox_map_type>(left);
+
+			if (!lox_type::unify(*map_type->key_type(), *r))
+			{
+				return make_tuple(type_error(tk, std::format(R"( Map key can only be {}, but {} is got )",
+								map_type->key_type()->printable_string(),
+								left->printable_string())),
+						false,
+						false);
+			}
+			else
+			{
+				return make_tuple(map_type->value_type(), true, false);
+			}
+		}
+		break;
 
 	case scanning::token_type::PLUS_PLUS:
 	case scanning::token_type::MINUS_MINUS:
-		if (lox_type::is_primitive(*right))
+		if (lox_type::is_primitive(*left))
 		{
 			auto possible_types = { lox_object_type::integer(), lox_object_type::floating() };
 
 			for (const auto& t: possible_types)
 			{
-				if (lox_type::unify(*t, *right))
+				if (lox_type::unify(*t, *left))
 				{
 					return make_tuple(t, true, false);
 				}
 			}
 		}
 
+	default:
+		break;
+
 	}
 
 	return make_tuple(type_error(tk, std::format(R"( cannot do operator {} for type {} )",
 					tk.lexeme(),
-					right->printable_string())),
+					left->printable_string())),
 			false,
 			false);
 }

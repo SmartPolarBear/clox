@@ -31,6 +31,8 @@
 #include <resolver/union_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/array_type.h>
+#include <resolver/list_type.h>
+#include <resolver/map_type.h>
 
 #include <logger/logger.h>
 
@@ -85,12 +87,17 @@ resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_t
 	return callable;
 }
 
-shared_ptr<lox_type> resolver::visit_list_type_expression(const std::shared_ptr<struct list_type_expression>& ptr)
+shared_ptr<lox_type> resolver::visit_list_type_expression(const std::shared_ptr<list_type_expression>& lte)
 {
-	return std::shared_ptr<lox_type>();
+	auto element_type = resolve(lte->get_element_type());
+
+	return make_shared<lox_list_type>(element_type);
 }
 
-shared_ptr<lox_type> resolver::visit_map_type_expression(const std::shared_ptr<struct map_type_expression>& ptr)
+shared_ptr<lox_type> resolver::visit_map_type_expression(const std::shared_ptr<map_type_expression>& mte)
 {
-	return std::shared_ptr<lox_type>();
+	auto key_type = resolve(mte->get_key_type());
+	auto val_type = resolve(mte->get_value_type());
+
+	return make_shared<lox_map_type>(key_type, val_type);
 }

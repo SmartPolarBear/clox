@@ -637,11 +637,19 @@
       "member": [
         {
           "type": "std::shared_ptr<type_expression>",
-          "name": "element_type_"
+          "name": "key_type_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "value_type_"
         },
         {
           "type": "clox::scanning::token",
           "name": "left_bracket_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "comma_"
         }
       ]
     },

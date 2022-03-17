@@ -846,17 +846,19 @@ std::shared_ptr<type_expression> parser::non_union_type()
 	}
 	else if (match({ token_type::LIST }))
 	{
-		auto list = previous();
 		auto bracket = consume(token_type::LEFT_BRACKET, "Type specifier [type] is required after a list");
 		auto element_type = type_expr();
 		consume(token_type::RIGHT_BRACKET, "Missing ']' for type specifier of list ");
+		type = make_shared<list_type_expression>(element_type, bracket);
 	}
 	else if (match({ token_type::MAP }))
 	{
-		auto list = previous();
 		auto bracket = consume(token_type::LEFT_BRACKET, "Type specifier [type] is required after a map");
-		auto element_type = type_expr();
+		auto key_type = type_expr();
+		auto comma = consume(token_type::COMMA, "A comma is required between key and value type.");
+		auto val_type = type_expr();
 		consume(token_type::RIGHT_BRACKET, "Missing ']' for type specifier of map ");
+		type = make_shared<map_type_expression>(key_type, val_type, bracket, comma);
 	}
 	else
 	{
