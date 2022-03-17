@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SmartPolarBear
+// Copyright (c) 2022 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,36 +19,10 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 8/27/2021.
+// Created by cleve on 3/17/2022.
 //
 
-#pragma once
+#ifndef CLOX_MAP_TYPE_H
+#define CLOX_MAP_TYPE_H
 
-#include <resolver/lox_type.h>
-
-#include <resolver/object_type.h>
-#include <resolver/callable_type.h>
-#include <resolver/class_type.h>
-
-#include <unordered_map>
-
-namespace clox::resolving
-{
-
-[[deprecated]] class lox_array_type final
-		: public lox_object_type
-{
-public:
-	explicit lox_array_type(const std::shared_ptr<lox_type>& elem);
-
-	std::shared_ptr<lox_type> element_type() const
-	{
-		return element_type_;
-	}
-
-private:
-	std::shared_ptr<lox_type> element_type_{ nullptr };
-	size_t size_{ 0 };
-};
-
-}
+#endif //CLOX_MAP_TYPE_H

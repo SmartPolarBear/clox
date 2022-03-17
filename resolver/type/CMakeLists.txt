@@ -10,7 +10,9 @@ target_sources(clox
         PRIVATE array_type.cpp
         PRIVATE any_type.cpp
         PRIVATE void_type.cpp
-        PRIVATE initializer_list_type.cpp)
+        PRIVATE initializer_list_type.cpp
+        PRIVATE list_type.cpp
+        PRIVATE map_type.cpp)
 
 target_sources(clox_test
         PRIVATE lox_type.cpp
@@ -22,7 +24,9 @@ target_sources(clox_test
         PRIVATE array_type.cpp
         PRIVATE any_type.cpp
         PRIVATE void_type.cpp
-        PRIVATE initializer_list_type.cpp)
+        PRIVATE initializer_list_type.cpp
+        PRIVATE list_type.cpp
+        PRIVATE map_type.cpp)
 
 
 
