@@ -22,4 +22,12 @@
 // Created by cleve on 3/17/2022.
 //
 
-#include <resolver/list_type.h
+#include <resolver/list_type.h>
+
+clox::resolving::lox_list_type::lox_list_type(const std::shared_ptr<lox_type>& elem)
+		: lox_object_type(std::format("list[{}]", elem->printable_string()), TYPE_ID_LIST, TYPE_CLASS,
+		lox_object_type::object()),
+		  element_type_(elem)
+{
+
+}

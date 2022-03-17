@@ -22,7 +22,31 @@
 // Created by cleve on 3/17/2022.
 //
 
-#ifndef CLOX_LIST_TYPE_H
-#define CLOX_LIST_TYPE_H
+#pragma once
 
-#endif //CLOX_LIST_TYPE_H
+#include <resolver/lox_type.h>
+
+#include <resolver/object_type.h>
+#include <resolver/callable_type.h>
+#include <resolver/class_type.h>
+
+#include <unordered_map>
+
+namespace clox::resolving
+{
+class lox_list_type final
+		: public lox_object_type
+{
+public:
+	explicit lox_list_type(const std::shared_ptr<lox_type>& elem);
+
+	std::shared_ptr<lox_type> element_type() const
+	{
+		return element_type_;
+	}
+
+private:
+	std::shared_ptr<lox_type> element_type_{ nullptr };
+};
+
+}

@@ -23,3 +23,12 @@
 //
 
 #include <resolver/map_type.h>
+
+clox::resolving::lox_map_type::lox_map_type(const std::shared_ptr<lox_type>& key, const std::shared_ptr<lox_type>& val)
+		: lox_object_type(std::format("map[{},{}]", key->printable_string(), val->printable_string()), TYPE_ID_MAP,
+		TYPE_CLASS,
+		lox_object_type::object()),
+		  key_type_(key),
+		  value_type_(val)
+{
+}

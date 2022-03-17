@@ -35,7 +35,7 @@
 namespace clox::resolving
 {
 
-[[deprecated]] class lox_array_type final
+class [[deprecated]]  lox_array_type final
 		: public lox_object_type
 {
 public:
