@@ -104,13 +104,12 @@ enum class op_code : main_opcode_base_type
 	INSTANCE,
 	INHERIT,
 	METHOD,
-	LIST_INIT,
-	LIST_INIT_RANGE,
-	MAP_INIT,
-	CONTAINER_GET,
-	CONTAINER_SET,
-	CONTAINER_GET_RANGE,
-	CONTAINER_ITERATE,
+
+	// for list and map
+	MAKE_LIST,
+	MAKE_MAP,
+	LIST_ELEM,
+	MAP_ELEM,
 
 	OPCODE_ENUM_MAX,
 };

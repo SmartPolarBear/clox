@@ -330,6 +330,22 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 
 	switch (pfe->get_op().type())
 	{
+	case scanning::token_type::LEFT_BRACKET:
+	{
+		generate(pfe->get_optional_right());
+		auto annotation = pfe->get_annotation<container_annotation>();
+		assert(annotation);
+		switch (annotation->container_type())
+		{
+		case container_annotation::container_types::LIST:
+			emit_code(pfe->get_op(), V(op_code::LIST_ELEM));
+			break;
+		case container_annotation::container_types::MAP:
+			emit_code(pfe->get_op(), V(op_code::MAP_ELEM));
+			break;
+		}
+		break;
+	}
 	case scanning::token_type::PLUS_PLUS:
 	case scanning::token_type::MINUS_MINUS:
 	{

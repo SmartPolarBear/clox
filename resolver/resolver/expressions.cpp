@@ -112,6 +112,16 @@ std::shared_ptr<lox_type> resolver::visit_postfix_expression(const std::shared_p
 	if (auto r = pe->get_optional_right();r)
 	{
 		auto ret = check_type_postfix_expression(pe->get_op(), type, resolve(r));
+
+		if (type->id() == TYPE_ID_LIST)
+		{
+			pe->annotate<container_annotation>(container_annotation::container_types::LIST);
+		}
+		else if (type->id() == TYPE_ID_MAP)
+		{
+			pe->annotate<container_annotation>(container_annotation::container_types::MAP);
+		}
+
 		return get<0>(ret);
 	}
 	else

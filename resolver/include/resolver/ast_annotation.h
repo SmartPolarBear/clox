@@ -336,6 +336,41 @@ struct annotation_tag<base_annotation>
 	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_BASE;
 };
 
+class container_annotation final
+		: public parsing::ast_annotation
+{
+public:
+	enum class container_types
+	{
+		LIST, MAP
+	};
+
+	[[nodiscard]] parsing::ast_annotation_type type() const override
+	{
+		return parsing::ast_annotation_type::AST_ANNOTATION_CONTAINER;
+	}
+
+	container_annotation() = default;
+
+	explicit container_annotation(container_types cont) : cont_type_(cont)
+	{
+	}
+
+	container_types container_type() const
+	{
+		return cont_type_;
+	}
+
+private:
+	container_types cont_type_{};
+};
+
+template<>
+struct annotation_tag<container_annotation>
+{
+	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_CONTAINER;
+};
+
 template<typename T>
 [[maybe_unused, nodiscard]] static inline std::shared_ptr<T>
 downcast_annotation(const std::shared_ptr<parsing::ast_annotation>& anno)

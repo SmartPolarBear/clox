@@ -80,7 +80,7 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 #endif
 
 		chunk::code_type instruction = *top_call_frame().ip()++;
-		auto[status, exit] = run_code(instruction, top_call_frame());
+		auto [status, exit] = run_code(instruction, top_call_frame());
 		if (exit)
 		{
 			return status.value_or(virtual_machine_status::OK);
@@ -694,6 +694,16 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 				return { virtual_machine_status::RUNTIME_ERROR, true };
 			}
 		}
+
+		break;
+	}
+
+	case LIST_ELEM:
+	{
+		auto index = peek();
+		auto list = peek(1);
+
+		// TODO
 
 		break;
 	}
