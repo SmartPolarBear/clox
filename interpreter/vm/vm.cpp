@@ -33,6 +33,7 @@
 #include <interpreter/vm/closure_object.h>
 #include <interpreter/vm/upvalue_object.h>
 #include <interpreter/vm/instance_object.h>
+#include <interpreter/vm/list_object.h>
 
 #include <gsl/gsl>
 #include "interpreter/vm/class_object.h"
@@ -106,7 +107,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 {
 	switch (main_op_code_of(instruction))
 	{
-		using enum op_code;
+		using
+		enum op_code;
 
 	case RETURN:
 	{
@@ -701,9 +703,9 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	case LIST_ELEM:
 	{
 		auto index = peek();
-		auto list = peek(1);
+		auto list = peek_object<list_object_raw_pointer>(1);
 
-		// TODO
+		pop_two_and_push(list->get(get<integer_value_type>(index)));
 
 		break;
 	}

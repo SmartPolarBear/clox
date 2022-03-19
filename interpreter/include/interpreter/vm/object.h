@@ -46,6 +46,9 @@ enum class object_type
 	CLOSURE,
 	UPVALUE,
 
+	LIST,
+	MAP,
+
 	OBJECT,
 	INSTANCE,
 

@@ -6,6 +6,7 @@ target_sources(clox
         PRIVATE string_object.cpp
         PRIVATE function_object.cpp
         PRIVATE closure_object.cpp
+        PRIVATE list_object.cpp
         PRIVATE class_object.cpp
         PRIVATE instance_object.cpp
         PRIVATE bounded_method_object.cpp
@@ -21,6 +22,7 @@ target_sources(clox_test
         PRIVATE string_object.cpp
         PRIVATE function_object.cpp
         PRIVATE closure_object.cpp
+        PRIVATE list_object.cpp
         PRIVATE class_object.cpp
         PRIVATE instance_object.cpp
         PRIVATE bounded_method_object.cpp
