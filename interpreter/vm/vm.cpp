@@ -710,6 +710,28 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
+	case MAKE_LIST:
+	{
+		auto size = next_code();
+		vector<value> values{};
+
+		for (int64_t i = size - 1; i >= 0; i--)
+		{
+			values.push_back(peek(i));
+		}
+
+		auto list = heap_->allocate<list_object>(values);
+
+		while (size-- > 0)
+		{
+			pop();
+		}
+
+		push(list);
+
+		break;
+	}
+
 	default:
 		throw invalid_opcode{ instruction };
 	}

@@ -333,6 +333,7 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 	case scanning::token_type::LEFT_BRACKET:
 	{
 		generate(pfe->get_optional_right());
+
 		auto annotation = pfe->get_annotation<container_annotation>();
 		assert(annotation);
 		switch (annotation->container_type())
@@ -1036,9 +1037,14 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 
 }
 
-void codegen::visit_list_initializer_expression(const std::shared_ptr<struct list_initializer_expression>& ptr)
+void codegen::visit_list_initializer_expression(const std::shared_ptr<list_initializer_expression>& lie)
 {
+	for (const auto& val: lie->get_values())
+	{
+		generate(val);
+	}
 
+	emit_codes(V(vm::op_code::MAKE_LIST), lie->get_values().size());
 }
 
 void codegen::visit_map_initializer_expression(const std::shared_ptr<struct map_initializer_expression>& ptr)
