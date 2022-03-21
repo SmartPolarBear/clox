@@ -500,6 +500,7 @@ void resolver::visit_foreach_statement(const std::shared_ptr<foreach_statement>&
 		iterable_type = static_pointer_cast<lox_instance_type>(iterable_type)->underlying_type();
 	}
 
+
 	auto element_type = dynamic_pointer_cast<lox_array_type>(iterable_type)->element_type();
 
 	auto var_decl = scopes_.top()->name(

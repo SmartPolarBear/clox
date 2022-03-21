@@ -1,0 +1,4 @@
+var dirty_words=map{"fuck":1,"you":2};
+print(dirty_words["fuck"]);
+print(dirty_words["you"]);
+

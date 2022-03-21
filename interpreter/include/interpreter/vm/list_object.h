@@ -24,7 +24,6 @@
 
 #pragma once
 
-
 #include <scanner/scanner.h>
 
 #include <interpreter/vm/object.h>
@@ -37,11 +36,9 @@
 #include <map>
 #include <gsl/gsl>
 
-
 namespace clox::interpreting::vm
 {
 
-using list_object_raw_pointer = class list_object*;
 
 class list_object
 		: public object
@@ -64,6 +61,8 @@ protected:
 private:
 	std::vector<value> values_{};
 };
+
+using list_object_raw_pointer = class list_object*;
 
 }
 
