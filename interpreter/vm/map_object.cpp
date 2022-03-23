@@ -19,48 +19,36 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/19/2022.
+// Created by cleve on 3/23/2022.
 //
 
-#pragma once
+#include <interpreter/vm/map_object.h>
 
-#include <scanner/scanner.h>
+#include <interpreter/vm/garbage_collector.h>
 
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/value.h>
+#include <utility>
 
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-#include <gsl/gsl>
-
-namespace clox::interpreting::vm
+clox::interpreting::vm::map_object::map_object(std::vector<std::pair<value, value>> vals)
+		: values_(std::move(vals))
 {
-class list_object
-		: public object
+}
+
+std::string clox::interpreting::vm::map_object::printable_string()
 {
-public:
-	explicit list_object(std::vector<value> values);
+	return std::format("map object at {}, containing {} pairs.", reinterpret_cast<uintptr_t>(this), values_.size());
+}
 
-	using index_type = gsl::index;
+clox::interpreting::vm::object_type clox::interpreting::vm::map_object::type() const noexcept
+{
+	return clox::interpreting::vm::object_type::MAP;
+}
 
-	std::string printable_string() override;
-
-	[[nodiscard]] object_type type() const noexcept override;
-
-	value get(index_type idx) const;
-	void set(index_type idx,value val);
-
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
-
-private:
-	std::vector<value> values_{};
-};
-
-using list_object_raw_pointer = class list_object*;
-
+void clox::interpreting::vm::map_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+	for (auto& val: values_)
+	{
+		gc_inst->mark_value(val.first);
+		gc_inst->mark_value(val.second);
+	}
 }
 

@@ -22,10 +22,10 @@
 // Created by cleve on 3/19/2022.
 //
 
+#include <interpreter/vm/garbage_collector.h>
 #include <interpreter/vm/list_object.h>
 
 #include <utility>
-#include "interpreter/vm/garbage_collector.h"
 
 clox::interpreting::vm::list_object::list_object(std::vector<value> values)
 		: values_(std::move(values))
@@ -35,7 +35,7 @@ clox::interpreting::vm::list_object::list_object(std::vector<value> values)
 
 std::string clox::interpreting::vm::list_object::printable_string()
 {
-	return std::format("list object at {}, containing {} objects.", 1, values_.size());
+	return std::format("list object at {}, containing {} objects.", reinterpret_cast<uintptr_t>(this), values_.size());
 }
 
 clox::interpreting::vm::object_type clox::interpreting::vm::list_object::type() const noexcept

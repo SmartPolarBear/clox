@@ -19,10 +19,8 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/19/2022.
+// Created by cleve on 3/23/2022.
 //
-
-#pragma once
 
 #include <scanner/scanner.h>
 
@@ -34,33 +32,32 @@
 
 #include <memory>
 #include <map>
+
 #include <gsl/gsl>
 
 namespace clox::interpreting::vm
 {
-class list_object
+
+using map_object_raw_pointer = class map_object*;
+
+class map_object
 		: public object
 {
 public:
-	explicit list_object(std::vector<value> values);
-
 	using index_type = gsl::index;
+
+	explicit map_object(std::vector<std::pair<value,value>> vals);
 
 	std::string printable_string() override;
 
 	[[nodiscard]] object_type type() const noexcept override;
 
-	value get(index_type idx) const;
-	void set(index_type idx,value val);
-
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 
+
 private:
-	std::vector<value> values_{};
+	std::vector<std::pair<value,value>> values_{};
 };
 
-using list_object_raw_pointer = class list_object*;
-
 }
-
