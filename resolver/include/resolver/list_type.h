@@ -35,7 +35,7 @@
 namespace clox::resolving
 {
 class lox_list_type final
-		: public lox_object_type
+		: public  lox_class_type
 {
 public:
 	explicit lox_list_type(const std::shared_ptr<lox_type>& elem);

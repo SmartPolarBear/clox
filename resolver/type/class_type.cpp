@@ -32,10 +32,11 @@ type_id lox_class_type::id_counter_{ PRESET_TYPE_ID_MAX };
 
 clox::resolving::lox_class_type::lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
 		type_map_type fields,
-		callable_type_map_type methods)
+		callable_type_map_type methods,
+		type_id id)
 		: fields_(std::move(fields)),
 		  methods_(std::move(methods)),
-		  lox_object_type(std::move(name), ++id_counter_, TYPE_CLASS, parent)
+		  lox_object_type(std::move(name), ++id_counter_, id, parent)
 {
 	supers_.push_back(parent);
 }

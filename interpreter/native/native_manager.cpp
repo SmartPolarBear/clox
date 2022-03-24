@@ -19,49 +19,7 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/19/2022.
+// Created by cleve on 3/23/2022.
 //
 
-#pragma once
-
-#include <scanner/scanner.h>
-
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/value.h>
-
-#include <variant>
-#include <string>
-
-#include <memory>
-#include <map>
-#include <gsl/gsl>
-
-namespace clox::interpreting::vm
-{
-class list_object
-		: public  object
-{
-public:
-	explicit list_object(std::vector<value> values);
-
-	using index_type = gsl::index;
-
-	std::string printable_string() override;
-
-	[[nodiscard]] object_type type() const noexcept override;
-
-	value get(index_type idx) const;
-
-	void set(index_type idx, value val);
-
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
-
-private:
-	std::vector<value> values_{};
-};
-
-using list_object_raw_pointer = class list_object*;
-
-}
-
+#include <interpreter/native/native.h>

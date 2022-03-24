@@ -4,6 +4,8 @@ for(var i=0;i<5;i++){
     print(ints[i]);
 }
 
+ints.append(10);
+
 //for(var data:integer in ints){
 //    print data;
 //}
