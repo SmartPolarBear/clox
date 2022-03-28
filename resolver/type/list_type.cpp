@@ -25,8 +25,8 @@
 #include <resolver/list_type.h>
 
 clox::resolving::lox_list_type::lox_list_type(const std::shared_ptr<lox_type>& elem)
-		: lox_class_type(std::format("list[{}]", elem->printable_string()), lox_object_type::object(), {}, {},
-		TYPE_ID_LIST),
+		: lox_class_type(std::format("list[{}]", elem->printable_string()), lox_object_type::object(), TYPE_ID_LIST, {},
+		{}),
 		  element_type_(elem)
 {
 }

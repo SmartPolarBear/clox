@@ -63,8 +63,8 @@ enum class token_type
 
 	// Keywords.
 	AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, IN,
-	PRINT, RETURN, BASE, THIS, TRUE, VAR, WHILE, USING,
-	SIZEOF, LIST, MAP, OPERATOR, CONSTRUCTOR,
+	PRINT, RETURN, BASE, THIS, TRUE, VAR, CONST, WHILE, USING,
+	SIZEOF, LIST, MAP, OPERATOR, CONSTRUCTOR, TRY, CATCH, FINALLY, WITH, MATCH,
 
 	FEND, // not EOF because it conflicts with Microsoft's STL
 	VIRTUAL // virtual token which is not generated from code
@@ -189,13 +189,19 @@ private:
 			{ "this",        token_type::THIS },
 			{ "true",        token_type::TRUE },
 			{ "var",         token_type::VAR },
+			{ "const",       token_type::CONST },
 			{ "while",       token_type::WHILE },
 			{ "using",       token_type::USING },
 			{ "sizeof",      token_type::SIZEOF },
 			{ "list",        token_type::LIST },
 			{ "map",         token_type::MAP },
 			{ "operator",    token_type::OPERATOR },
-			{ "constructor", token_type::CONSTRUCTOR }
+			{ "constructor", token_type::CONSTRUCTOR },
+			{ "try",         token_type::TRY },
+			{ "catch",       token_type::CATCH },
+			{ "finally",     token_type::FINALLY },
+			{ "with",        token_type::MATCH },
+
 	};
 
 	static inline std::unordered_map<token_type, std::string> type_to_keywords_{};
