@@ -262,25 +262,26 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 				inst->underlying_type()->printable_string()));
 	}
 
-	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
+
+	const auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
 	ptr->annotate<class_annotation>(class_type);
 
 	auto member_name = ptr->get_name().lexeme();
 
-	for (class_type; class_type; class_type = dynamic_pointer_cast<lox_class_type>(class_type->super()))
+	for (auto c = class_type; c; c = dynamic_pointer_cast<lox_class_type>(c->super()))
 	{
-		if (class_type->fields().contains(member_name))
+		if (c->fields().contains(member_name))
 		{
-			return class_type->fields().at(member_name);
+			return c->fields().at(member_name);
 		}
-		else if (class_type->methods().contains(member_name))
+		else if (c->methods().contains(member_name))
 		{
-			return class_type->methods().at(member_name);
+			return c->methods().at(member_name);
 		}
 	}
 
 
-	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named {}",
+	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named \"{}\"",
 			class_type->printable_string(), member_name));
 }
 
