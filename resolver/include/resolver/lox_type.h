@@ -43,8 +43,9 @@ enum lox_type_flags : uint64_t
 	TYPE_VOID = 4,
 	FLAG_CALLABLE = 8,
 	FLAG_CTOR = 16,
-	FLAG_INSTANCE = 32,
-	FLAG_UNION_TYPE = 64
+	FLAG_NATIVE = 32,
+	FLAG_INSTANCE = 64,
+	FLAG_UNION_TYPE = 128,
 };
 
 

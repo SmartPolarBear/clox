@@ -384,7 +384,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		return type_error(call->get_paren(), "Incompatible parameter type");
 	}
 
-	auto[stmt, callable]=resolve_ret.value();
+	auto [stmt, callable] = resolve_ret.value();
 
 
 	if (stmt)
@@ -412,14 +412,22 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id, 0);
 		}
 	}
-	else // it's a default constructor
+	else if (callable->flags() & FLAG_NATIVE)
 	{
-		assert(callable->flags() & FLAG_CTOR);
+
+	}
+	else if (callable->flags() & FLAG_CTOR)// it's a default constructor
+	{
+
 		auto class_type = callable->return_type();
 
 		call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
 				function_binding::function_binding_flags::FB_CTOR,
 				static_pointer_cast<lox_class_type>(class_type));
+	}
+	else
+	{
+		assert(false);
 	}
 
 
