@@ -22,50 +22,26 @@
 // Created by cleve on 3/29/2022.
 //
 
-#pragma once
+#include <interpreter/vm/native_function_object.h>
 
-#include "interpreter/vm/value.h"
-#include "interpreter/native/native.h"
+using namespace clox::interpreting;
+using namespace clox::interpreting::native;
 
-#include <string_view>
-#include <functional>
-
-#include <gsl/gsl>
-
-namespace clox::interpreting::native
+vm::native_function_object::native_function_object(std::shared_ptr<native::native_function> func)
+		: func_(std::move(func))
 {
-class native_function
+}
+
+vm::object_type vm::native_function_object::type() const noexcept
 {
-public:
-	friend class native_manager;
+	return vm::object_type::NATIVE_FUNC;
+}
 
-	[[nodiscard]] explicit native_function(std::string name, id_type id, function_type func);
+void vm::native_function_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
+{
+}
 
-	native_function(const native_function&) = default;
-
-	native_function(native_function&&) = default;
-
-	native_function& operator=(const native_function&) = default;
-
-	[[nodiscard]] std::string name() const
-	{
-		return name_;
-	}
-
-	[[nodiscard]] id_type id() const
-	{
-		return id_;
-	}
-
-	virtual value_type call(std::vector<value_type> args);
-
-protected:
-
-	function_type function_;
-
-private:
-	id_type id_{};
-	std::string name_{};
-
-};
+std::string vm::native_function_object::printable_string()
+{
+	return std::format("<native function {} at {:x}>", func_->name(), (uintptr_t)func_.get());
 }

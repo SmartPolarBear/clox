@@ -35,7 +35,7 @@
 #define DEF_NATIVE_FUNC(name) \
 	value_type nf_##name (std::optional<value_type> self, std::vector<value_type> args);
 
-namespace clox::interpreter::native
+namespace clox::interpreting::native
 {
 using id_type = gsl::index;
 

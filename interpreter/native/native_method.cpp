@@ -25,12 +25,12 @@
 
 #include <utility>
 
-using namespace clox::interpreter::native;
+using namespace clox::interpreting::native;
 
 using namespace std;
 
-clox::interpreter::native::value_type
-clox::interpreter::native::native_method::call(clox::interpreter::native::value_type self,
+clox::interpreting::native::value_type
+clox::interpreting::native::native_method::call(clox::interpreting::native::value_type self,
 		std::vector<value_type> args)
 {
 	return this->function_(self, std::move(args));

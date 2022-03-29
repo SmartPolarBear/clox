@@ -27,7 +27,7 @@
 
 #include <utility>
 
-using namespace clox::interpreter::native;
+using namespace clox::interpreting::native;
 
 using namespace std;
 

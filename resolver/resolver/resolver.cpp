@@ -73,6 +73,16 @@ resolver::resolver() :
 
 	cur_func_.push(env_function_type::FT_NONE);
 	cur_class_.push(env_class_type::CT_NONE);
+
+	define_global_functions();
+}
+
+void resolver::define_global_functions()
+{
+	define_native_function("clock", std::make_shared<lox_callable_type>(
+			make_shared<lox_floating_type>(), lox_callable_type::param_list_type{},
+			false, true
+	));
 }
 
 std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, const std::string& msg)
@@ -80,6 +90,7 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, 
 	logger::instance().error(tk, msg);
 	return make_shared<lox_any_type>();
 }
+
 
 void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
 {
@@ -415,6 +426,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	else if (callable->flags() & FLAG_NATIVE)
 	{
 		//TODO
+		int a=0;
 	}
 	else if (callable->flags() & FLAG_CTOR)// it's a default constructor
 	{
@@ -434,6 +446,24 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	return callable;
 }
 
+void resolver::define_native_function(const string& name, const shared_ptr<lox_callable_type>& type)
+{
+	if (scopes_.empty())return;
+
+	shared_ptr<lox_overloaded_metatype> metatype{ nullptr };
+	if (global_scope()->names().contains(name))
+	{
+		metatype = dynamic_pointer_cast<lox_overloaded_metatype>(global_scope()->names().at(name)->type());
+		assert(metatype);
+	}
+	else
+	{
+		metatype = make_shared<lox_overloaded_metatype>(name);
+		global_scope()->names()[name] = make_shared<named_symbol>(name, metatype);
+	}
+
+	metatype->put(nullptr, type);
+}
 
 optional<function_id_type> resolver::function_id(const shared_ptr<parsing::statement>& stmt) const
 {

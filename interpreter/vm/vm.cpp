@@ -34,10 +34,14 @@
 #include <interpreter/vm/upvalue_object.h>
 #include <interpreter/vm/instance_object.h>
 #include <interpreter/vm/list_object.h>
+#include <interpreter/vm/native_function_object.h>
 
-#include <gsl/gsl>
 #include "interpreter/vm/class_object.h"
 #include "interpreter/vm/bounded_method_object.h"
+
+#include "interpreter/native/native_manager.h"
+
+#include <gsl/gsl>
 
 
 #define DEBUG_NO_CATCH
@@ -47,6 +51,7 @@ using namespace std;
 using namespace gsl;
 
 using namespace clox::base;
+using namespace clox::interpreting::native;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
@@ -57,6 +62,14 @@ virtual_machine::virtual_machine(clox::helper::console& cons,
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
 	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
+
+	load_native_functions();
+}
+
+void virtual_machine::load_native_functions()
+{
+	globals_.insert_or_assign("clock",
+			heap_->allocate<native_function_object>(native_manager::instance().get("clock")));
 }
 
 virtual_machine::~virtual_machine()
@@ -529,37 +542,50 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 	case CLOSURE:
 	{
-		auto func = peek_object<function_object_raw_pointer>();
-
-		auto closure = func->wrapper_closure();
-		if (!closure)
+		auto obj = peek_object<object_raw_pointer>();
+		if (obj->type() == object_type::FUNCTION)
 		{
-			closure = heap_->allocate<closure_object>(func);
-		}
-
-		pop();
-		push(closure);
-
-		auto secondary = secondary_op_code_of(instruction);
-
-		if (secondary & SEC_OP_CAPTURE)
-		{
-			auto count = next_code();
-			for (int i = 0; i < count; i++)
+			auto func = dynamic_cast<function_object_raw_pointer>(obj);
+			auto closure = func->wrapper_closure();
+			if (!closure)
 			{
-				auto local = next_code();
-				auto index = next_code();
-				if (local)
+				closure = heap_->allocate<closure_object>(func);
+			}
+
+			pop();
+			push(closure);
+
+			auto secondary = secondary_op_code_of(instruction);
+
+			if (secondary & SEC_OP_CAPTURE)
+			{
+				auto count = next_code();
+				for (int i = 0; i < count; i++)
 				{
-					closure->upvalues().push_back(
-							capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
-				}
-				else
-				{
-					closure->upvalues().push_back(frame.closure()->upvalues()[index]);
+					auto local = next_code();
+					auto index = next_code();
+					if (local)
+					{
+						closure->upvalues().push_back(
+								capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
+					}
+					else
+					{
+						closure->upvalues().push_back(frame.closure()->upvalues()[index]);
+					}
 				}
 			}
 		}
+		else if (obj->type() == object_type::NATIVE_FUNC)
+		{
+			// for native function, do nothing
+			push(pop());
+		}
+		else
+		{
+			throw invalid_value{ obj };
+		}
+
 
 		break;
 	}
@@ -838,6 +864,11 @@ void virtual_machine::call_value(const value& val, size_t arg_count)
 		*(stack_.rbegin() + arg_count) = bound->receiver();
 		call(bound->method(), arg_count);
 	}
+	else if (obj->type() == object_type::NATIVE_FUNC)[[likely]]
+	{
+		auto native = dynamic_cast<native_function_object_raw_pointer>(obj);
+		call(native->function(), arg_count);
+	}
 	else [[unlikely]]
 	{
 		throw invalid_value{ val };
@@ -858,6 +889,27 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 			closure->function()->body()->begin(),
 			stack_offset);
 }
+
+
+void virtual_machine::call(const shared_ptr<native_function>& func, size_t arg_count)
+{
+	std::vector<value> args{};
+	for (size_t i = 0; i < arg_count; ++i)
+	{
+		args.push_back(peek(i + 1));
+	}
+
+	auto ret = func->call(args);
+
+	pop();
+	for (size_t i = 0; i < arg_count; ++i)
+	{
+		pop();
+	}
+
+	push(ret);
+}
+
 
 upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val, index_type stack_index)
 {

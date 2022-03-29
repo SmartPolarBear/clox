@@ -32,7 +32,7 @@
 #include <utility>
 
 
-namespace clox::interpreter::native
+namespace clox::interpreting::native
 {
 class native_method
 		: public native_function

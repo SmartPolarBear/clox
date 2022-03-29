@@ -45,6 +45,7 @@ enum class object_type
 	FUNCTION,
 	CLOSURE,
 	UPVALUE,
+	NATIVE_FUNC,
 
 	LIST,
 	MAP,

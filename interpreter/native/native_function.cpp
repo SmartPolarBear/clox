@@ -28,16 +28,16 @@
 
 using namespace std;
 
-clox::interpreter::native::native_function::native_function(std::string name,
-		clox::interpreter::native::id_type id,
-		clox::interpreter::native::function_type func)
+clox::interpreting::native::native_function::native_function(std::string name,
+		clox::interpreting::native::id_type id,
+		clox::interpreting::native::function_type func)
 		: name_(std::move(name)), id_(id), function_(std::move(func))
 {
 
 }
 
-clox::interpreter::native::value_type
-clox::interpreter::native::native_function::call(std::vector<value_type> args)
+clox::interpreting::native::value_type
+clox::interpreting::native::native_function::call(std::vector<value_type> args)
 {
 	return function_(std::nullopt, std::move(args));
 }

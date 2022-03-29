@@ -193,6 +193,7 @@ private:
 
 	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
 
+
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
 	std::shared_ptr<upvalue>
@@ -309,6 +310,8 @@ private:
 			const std::shared_ptr<lox_callable_type>& type,
 			size_t dist = 0);
 
+	void define_native_function(const std::string& name, const std::shared_ptr<lox_callable_type>& type);
+
 
 	void define_type(const scanning::token& tk, const std::shared_ptr<lox_type>& type, uint64_t dist = 0);
 
@@ -333,6 +336,8 @@ private:
 
 		return function_id_counter_++;
 	}
+
+	void define_global_functions();
 
 	std::shared_ptr<function_scope> global_scope_{ nullptr };
 

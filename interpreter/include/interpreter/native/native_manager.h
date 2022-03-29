@@ -30,9 +30,11 @@
 #include "interpreter/native/native_function.h"
 #include "interpreter/native/native_method.h"
 
+#include "resolver/callable_type.h"
+
 #include <memory>
 
-namespace clox::interpreter::native
+namespace clox::interpreting::native
 {
 class native_manager
 		: public base::singleton<native_manager>

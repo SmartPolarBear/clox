@@ -40,6 +40,8 @@
 
 #include <concepts>
 #include <string>
+#include "interpreter/vm/native_function_object.h"
+
 
 namespace clox::interpreting::compiling
 {

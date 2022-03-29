@@ -34,6 +34,8 @@
 #include <interpreter/vm/heap_allocator.h>
 #include <interpreter/vm/garbage_collector.h>
 
+#include <interpreter/native/native_function.h>
+
 
 #include <interpreter/vm/string_object.h>
 #include <interpreter/vm/closure_object.h>
@@ -128,6 +130,8 @@ public:
 	virtual_machine_status run(clox::interpreting::vm::closure_object* closure);
 
 private:
+	void load_native_functions();
+
 	virtual_machine_status run();
 
 	// {return status, exit}
@@ -263,6 +267,8 @@ private:
 	void call_value(const value& val, size_t arg_count);
 
 	void call(closure_object_raw_pointer closure, size_t arg_count);
+
+	void call(const std::shared_ptr<native::native_function>& , size_t arg_count);
 
 	bool is_false(const value& val);
 

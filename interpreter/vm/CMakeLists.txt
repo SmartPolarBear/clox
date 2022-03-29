@@ -15,6 +15,7 @@ target_sources(clox
         PRIVATE heap.cpp
         PRIVATE value.cpp
         PRIVATE chunk.cpp
+        PRIVATE native_function_object.cpp
         PRIVATE garbage_collector.cpp)
 
 target_sources(clox_test
@@ -32,5 +33,6 @@ target_sources(clox_test
         PRIVATE heap.cpp
         PRIVATE value.cpp
         PRIVATE chunk.cpp
+        PRIVATE native_function_object.cpp
         PRIVATE garbage_collector.cpp)
 

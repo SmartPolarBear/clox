@@ -24,48 +24,46 @@
 
 #pragma once
 
-#include "interpreter/vm/value.h"
-#include "interpreter/native/native.h"
 
-#include <string_view>
-#include <functional>
 
-#include <gsl/gsl>
+#include <interpreter/vm/object.h>
+#include <interpreter/native/native_function.h>
 
-namespace clox::interpreting::native
+#include <variant>
+#include <string>
+
+#include <memory>
+#include <map>
+
+
+namespace clox::interpreting::vm
 {
-class native_function
+class native_function_object final
+		: public object
 {
 public:
-	friend class native_manager;
 
-	[[nodiscard]] explicit native_function(std::string name, id_type id, function_type func);
+	friend class compiling::codegen;
 
-	native_function(const native_function&) = default;
+	explicit native_function_object(std::shared_ptr<native::native_function> func);
 
-	native_function(native_function&&) = default;
+	[[nodiscard]] object_type type() const noexcept override;
 
-	native_function& operator=(const native_function&) = default;
-
-	[[nodiscard]] std::string name() const
+	[[nodiscard]] std::shared_ptr<native::native_function> function() const
 	{
-		return name_;
+		return func_;
 	}
 
-	[[nodiscard]] id_type id() const
-	{
-		return id_;
-	}
-
-	virtual value_type call(std::vector<value_type> args);
+	std::string printable_string() override;
 
 protected:
-
-	function_type function_;
+	void blacken(struct garbage_collector* gc_inst) override;
 
 private:
-	id_type id_{};
-	std::string name_{};
-
+	std::shared_ptr<native::native_function> func_{};
 };
+
+using native_function_object_raw_pointer = native_function_object*;
+
+
 }

@@ -32,7 +32,7 @@
 
 #include <gsl/gsl>
 
-namespace clox::interpreter::native
+namespace clox::interpreting::native
 {
 DEF_NATIVE_FUNC(clock)
 

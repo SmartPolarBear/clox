@@ -22,7 +22,4 @@
 // Created by cleve on 3/29/2022.
 //
 
-#ifndef CLOX_NATIVE_METHODS_H
-#define CLOX_NATIVE_METHODS_H
-
-#endif //CLOX_NATIVE_METHODS_H
+#pragma once
