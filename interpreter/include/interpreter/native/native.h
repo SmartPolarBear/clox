@@ -24,15 +24,20 @@
 
 #pragma once
 
+#include "base/base.h"
+
+#include "interpreter/vm/value.h"
+
+#include <functional>
+
+#include <gsl/gsl>
+
 namespace clox::interpreter::native
 {
-class native_manager
-{
-public:
-	void register_function();
-	void register_method();
-	void register_operator();
-private:
+using id_type = gsl::index;
 
-};
+using value_type = clox::interpreting::vm::value;
+using function_type = std::function<value_type(std::optional<value_type> self, std::vector<value_type> args)>;
+
+
 }

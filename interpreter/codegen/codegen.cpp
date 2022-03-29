@@ -639,7 +639,6 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 	else if (annotation->is_method() && annotation->is_native()) //native method
 	{
 		auto caller = annotation->method_caller();
-		annotation->
 	}
 	else
 	{

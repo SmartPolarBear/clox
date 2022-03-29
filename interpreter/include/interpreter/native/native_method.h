@@ -19,32 +19,38 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/23/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <interpreter/native/native_manager.h>
+#pragma once
 
+#include "interpreter/native/native_function.h"
+#include "interpreter/native/native.h"
+
+#include <string>
+#include <functional>
 #include <utility>
 
-using namespace clox::interpreter::native;
 
-id_type native_manager::register_function(const std::string& name, function_type function)
+namespace clox::interpreter::native
 {
-	auto id = next_id();
-	native_function func{ name, id, std::move(function) };
-	functions_.insert_or_assign(name, func);
-	return id;
-}
+class native_method
+		: public native_function
+{
+public:
+	friend class native_manager;
 
-id_type native_manager::register_method(const std::string& object_name, const std::string& name, function_type func)
-{
-	auto id = next_id();
-	native_method method{ name, id, std::move(func) };
-	methods_[object_name].insert_or_assign(name, method);
-	return 0;
-}
+	value_type call(value_type self, std::vector<value_type> args);
 
-id_type native_manager::next_id()
-{
-	return ++id_counter_;
+	[[nodiscard]] explicit native_method(std::string name, id_type id, function_type func)
+			: native_function(std::move(name), id, std::move(func))
+	{
+	}
+
+	native_method(const native_method&) = default;
+
+	native_method(native_method&&) = default;
+
+	native_method& operator=(const native_method&) = default;
+};
 }

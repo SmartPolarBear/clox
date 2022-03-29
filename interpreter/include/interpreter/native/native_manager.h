@@ -19,32 +19,35 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/23/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <interpreter/native/native_manager.h>
+#pragma once
 
-#include <utility>
+#include "base/base.h"
 
-using namespace clox::interpreter::native;
+#include "interpreter/native/native.h"
+#include "interpreter/native/native_function.h"
+#include "interpreter/native/native_method.h"
 
-id_type native_manager::register_function(const std::string& name, function_type function)
+namespace clox::interpreter::native
 {
-	auto id = next_id();
-	native_function func{ name, id, std::move(function) };
-	functions_.insert_or_assign(name, func);
-	return id;
-}
-
-id_type native_manager::register_method(const std::string& object_name, const std::string& name, function_type func)
+class native_manager
+		: public base::singleton<native_manager>
 {
-	auto id = next_id();
-	native_method method{ name, id, std::move(func) };
-	methods_[object_name].insert_or_assign(name, method);
-	return 0;
-}
+public:
+	id_type register_function(const std::string& name, function_type function);
 
-id_type native_manager::next_id()
-{
-	return ++id_counter_;
+	id_type register_method(const std::string& object_name, const std::string& name, function_type method);
+
+private:
+	id_type next_id();
+
+	std::unordered_map<std::string, native_function> functions_{};
+	std::unordered_map<std::string, std::unordered_map<std::string, native_method>> methods_{};
+
+	id_type id_counter_{ 1 };
+};
+
+
 }

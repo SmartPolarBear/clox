@@ -19,32 +19,53 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/23/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <interpreter/native/native_manager.h>
+#pragma once
 
-#include <utility>
+#include "interpreter/vm/value.h"
+#include "interpreter/native/native.h"
 
-using namespace clox::interpreter::native;
+#include <string_view>
+#include <functional>
 
-id_type native_manager::register_function(const std::string& name, function_type function)
+#include <gsl/gsl>
+
+namespace clox::interpreter::native
 {
-	auto id = next_id();
-	native_function func{ name, id, std::move(function) };
-	functions_.insert_or_assign(name, func);
-	return id;
-}
-
-id_type native_manager::register_method(const std::string& object_name, const std::string& name, function_type func)
+class native_function
 {
-	auto id = next_id();
-	native_method method{ name, id, std::move(func) };
-	methods_[object_name].insert_or_assign(name, method);
-	return 0;
-}
+public:
+	friend class native_manager;
 
-id_type native_manager::next_id()
-{
-	return ++id_counter_;
+	[[nodiscard]] explicit native_function(std::string name, id_type id, function_type func);
+
+	native_function(const native_function&) = default;
+
+	native_function(native_function&&) = default;
+
+	native_function& operator=(const native_function&) = default;
+
+	[[nodiscard]] std::string name() const
+	{
+		return name_;
+	}
+
+	[[nodiscard]] id_type id() const
+	{
+		return id_;
+	}
+
+	virtual value_type call(std::vector<value_type> args);
+
+protected:
+
+	function_type function_;
+
+private:
+	id_type id_{};
+	std::string name_{};
+
+};
 }

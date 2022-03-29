@@ -19,32 +19,25 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/23/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <interpreter/native/native_manager.h>
+#include <interpreter/native/native_function.h>
 
 #include <utility>
 
-using namespace clox::interpreter::native;
+using namespace std;
 
-id_type native_manager::register_function(const std::string& name, function_type function)
+clox::interpreter::native::native_function::native_function(std::string name,
+		clox::interpreter::native::id_type id,
+		clox::interpreter::native::function_type func)
+		: name_(std::move(name)), id_(id), function_(std::move(func))
 {
-	auto id = next_id();
-	native_function func{ name, id, std::move(function) };
-	functions_.insert_or_assign(name, func);
-	return id;
+
 }
 
-id_type native_manager::register_method(const std::string& object_name, const std::string& name, function_type func)
+clox::interpreter::native::value_type
+clox::interpreter::native::native_function::call(std::vector<value_type> args)
 {
-	auto id = next_id();
-	native_method method{ name, id, std::move(func) };
-	methods_[object_name].insert_or_assign(name, method);
-	return 0;
-}
-
-id_type native_manager::next_id()
-{
-	return ++id_counter_;
+	return function_(std::nullopt, std::move(args));
 }
