@@ -37,8 +37,7 @@ public:
 
 protected:
 	singleton()
-	{
-	}
+	= default;
 };
 
 template<typename T>

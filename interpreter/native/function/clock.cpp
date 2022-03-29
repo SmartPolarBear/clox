@@ -19,23 +19,17 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/17/2022.
+// Created by cleve on 3/29/2022.
 //
+#include "interpreter/native/native_function_defs.h"
 
-#include <resolver/list_type.h>
+#include <chrono>
 
-using namespace std;
+using namespace clox::interpreter::native;
+using namespace std::chrono;
 
-clox::resolving::lox_list_type::lox_list_type(const std::shared_ptr<lox_type>& elem)
-		: lox_class_type(std::format("list[{}]", elem->printable_string()), lox_object_type::object(), TYPE_ID_LIST, {},
-		{}),
-		  element_type_(elem)
+value_type clox::interpreter::native::nf_clock([[maybe_unused]]std::optional<value_type> self,
+		[[maybe_unused]] std::vector<value_type> args)
 {
-	auto append_method = make_shared<lox_overloaded_metatype>("append");
-	auto append_callable = make_shared<lox_callable_type>("append", make_shared<lox_void_type>(),
-			lox_callable_type::param_list_type{ make_pair(nullopt, element_type_) }, false, true);
-
-
-	append_method->put(nullptr, append_callable);
-	methods()["append"] = append_method;
-}
+	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+};

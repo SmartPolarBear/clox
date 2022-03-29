@@ -30,21 +30,49 @@
 #include "interpreter/native/native_function.h"
 #include "interpreter/native/native_method.h"
 
+#include <memory>
+
 namespace clox::interpreter::native
 {
 class native_manager
 		: public base::singleton<native_manager>
 {
 public:
-	id_type register_function(const std::string& name, function_type function);
+	native_manager();
+
+	id_type register_function(const std::string& name, const function_type& function);
 
 	id_type register_method(const std::string& object_name, const std::string& name, function_type method);
 
+	id_type lookup(const std::string& name);
+
+	id_type lookup(const std::string& object_name, const std::string& name);
+
+	std::shared_ptr<native_function> get(const std::string& name);
+
+	std::shared_ptr<native_method> get(const std::string& object_name, const std::string& name);
+
+	template<typename T>
+	requires std::is_same_v<T, native_function> || std::is_same_v<T, native_method>
+	inline std::shared_ptr<T> get(id_type id)
+	{
+		return std::static_pointer_cast<T>(all_.at(id));
+	}
+
+	std::unordered_map<std::string, std::shared_ptr<native_function>>& functions()
+	{
+		return functions_;
+	}
+
 private:
+	void register_global_functions();
+
 	id_type next_id();
 
-	std::unordered_map<std::string, native_function> functions_{};
-	std::unordered_map<std::string, std::unordered_map<std::string, native_method>> methods_{};
+	std::unordered_map<std::string, std::shared_ptr<native_function> > functions_{};
+	std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<native_method> >> methods_{};
+
+	std::unordered_map<id_type, std::shared_ptr<native_function>> all_{};
 
 	id_type id_counter_{ 1 };
 };

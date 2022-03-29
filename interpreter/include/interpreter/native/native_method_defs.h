@@ -19,23 +19,10 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/17/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <resolver/list_type.h>
+#ifndef CLOX_NATIVE_METHODS_H
+#define CLOX_NATIVE_METHODS_H
 
-using namespace std;
-
-clox::resolving::lox_list_type::lox_list_type(const std::shared_ptr<lox_type>& elem)
-		: lox_class_type(std::format("list[{}]", elem->printable_string()), lox_object_type::object(), TYPE_ID_LIST, {},
-		{}),
-		  element_type_(elem)
-{
-	auto append_method = make_shared<lox_overloaded_metatype>("append");
-	auto append_callable = make_shared<lox_callable_type>("append", make_shared<lox_void_type>(),
-			lox_callable_type::param_list_type{ make_pair(nullopt, element_type_) }, false, true);
-
-
-	append_method->put(nullptr, append_callable);
-	methods()["append"] = append_method;
-}
+#endif //CLOX_NATIVE_METHODS_H

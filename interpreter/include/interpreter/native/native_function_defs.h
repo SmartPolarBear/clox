@@ -19,23 +19,22 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/17/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include <resolver/list_type.h>
+#pragma once
 
-using namespace std;
+#include "interpreter/vm/value.h"
+#include "interpreter/native/native.h"
 
-clox::resolving::lox_list_type::lox_list_type(const std::shared_ptr<lox_type>& elem)
-		: lox_class_type(std::format("list[{}]", elem->printable_string()), lox_object_type::object(), TYPE_ID_LIST, {},
-		{}),
-		  element_type_(elem)
+#include <string_view>
+#include <functional>
+
+#include <gsl/gsl>
+
+namespace clox::interpreter::native
 {
-	auto append_method = make_shared<lox_overloaded_metatype>("append");
-	auto append_callable = make_shared<lox_callable_type>("append", make_shared<lox_void_type>(),
-			lox_callable_type::param_list_type{ make_pair(nullopt, element_type_) }, false, true);
+DEF_NATIVE_FUNC(clock)
 
 
-	append_method->put(nullptr, append_callable);
-	methods()["append"] = append_method;
 }
