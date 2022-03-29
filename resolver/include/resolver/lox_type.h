@@ -113,6 +113,11 @@ public:
 		return t.flags() & lox_type_flags::FLAG_UNION_TYPE;
 	}
 
+	static bool is_native(const lox_type& t)
+	{
+		return t.flags() & lox_type_flags::FLAG_NATIVE;
+	}
+
 	static bool is_preset_type(const lox_type& t)
 	{
 		return t.id() < PRESET_TYPE_ID_MAX;

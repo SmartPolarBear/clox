@@ -251,15 +251,21 @@ public:
 		return parsing::ast_annotation_type::AST_ANNOTATION_CLASS;
 	}
 
-	void set_as_method(const std::shared_ptr<parsing::call_expression>& ce)
+	void set_as_method(const std::shared_ptr<parsing::call_expression>& ce, bool native = false)
 	{
 		method_ = true;
 		caller_ = ce;
+		method_native_ = native;
 	}
 
 	[[nodiscard]] bool is_method() const
 	{
 		return method_;
+	}
+
+	[[nodiscard]] bool is_native() const
+	{
+		return method_native_;
 	}
 
 
@@ -272,6 +278,7 @@ private:
 	std::shared_ptr<class lox_class_type> class_type_{};
 
 	bool method_{ false };
+	bool method_native_{ false };
 	std::shared_ptr<parsing::call_expression> caller_{ nullptr };
 };
 

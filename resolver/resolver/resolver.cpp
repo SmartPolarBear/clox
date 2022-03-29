@@ -414,7 +414,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	}
 	else if (callable->flags() & FLAG_NATIVE)
 	{
-
+		//TODO
 	}
 	else if (callable->flags() & FLAG_CTOR)// it's a default constructor
 	{

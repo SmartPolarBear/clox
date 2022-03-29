@@ -113,6 +113,14 @@ private:
 
 };
 
+class lox_native_callable_type final
+		: public lox_callable_type
+{
+public:
+	[[nodiscard]] explicit lox_native_callable_type(return_type_variant return_type,
+			param_list_type params, bool ctor = false);
+};
+
 
 class lox_overloaded_metatype final
 		: public lox_object_type,

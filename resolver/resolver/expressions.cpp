@@ -164,31 +164,6 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 	}, le->get_value());
 
 	return ret;
-//
-//	if (holds_alternative<long long>(le->get_value()))
-//	{
-//		return lox_object_type::integer();
-//	}
-//	else if (holds_alternative<long double>(le->get_value()))
-//	{
-//		return lox_object_type::floating();
-//	}
-//	else if (holds_alternative<bool>(le->get_value()))
-//	{
-//		return lox_object_type::boolean();
-//	}
-//	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
-//	{
-//		return lox_object_type::nil();
-//	}
-//	else if (holds_alternative<std::string>(le->get_value()))
-//	{
-//		return lox_object_type::string();
-//	}
-//	else
-//	{
-//		return type_error(le->get_token(), "Invalid literal value of unknown type.");
-//	}
 }
 
 std::shared_ptr<lox_type> resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)
@@ -376,14 +351,6 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 {
 	auto callee = resolve(ce->get_callee());
 
-	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
-	{
-
-		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
-		annotation->set_as_method(ce);
-	}
-
-
 	if (!callee)
 	{
 		throw logic_error{ "callee isn't nullable" };
@@ -414,10 +381,14 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)
 	{
-
-
 		auto annotation = ce->get_callee()->get_annotation<base_annotation>();
 		annotation->set_field_id(ce->get_annotation<call_annotation>()->id());
+	}
+
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
+	{
+		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
+		annotation->set_as_method(ce, lox_type::is_native(*callable));
 	}
 
 
