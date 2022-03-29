@@ -31,5 +31,6 @@ using namespace std::chrono;
 value_type clox::interpreting::native::nf_clock([[maybe_unused]]std::optional<value_type> self,
 		[[maybe_unused]] std::vector<value_type> args)
 {
-	return (long double)duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	return static_cast<vm::integer_value_type>(duration_cast<milliseconds>(
+			system_clock::now().time_since_epoch()).count());
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SmartPolarBear
+// Copyright (c) 2022 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,28 +19,9 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/10/2021.
+// Created by cleve on 3/29/2022.
 //
 
 #pragma once
 
-#include <config.h>
-
-#include <driver/interpreter_adapter.h>
-#include <driver/classic.h>
-
-#include <memory>
-
-class test_interpreter_adapater
-{
-public:
-
-#ifdef USE_VM
-	using adapter_type = clox::driver::vm_interpreter_adapter;
-#else
-	using adapter_type = clox::driver::classic_interpreter_adapter;
-#endif
-
-	static std::shared_ptr<clox::driver::interpreter_adapter> get(
-			clox::helper::console& cons);
-};
+#define USE_VM

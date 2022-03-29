@@ -75,9 +75,15 @@ protected:
 #include <function/recursive.txt>
 	};
 
+#ifdef USE_VM
+	const char* complex_out_{
+#include <function/recursive_vm.out>
+	};
+#else
 	const char* complex_out_{
 #include <function/recursive.out>
 	};
+#endif
 };
 
 #include <driver/run.h>
@@ -103,7 +109,7 @@ TEST_F(FunctionTest, SimpleTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), simple_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), simple_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -114,7 +120,7 @@ TEST_F(FunctionTest, SimpleRecursiveTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), simple_recursive_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), simple_recursive_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -125,7 +131,7 @@ TEST_F(FunctionTest, RecursiveTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), complex_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), complex_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
