@@ -64,6 +64,8 @@ class resolver final
 		  public parsing::statement_visitor<void>
 {
 public:
+
+
 	enum class [[clang::enum_extensibility(closed)]] env_function_type
 	{
 		FT_NONE,
@@ -71,6 +73,7 @@ public:
 		FT_CTOR,
 		FT_FUNCTION,
 	};
+
 
 	enum class [[clang::enum_extensibility(closed)]] env_class_type
 	{
@@ -123,10 +126,13 @@ public:
 	std::shared_ptr<lox_type>
 	visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
 
-	std::shared_ptr<lox_type>
-	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
-
 	std::shared_ptr<lox_type> visit_lambda_expression(const std::shared_ptr<parsing::lambda_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_list_initializer_expression(const std::shared_ptr<parsing::list_initializer_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_map_initializer_expression(const std::shared_ptr<parsing::map_initializer_expression>& ptr) override;
 
 	// statements
 	void visit_expression_statement(const std::shared_ptr<parsing::expression_statement>& ptr) override;
@@ -158,10 +164,13 @@ public:
 	visit_union_type_expression(const std::shared_ptr<parsing::union_type_expression>& ptr) override;
 
 	std::shared_ptr<lox_type>
-	visit_array_type_expression(const std::shared_ptr<parsing::array_type_expression>& ptr) override;
+	visit_callable_type_expression(const std::shared_ptr<parsing::callable_type_expression>& ptr) override;
 
 	std::shared_ptr<lox_type>
-	visit_callable_type_expression(const std::shared_ptr<parsing::callable_type_expression>& ptr) override;
+	visit_list_type_expression(const std::shared_ptr<parsing::list_type_expression>& ptr) override;
+
+	std::shared_ptr<lox_type>
+	visit_map_type_expression(const std::shared_ptr<parsing::map_type_expression>& ptr) override;
 
 public:
 	void resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts);
@@ -183,6 +192,7 @@ public:
 private:
 
 	std::shared_ptr<lox_type> type_error(const clox::scanning::token& tk, const std::string& msg);
+
 
 	std::shared_ptr<symbol> resolve_local(const std::shared_ptr<parsing::expression>& expr, const scanning::token& tk);
 
@@ -239,7 +249,8 @@ private:
 
 	type_compatibility check_type_unary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left);
 
-	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& right);
+	type_compatibility check_type_postfix_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& l,
+			const std::shared_ptr<lox_type>& r);
 
 
 	type_compatibility check_type_ternary_expression(const scanning::token& tk, const std::shared_ptr<lox_type>& left,
@@ -273,9 +284,11 @@ private:
 
 	void declare_name(const std::string& lexeme, const scanning::token& error_tk, size_t dist = 0);
 
-	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0,bool occupy_slot=true);
+	void define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist = 0,
+			bool occupy_slot = true);
 
-	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0,bool occupy_slot=true);
+	void define_name(const std::string& lexeme, const std::shared_ptr<lox_type>& type, size_t dist = 0,
+			bool occupy_slot = true);
 
 	/// define name for callable
 	/// \param tk
@@ -296,6 +309,8 @@ private:
 			const std::shared_ptr<parsing::statement>& stmt,
 			const std::shared_ptr<lox_callable_type>& type,
 			size_t dist = 0);
+
+	void define_native_function(const std::string& name, const std::shared_ptr<lox_callable_type>& type);
 
 
 	void define_type(const scanning::token& tk, const std::shared_ptr<lox_type>& type, uint64_t dist = 0);
@@ -321,6 +336,8 @@ private:
 
 		return function_id_counter_++;
 	}
+
+	void define_global_functions();
 
 	std::shared_ptr<function_scope> global_scope_{ nullptr };
 

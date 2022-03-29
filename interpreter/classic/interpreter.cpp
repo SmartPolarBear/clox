@@ -760,18 +760,24 @@ bool interpreter::is_number(const evaluating_result& e)
 	return holds_alternative<long double>(e) || holds_alternative<long long>(e);
 }
 
-evaluating_result
-interpreter::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
-{
-	return clox::interpreting::classic::evaluating_result();
-}
-
 void interpreter::visit_foreach_statement(const std::shared_ptr<foreach_statement>& fes)
 {
 
 }
 
 evaluating_result interpreter::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
+{
+	return clox::interpreting::classic::evaluating_result();
+}
+
+evaluating_result
+interpreter::visit_list_initializer_expression(const std::shared_ptr<struct list_initializer_expression>& ptr)
+{
+	return clox::interpreting::classic::evaluating_result();
+}
+
+evaluating_result
+interpreter::visit_map_initializer_expression(const std::shared_ptr<struct map_initializer_expression>& ptr)
 {
 	return clox::interpreting::classic::evaluating_result();
 }

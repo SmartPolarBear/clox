@@ -46,6 +46,7 @@ enum ast_annotation_type
 	AST_ANNOTATION_OPERATOR,
 	AST_ANNOTATION_CLASS,
 	AST_ANNOTATION_BASE,
+	AST_ANNOTATION_CONTAINER
 };
 
 class ast_annotation

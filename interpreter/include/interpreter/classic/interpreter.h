@@ -54,6 +54,7 @@ class interpreter final :
 		virtual parsing::expression_visitor<evaluating_result>,
 		virtual parsing::statement_visitor<void>
 {
+
 public:
 	friend class lox_class;
 
@@ -95,6 +96,12 @@ public:
 	evaluating_result visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& ptr) override;
 
 	evaluating_result
+	visit_list_initializer_expression(const std::shared_ptr<parsing::list_initializer_expression>& ptr) override;
+
+	evaluating_result
+	visit_map_initializer_expression(const std::shared_ptr<parsing::map_initializer_expression>& ptr) override;
+
+	evaluating_result
 	visit_var_expression(const std::shared_ptr<parsing::var_expression>& ptr) override;
 
 	evaluating_result visit_get_expression(const std::shared_ptr<parsing::get_expression>& ptr) override;
@@ -114,9 +121,6 @@ public:
 	evaluating_result visit_set_expression(const std::shared_ptr<parsing::set_expression>& ptr) override;
 
 	evaluating_result visit_base_expression(const std::shared_ptr<parsing::base_expression>& ptr) override;
-
-	evaluating_result
-	visit_initializer_list_expression(const std::shared_ptr<parsing::initializer_list_expression>& ptr) override;
 
 	evaluating_result visit_lambda_expression(const std::shared_ptr<parsing::lambda_expression>& ptr) override;
 

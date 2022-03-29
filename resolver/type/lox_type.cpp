@@ -36,20 +36,8 @@ bool lox_type::unify(const lox_type& base, const lox_type& derived)
 		return false;
 	}
 
-//	if (base.id() == TYPE_ID_INITIALIZER_LIST)
-//	{
-//		return false;
-//	}
-
 	return derived < base;
 
-//	if (derived.id() == TYPE_ID_INITIALIZER_LIST)
-//	{
-//		return dynamic_cast<const initializer_list_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
-//	}
-//
-//
-//	return dynamic_cast<const lox_object_type&>(derived) < dynamic_cast<const lox_object_type&>(base);
 }
 
 std::shared_ptr<lox_type> lox_type::intersect(const std::shared_ptr<lox_type>& t1, const std::shared_ptr<lox_type>& t2)

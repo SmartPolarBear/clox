@@ -40,6 +40,16 @@ clox::resolving::lox_class_type::lox_class_type(std::string name, const std::sha
 	supers_.push_back(parent);
 }
 
+lox_class_type::lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent, type_id id,
+		lox_class_type::type_map_type fields, lox_class_type::callable_type_map_type methods)
+		: fields_(std::move(fields)),
+		  methods_(std::move(methods)),
+		  lox_object_type(std::move(name), id, TYPE_CLASS, parent)
+{
+	supers_.push_back(parent);
+}
+
+
 void lox_class_type::put_method(const std::string& name, const std::shared_ptr<parsing::statement>& stmt,
 		const std::shared_ptr<lox_callable_type>& func)
 {
@@ -50,3 +60,4 @@ void lox_class_type::put_method(const std::string& name, const std::shared_ptr<p
 
 	methods_[name]->put(stmt, func);
 }
+

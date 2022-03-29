@@ -132,19 +132,6 @@
       ]
     },
     {
-      "name": "initializer_list_expression",
-      "base": [
-        1,
-        2
-      ],
-      "member": [
-        {
-          "type": "std::vector<std::shared_ptr<expression>>",
-          "name": "items_"
-        }
-      ]
-    },
-    {
       "name": "postfix_expression",
       "base": [
         1,
@@ -301,6 +288,40 @@
         {
           "type": "std::vector<std::shared_ptr<expression>>",
           "name": "args_"
+        }
+      ]
+    },
+    {
+      "name": "list_initializer_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "list_keyword_"
+        },
+        {
+          "type": "std::vector<std::shared_ptr<expression>>",
+          "name": "values_"
+        }
+      ]
+    },
+    {
+      "name": "map_initializer_expression",
+      "base": [
+        1,
+        2
+      ],
+      "member": [
+        {
+          "type": "clox::scanning::token",
+          "name": "map_keyword_"
+        },
+        {
+          "type": "std::vector<std::pair<std::shared_ptr<expression>,std::shared_ptr<expression>>>",
+          "name": "pairs_"
         }
       ]
     },
@@ -591,7 +612,7 @@
       ]
     },
     {
-      "name": "array_type_expression",
+      "name": "list_type_expression",
       "base": [
         4,
         2
@@ -604,6 +625,31 @@
         {
           "type": "clox::scanning::token",
           "name": "left_bracket_"
+        }
+      ]
+    },
+    {
+      "name": "map_type_expression",
+      "base": [
+        4,
+        2
+      ],
+      "member": [
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "key_type_"
+        },
+        {
+          "type": "std::shared_ptr<type_expression>",
+          "name": "value_type_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "left_bracket_"
+        },
+        {
+          "type": "clox::scanning::token",
+          "name": "comma_"
         }
       ]
     },

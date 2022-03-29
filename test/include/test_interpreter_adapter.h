@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <config.h>
+
 #include <driver/interpreter_adapter.h>
 #include <driver/classic.h>
 
@@ -32,8 +34,12 @@
 class test_interpreter_adapater
 {
 public:
+
+#ifdef USE_VM
+	using adapter_type = clox::driver::vm_interpreter_adapter;
+#else
 	using adapter_type = clox::driver::classic_interpreter_adapter;
-//	using adapter_type = clox::driver::vm_interpreter_adapter;
+#endif
 
 	static std::shared_ptr<clox::driver::interpreter_adapter> get(
 			clox::helper::console& cons);

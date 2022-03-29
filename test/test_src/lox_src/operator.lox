@@ -16,8 +16,6 @@ class fuck{
 
 
     operator ==(another:fuck){
-        print this.v;
-        print another.v;
         return this.v==another.v;
     }
 

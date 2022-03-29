@@ -230,6 +230,10 @@ uint64_t clox::interpreting::vm::chunk::disassemble_instruction(helper::console&
 		}
 		return offset + 3;
 
+	case op_code::MAKE_LIST:
+		out.log() << std::format(" Size= {} ", codes_[offset + 1]) << endl;
+		return offset + 2;
+
 	case op_code::INSTANCE:
 		if (secondary & SEC_OP_FUNC)
 		{

@@ -322,12 +322,6 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 
 }
 
-void clox::interpreting::compiling::codegen::visit_initializer_list_expression(
-		const std::shared_ptr<initializer_list_expression>& ptr)
-{
-
-}
-
 void
 clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shared_ptr<postfix_expression>& pfe)
 {
@@ -336,6 +330,23 @@ clox::interpreting::compiling::codegen::visit_postfix_expression(const std::shar
 
 	switch (pfe->get_op().type())
 	{
+	case scanning::token_type::LEFT_BRACKET:
+	{
+		generate(pfe->get_optional_right());
+
+		auto annotation = pfe->get_annotation<container_annotation>();
+		assert(annotation);
+		switch (annotation->container_type())
+		{
+		case container_annotation::container_types::LIST:
+			emit_code(pfe->get_op(), V(op_code::LIST_ELEM));
+			break;
+		case container_annotation::container_types::MAP:
+			emit_code(pfe->get_op(), V(op_code::MAP_ELEM));
+			break;
+		}
+		break;
+	}
 	case scanning::token_type::PLUS_PLUS:
 	case scanning::token_type::MINUS_MINUS:
 	{
@@ -614,21 +625,20 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_get_expression(const std::shared_ptr<get_expression>& ge)
 {
-//	auto binding = resolver_->binding_typed<class_expression_binding>(ge);
-//	assert(binding);
-
 	auto annotation = ge->get_annotation<class_annotation>();
 
 	generate(ge->get_object());
 
 	auto class_type = annotation->class_type();
 
-	if (annotation->is_method())
+	if (annotation->is_method() && !annotation->is_native())
 	{
-//		auto caller_binding = resolver_->binding_typed<function_binding>(annotation->method_caller());
-//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_binding->id());
 		auto caller_anno = annotation->method_caller()->get_annotation<call_annotation>();
 		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_PROPERTY), caller_anno->id());
+	}
+	else if (annotation->is_method() && annotation->is_native()) //native method
+	{
+		auto caller = annotation->method_caller();
 	}
 	else
 	{
@@ -640,11 +650,9 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 		}
 		else
 		{
-			//FIXME: it's an error
+			assert(false);
 		}
 	}
-
-
 }
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
@@ -1025,4 +1033,20 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 {
 
 }
+
+void codegen::visit_list_initializer_expression(const std::shared_ptr<list_initializer_expression>& lie)
+{
+	for (const auto& val: lie->get_values())
+	{
+		generate(val);
+	}
+
+	emit_codes(V(vm::op_code::MAKE_LIST), lie->get_values().size());
+}
+
+void codegen::visit_map_initializer_expression(const std::shared_ptr<struct map_initializer_expression>& ptr)
+{
+
+}
+
 

@@ -29,6 +29,8 @@
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/initializer_list_type.h>
+#include <resolver/list_type.h>
+#include <resolver/map_type.h>
 
 #include <logger/logger.h>
 
@@ -75,7 +77,7 @@ std::shared_ptr<lox_type> resolver::visit_binary_expression(const std::shared_pt
 
 	if (auto operator_binding_ret = get<2>(ret);operator_binding_ret)
 	{
-		auto[stmt, method]=operator_binding_ret.value();
+		auto [stmt, method] = operator_binding_ret.value();
 
 		auto get_expr = make_shared<get_expression>(expr->get_left(), expr->get_op());
 
@@ -106,9 +108,28 @@ std::shared_ptr<lox_type> resolver::visit_unary_expression(const std::shared_ptr
 std::shared_ptr<lox_type> resolver::visit_postfix_expression(const std::shared_ptr<parsing::postfix_expression>& pe)
 {
 	auto type = resolve(pe->get_left());
-	auto ret = check_type_postfix_expression(pe->get_op(), type);
 
-	return get<0>(ret);
+	if (auto r = pe->get_optional_right();r)
+	{
+		auto ret = check_type_postfix_expression(pe->get_op(), type, resolve(r));
+
+		if (type->id() == TYPE_ID_LIST)
+		{
+			pe->annotate<container_annotation>(container_annotation::container_types::LIST);
+		}
+		else if (type->id() == TYPE_ID_MAP)
+		{
+			pe->annotate<container_annotation>(container_annotation::container_types::MAP);
+		}
+
+		return get<0>(ret);
+	}
+	else
+	{
+		auto ret = check_type_postfix_expression(pe->get_op(), type, nullptr);
+		return get<0>(ret);
+	}
+
 }
 
 
@@ -143,31 +164,6 @@ std::shared_ptr<lox_type> resolver::visit_literal_expression(const std::shared_p
 	}, le->get_value());
 
 	return ret;
-//
-//	if (holds_alternative<long long>(le->get_value()))
-//	{
-//		return lox_object_type::integer();
-//	}
-//	else if (holds_alternative<long double>(le->get_value()))
-//	{
-//		return lox_object_type::floating();
-//	}
-//	else if (holds_alternative<bool>(le->get_value()))
-//	{
-//		return lox_object_type::boolean();
-//	}
-//	else if (holds_alternative<scanning::nil_value_tag_type>(le->get_value()))
-//	{
-//		return lox_object_type::nil();
-//	}
-//	else if (holds_alternative<std::string>(le->get_value()))
-//	{
-//		return lox_object_type::string();
-//	}
-//	else
-//	{
-//		return type_error(le->get_token(), "Invalid literal value of unknown type.");
-//	}
 }
 
 std::shared_ptr<lox_type> resolver::visit_grouping_expression(const std::shared_ptr<parsing::grouping_expression>& ge)
@@ -241,25 +237,26 @@ std::shared_ptr<lox_type> resolver::visit_get_expression(const std::shared_ptr<g
 				inst->underlying_type()->printable_string()));
 	}
 
-	auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
+
+	const auto class_type = static_pointer_cast<lox_class_type>(inst->underlying_type());
 	ptr->annotate<class_annotation>(class_type);
 
 	auto member_name = ptr->get_name().lexeme();
 
-	for (class_type; class_type; class_type = dynamic_pointer_cast<lox_class_type>(class_type->super()))
+	for (auto c = class_type; c; c = dynamic_pointer_cast<lox_class_type>(c->super()))
 	{
-		if (class_type->fields().contains(member_name))
+		if (c->fields().contains(member_name))
 		{
-			return class_type->fields().at(member_name);
+			return c->fields().at(member_name);
 		}
-		else if (class_type->methods().contains(member_name))
+		else if (c->methods().contains(member_name))
 		{
-			return class_type->methods().at(member_name);
+			return c->methods().at(member_name);
 		}
 	}
 
 
-	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named {}",
+	return type_error(ptr->get_name(), std::format("Instance of type {} do not have a member named \"{}\"",
 			class_type->printable_string(), member_name));
 }
 
@@ -354,14 +351,6 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 {
 	auto callee = resolve(ce->get_callee());
 
-	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
-	{
-
-		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
-		annotation->set_as_method(ce);
-	}
-
-
 	if (!callee)
 	{
 		throw logic_error{ "callee isn't nullable" };
@@ -374,7 +363,7 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 		args.push_back(type);
 	}
 
-	auto[callable_type, compatible]=check_type_call_expression(ce, callee, args);
+	auto [callable_type, compatible] = check_type_call_expression(ce, callee, args);
 
 	if (!compatible)
 	{
@@ -392,10 +381,14 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 
 	if (ce->get_callee()->get_type() == parsing::PC_TYPE_base_expression)
 	{
-
-
 		auto annotation = ce->get_callee()->get_annotation<base_annotation>();
 		annotation->set_field_id(ce->get_annotation<call_annotation>()->id());
+	}
+
+	if (ce->get_callee()->get_type() == parsing::PC_TYPE_get_expression)
+	{
+		auto annotation = ce->get_callee()->get_annotation<class_annotation>();
+		annotation->set_as_method(ce, lox_type::is_native(*callable));
 	}
 
 
@@ -407,16 +400,16 @@ std::shared_ptr<lox_type> resolver::visit_call_expression(const std::shared_ptr<
 	return return_type;
 }
 
-shared_ptr<lox_type>
-resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
-{
-	vector<shared_ptr<lox_type>> items{};
-	for (const auto& item: ile->get_items())
-	{
-		items.push_back(resolve(item));
-	}
-	return make_shared<initializer_list_type>(items);
-}
+//shared_ptr<lox_type>
+//resolver::visit_initializer_list_expression(const std::shared_ptr<initializer_list_expression>& ile)
+//{
+//	vector<shared_ptr<lox_type>> items{};
+//	for (const auto& item: ile->get_items())
+//	{
+//		items.push_back(resolve(item));
+//	}
+//	return make_shared<initializer_list_type>(items);
+//}
 
 shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<struct lambda_expression>& ptr)
 {
@@ -424,7 +417,50 @@ shared_ptr<lox_type> resolver::visit_lambda_expression(const std::shared_ptr<str
 	return std::shared_ptr<lox_type>();
 }
 
+shared_ptr<lox_type>
+resolver::visit_list_initializer_expression(const std::shared_ptr<list_initializer_expression>& lie)
+{
+	auto last_type = resolve(lie->get_values().front());
+	for (auto iter = lie->get_values().begin() + 1; iter != lie->get_values().end(); iter++)
+	{
+		auto type = resolve(*iter);
+		if (!lox_type::unify(*last_type, *type))
+		{
+			return type_error(lie->get_list_keyword(),
+					std::format("Type {} and {} is not compatible in the list initializer",
+							last_type->printable_string(), type->printable_string()));
+		}
+		last_type = type;
+	}
+	return make_shared<lox_list_type>(last_type);
+}
 
+shared_ptr<lox_type>
+resolver::visit_map_initializer_expression(const std::shared_ptr<map_initializer_expression>& mie)
+{
+	auto last_key = resolve(mie->get_pairs().front().first);
+	auto last_val = resolve(mie->get_pairs().front().second);
+	for (auto iter = mie->get_pairs().begin() + 1; iter != mie->get_pairs().end(); iter++)
+	{
+		auto key = resolve(iter->first);
+		auto val = resolve(iter->second);
+		if (!lox_type::unify(*key, *last_key))
+		{
+			return type_error(mie->get_map_keyword(),
+					std::format("Key type {} and {} is not compatible in the list initializer",
+							last_key->printable_string(), key->printable_string()));
+		}
+		else if (!lox_type::unify(*val, *last_val))
+		{
+			return type_error(mie->get_map_keyword(),
+					std::format("Value type {} and {} is not compatible in the list initializer",
+							last_val->printable_string(), val->printable_string()));
+		}
+		last_key = key;
+		last_val = val;
+	}
+	return make_shared<lox_map_type>(last_key, last_val);
+}
 
 
 

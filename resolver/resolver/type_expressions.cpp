@@ -31,6 +31,8 @@
 #include <resolver/union_type.h>
 #include <resolver/instance_type.h>
 #include <resolver/array_type.h>
+#include <resolver/list_type.h>
+#include <resolver/map_type.h>
 
 #include <logger/logger.h>
 
@@ -62,12 +64,12 @@ shared_ptr<lox_type> resolver::visit_union_type_expression(const std::shared_ptr
 	return lox_union_type::unite(left, right);
 }
 
-shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr<struct array_type_expression>& ate)
-{
-	auto element_type = resolve(ate->get_element_type());
-	
-	return make_shared<lox_array_type>(element_type);
-}
+//shared_ptr<lox_type> resolver::visit_array_type_expression(const std::shared_ptr<struct array_type_expression>& ate)
+//{
+//	auto element_type = resolve(ate->get_element_type());
+//
+//	return make_shared<lox_array_type>(element_type);
+//}
 
 shared_ptr<lox_type>
 resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_type_expression>& cte)
@@ -83,4 +85,19 @@ resolver::visit_callable_type_expression(const std::shared_ptr<struct callable_t
 			false);
 
 	return callable;
+}
+
+shared_ptr<lox_type> resolver::visit_list_type_expression(const std::shared_ptr<list_type_expression>& lte)
+{
+	auto element_type = resolve(lte->get_element_type());
+
+	return make_shared<lox_list_type>(element_type);
+}
+
+shared_ptr<lox_type> resolver::visit_map_type_expression(const std::shared_ptr<map_type_expression>& mte)
+{
+	auto key_type = resolve(mte->get_key_type());
+	auto val_type = resolve(mte->get_value_type());
+
+	return make_shared<lox_map_type>(key_type, val_type);
 }

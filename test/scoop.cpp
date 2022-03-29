@@ -59,9 +59,15 @@ protected:
 #include <scoop/closure.txt>
 	};
 
+#ifdef USE_VM
+	const char* closure_out_{
+#include <scoop/closure_vm.out>
+	};
+#else
 	const char* closure_out_{
 #include <scoop/closure.out>
 	};
+#endif
 
 	const char* scoop_{
 #include <scoop/scoop.txt>
@@ -92,7 +98,7 @@ TEST_F(ScoopTest, BindTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), bind_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), bind_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -103,7 +109,7 @@ TEST_F(ScoopTest, ClosureTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), closure_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), closure_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -114,7 +120,7 @@ TEST_F(ScoopTest, ScoopTest)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), scoop_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), scoop_);
 	ASSERT_EQ(ret, 0);
 
 	auto output = cons.get_written_text();
@@ -125,7 +131,7 @@ TEST_F(ScoopTest, ReplicateVariables)
 {
 	test_scaffold_console cons{};
 
-	int ret = run_code(cons,test_interpreter_adapater::get(cons), replicated_vars_);
+	int ret = run_code(cons, test_interpreter_adapater::get(cons), replicated_vars_);
 	ASSERT_NE(ret, 0);
 
 	auto output = cons.get_error_text();

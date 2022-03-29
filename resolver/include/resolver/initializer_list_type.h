@@ -35,7 +35,7 @@
 namespace clox::resolving
 {
 
-class initializer_list_type
+class [[deprecated]] initializer_list_type
 		: public lox_type
 {
 public:

@@ -251,15 +251,21 @@ public:
 		return parsing::ast_annotation_type::AST_ANNOTATION_CLASS;
 	}
 
-	void set_as_method(const std::shared_ptr<parsing::call_expression>& ce)
+	void set_as_method(const std::shared_ptr<parsing::call_expression>& ce, bool native = false)
 	{
 		method_ = true;
 		caller_ = ce;
+		method_native_ = native;
 	}
 
 	[[nodiscard]] bool is_method() const
 	{
 		return method_;
+	}
+
+	[[nodiscard]] bool is_native() const
+	{
+		return method_native_;
 	}
 
 
@@ -272,6 +278,7 @@ private:
 	std::shared_ptr<class lox_class_type> class_type_{};
 
 	bool method_{ false };
+	bool method_native_{ false };
 	std::shared_ptr<parsing::call_expression> caller_{ nullptr };
 };
 
@@ -334,6 +341,41 @@ template<>
 struct annotation_tag<base_annotation>
 {
 	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_BASE;
+};
+
+class container_annotation final
+		: public parsing::ast_annotation
+{
+public:
+	enum class container_types
+	{
+		LIST, MAP
+	};
+
+	[[nodiscard]] parsing::ast_annotation_type type() const override
+	{
+		return parsing::ast_annotation_type::AST_ANNOTATION_CONTAINER;
+	}
+
+	container_annotation() = default;
+
+	explicit container_annotation(container_types cont) : cont_type_(cont)
+	{
+	}
+
+	container_types container_type() const
+	{
+		return cont_type_;
+	}
+
+private:
+	container_types cont_type_{};
+};
+
+template<>
+struct annotation_tag<container_annotation>
+{
+	static constexpr parsing::ast_annotation_type type = parsing::ast_annotation_type::AST_ANNOTATION_CONTAINER;
 };
 
 template<typename T>

@@ -45,6 +45,11 @@ public:
 			type_map_type fields = type_map_type{},
 			callable_type_map_type methods = callable_type_map_type{});
 
+	[[nodiscard]] explicit lox_class_type(std::string name, const std::shared_ptr<lox_object_type>& parent,
+			type_id id,
+			type_map_type fields = type_map_type{},
+			callable_type_map_type methods = callable_type_map_type{});
+
 	[[nodiscard]] type_map_type& fields()
 	{
 		return fields_;

@@ -53,7 +53,7 @@ namespace clox::resolving
 {
 
 class lox_callable_type
-		: public  lox_object_type,
+		: public lox_object_type,
 		  public std::enable_shared_from_this<lox_callable_type>
 {
 public:
@@ -65,10 +65,10 @@ public:
 public:
 
 	[[nodiscard]] explicit lox_callable_type(return_type_variant return_type,
-			param_list_type params, bool ctor = false);
+			param_list_type params, bool ctor = false, bool native = false);
 
 	[[nodiscard]] lox_callable_type(const std::string& name, return_type_variant return_type,
-			param_list_type params, bool ctor = false);
+			param_list_type params, bool ctor = false, bool native = false);
 
 	std::string printable_string() override;
 
@@ -113,6 +113,14 @@ private:
 
 };
 
+class lox_native_callable_type final
+		: public lox_callable_type
+{
+public:
+	[[nodiscard]] explicit lox_native_callable_type(return_type_variant return_type,
+			param_list_type params, bool ctor = false);
+};
+
 
 class lox_overloaded_metatype final
 		: public lox_object_type,
@@ -126,6 +134,10 @@ public:
 	}
 
 	~lox_overloaded_metatype() = default;
+
+	lox_overloaded_metatype(const lox_overloaded_metatype&) = default;
+
+	lox_overloaded_metatype& operator=(const lox_overloaded_metatype&) = default;
 
 	auto begin() const
 	{
