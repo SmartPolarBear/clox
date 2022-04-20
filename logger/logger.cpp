@@ -11,7 +11,7 @@ using namespace std;
 using namespace clox::scanning;
 
 clox::logging::logger::logger()
-		: console_(&helper::std_console::instance())
+	: console_(&helper::std_console::instance())
 {
 }
 
@@ -24,7 +24,7 @@ void clox::logging::logger::error(const string& param, const string& message)
 {
 	errors_++;
 
-	console_->error() << format("{}: {}") << endl;
+	console_->error() << format("{}: {}", param, message) << endl;
 }
 
 void clox::logging::logger::error(size_t line, const std::string& message)
