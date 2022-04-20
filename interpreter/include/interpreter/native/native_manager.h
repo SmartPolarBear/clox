@@ -36,6 +36,8 @@
 
 namespace clox::interpreting::native
 {
+
+// TODO: this should be iterable
 class native_manager
 		: public base::singleton<native_manager>
 {

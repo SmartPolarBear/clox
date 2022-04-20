@@ -52,6 +52,8 @@ public:
 
 	[[nodiscard]] object_type type() const noexcept override;
 
+	size_t size()const;
+
 protected:
 	void blacken(struct garbage_collector* gc_inst) override;
 

@@ -82,4 +82,5 @@ native_manager::native_manager()
 void native_manager::register_global_functions()
 {
 	register_function("clock", nf_clock);
+	register_function("len", nf_len);
 }

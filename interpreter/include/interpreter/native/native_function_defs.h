@@ -35,6 +35,7 @@
 namespace clox::interpreting::native
 {
 DEF_NATIVE_FUNC(clock)
+DEF_NATIVE_FUNC(len)
 
 
 }

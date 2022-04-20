@@ -29,7 +29,7 @@
 #include <utility>
 
 clox::interpreting::vm::map_object::map_object(std::vector<std::pair<value, value>> vals)
-		: values_(std::move(vals))
+	: values_(std::move(vals))
 {
 }
 
@@ -45,10 +45,14 @@ clox::interpreting::vm::object_type clox::interpreting::vm::map_object::type() c
 
 void clox::interpreting::vm::map_object::blacken(clox::interpreting::vm::garbage_collector* gc_inst)
 {
-	for (auto& val: values_)
+	for (auto& val : values_)
 	{
 		gc_inst->mark_value(val.first);
 		gc_inst->mark_value(val.second);
 	}
 }
 
+size_t clox::interpreting::vm::map_object::size() const
+{
+	return values_.size();
+}

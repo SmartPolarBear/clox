@@ -19,51 +19,47 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/19/2022.
+// Created by cleve on 4/20/2022.
 //
 
-#pragma once
-
-#include <scanner/scanner.h>
+#include "interpreter/native/native_function_defs.h"
 
 #include <interpreter/vm/object.h>
-#include <interpreter/vm/value.h>
+#include <interpreter/vm/list_object.h>
+#include <interpreter/vm/map_object.h>
 
 #include <variant>
-#include <string>
 
-#include <memory>
-#include <map>
-#include <gsl/gsl>
+using namespace std;
 
-namespace clox::interpreting::vm
+using namespace clox::interpreting::native;
+using namespace clox::interpreting::vm;
+
+value_type clox::interpreting::native::nf_len([[maybe_unused]]std::optional<value_type> self,
+	[[maybe_unused]] std::vector<value_type> args)
 {
-class list_object
-		: public  object
-{
-public:
-	explicit list_object(std::vector<value> values);
+	auto arg = args.front();
 
-	using index_type = gsl::index;
+	if (holds_alternative<vm::object_value_type>(arg))
+	{
+		auto obj = get<vm::object_value_type>(arg);
 
-	std::string printable_string() override;
+		switch (obj->type())
+		{
+		case object_type::LIST:
+		{
+			auto list = reinterpret_cast<list_object_raw_pointer>(obj);
+			return list->size();
+		}
+		case object_type::MAP:
+		{
+			auto map = reinterpret_cast<map_object_raw_pointer>(obj);
+			return map->size();
+		}
+		default:
+			break;
+		}
+	}
 
-	[[nodiscard]] object_type type() const noexcept override;
-
-	value get(index_type idx) const;
-
-	void set(index_type idx, value val);
-
-	size_t size()const;
-
-protected:
-	void blacken(struct garbage_collector* gc_inst) override;
-
-private:
-	std::vector<value> values_{};
+	return 0; // TODO: throw an exception
 };
-
-using list_object_raw_pointer = class list_object*;
-
-}
-

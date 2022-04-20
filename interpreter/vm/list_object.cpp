@@ -63,3 +63,8 @@ void clox::interpreting::vm::list_object::set(clox::interpreting::vm::list_objec
 	values_.at(idx) = std::move(val);
 }
 
+
+size_t clox::interpreting::vm::list_object::size() const
+{
+	return values_.size();
+}
