@@ -31,6 +31,8 @@
 #include <resolver/callable_type.h>
 #include <resolver/instance_type.h>
 
+#include <interpreter/native/native_manager.h>
+
 #include <logger/logger.h>
 
 #include <memory>
@@ -79,17 +81,13 @@ resolver::resolver() :
 
 void resolver::define_global_functions()
 {
-	define_native_function("clock", std::make_shared<lox_callable_type>(
-		make_shared<lox_floating_type>(), lox_callable_type::param_list_type{},
-		false, true
-	));
-
-	define_native_function("len", std::make_shared<lox_callable_type>(
-		make_shared<lox_integer_type>(), lox_callable_type::param_list_type{
-			make_pair(nullopt, make_shared<lox_any_type>())
-		},
-		false, true
-	));
+	for (const auto& f : interpreting::native::native_manager::instance().functions())
+	{
+		define_native_function(f.first, std::make_shared<lox_callable_type>(
+			f.second->return_type(), f.second->parameter_types(),
+			false, true
+		));
+	}
 }
 
 std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, const std::string& msg)

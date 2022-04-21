@@ -65,11 +65,11 @@ virtual_machine::virtual_machine(clox::helper::console& cons,
 
 void virtual_machine::load_native_functions()
 {
-	globals_.insert_or_assign("clock",
-		heap_->allocate<native_function_object>(native_manager::instance().get("clock")));
-
-	globals_.insert_or_assign("len",
-		heap_->allocate<native_function_object>(native_manager::instance().get("len")));
+	for (const auto& f : interpreting::native::native_manager::instance().functions())
+	{
+		globals_.insert_or_assign(f.first,
+			heap_->allocate<native_function_object>(f.second));
+	}
 }
 
 virtual_machine::~virtual_machine()

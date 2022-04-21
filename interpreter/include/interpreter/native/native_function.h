@@ -27,6 +27,9 @@
 #include "interpreter/vm/value.h"
 #include "interpreter/native/native.h"
 
+#include <resolver/lox_type.h>
+#include <resolver/callable_type.h>
+
 #include <string_view>
 #include <functional>
 
@@ -36,10 +39,14 @@ namespace clox::interpreting::native
 {
 class native_function
 {
-public:
+ public:
 	friend class native_manager;
 
-	[[nodiscard]] explicit native_function(std::string name, id_type id, function_type func);
+	[[nodiscard]] explicit native_function(std::string name,
+		id_type id,
+		function_type func,
+		std::shared_ptr<clox::resolving::lox_type> return_type,
+		clox::resolving::lox_callable_type::param_list_type param_types);
 
 	native_function(const native_function&) = default;
 
@@ -59,13 +66,25 @@ public:
 
 	virtual value_type call(std::vector<value_type> args);
 
-protected:
+	[[nodiscard]] std::shared_ptr<clox::resolving::lox_type> return_type() const
+	{
+		return return_type_;
+	}
+
+	[[nodiscard]] clox::resolving::lox_callable_type::param_list_type parameter_types() const
+	{
+		return param_types_;
+	}
+
+ protected:
 
 	function_type function_;
 
-private:
+ private:
 	id_type id_{};
 	std::string name_{};
 
+	std::shared_ptr<clox::resolving::lox_type> return_type_{};
+	clox::resolving::lox_callable_type::param_list_type param_types_{};
 };
 }

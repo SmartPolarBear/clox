@@ -31,19 +31,20 @@
 #include <functional>
 #include <utility>
 
-
 namespace clox::interpreting::native
 {
 class native_method
-		: public native_function
+	: public native_function
 {
-public:
+ public:
 	friend class native_manager;
 
 	value_type call(value_type self, std::vector<value_type> args);
 
-	[[nodiscard]] explicit native_method(std::string name, id_type id, function_type func)
-			: native_function(std::move(name), id, std::move(func))
+	[[nodiscard]] explicit native_method(std::string name, id_type id, function_type func,
+		std::shared_ptr<clox::resolving::lox_type> return_type,
+		clox::resolving::lox_callable_type::param_list_type param_types)
+		: native_function(std::move(name), id, std::move(func), std::move(return_type), std::move(param_types))
 	{
 	}
 

@@ -53,22 +53,35 @@ namespace clox::resolving
 {
 
 class lox_callable_type
-		: public lox_object_type,
-		  public std::enable_shared_from_this<lox_callable_type>
+	: public lox_object_type,
+	  public std::enable_shared_from_this<lox_callable_type>
 {
-public:
+ public:
 	using parameter_type = std::pair<std::optional<scanning::token>, std::shared_ptr<lox_type>>;
 	using param_list_type = std::vector<parameter_type>;
 	using return_type_variant = std::variant<type_deduce_defer_tag, std::shared_ptr<lox_type>>;
 
 	static inline constexpr size_t MAX_PARAMETER_COUNT = 256;
-public:
+ public:
+
+	static inline constexpr param_list_type empty_parameter_list()
+	{
+		return param_list_type{};
+	}
+
+	template<typename... TArgs>
+	static inline param_list_type parameter_list_of(TArgs&& ... args)
+	{
+		return lox_callable_type::param_list_type{
+			make_pair(std::nullopt, std::forward<TArgs>(args))...
+		};
+	}
 
 	[[nodiscard]] explicit lox_callable_type(return_type_variant return_type,
-			param_list_type params, bool ctor = false, bool native = false);
+		param_list_type params, bool ctor = false, bool native = false);
 
 	[[nodiscard]] lox_callable_type(const std::string& name, return_type_variant return_type,
-			param_list_type params, bool ctor = false, bool native = false);
+		param_list_type params, bool ctor = false, bool native = false);
 
 	std::string printable_string() override;
 
@@ -104,7 +117,7 @@ public:
 
 	std::shared_ptr<lox_type> return_type() const;
 
-private:
+ private:
 	std::string name_{};
 
 	return_type_variant return_type_{};
@@ -114,22 +127,21 @@ private:
 };
 
 class lox_native_callable_type final
-		: public lox_callable_type
+	: public lox_callable_type
 {
-public:
+ public:
 	[[nodiscard]] explicit lox_native_callable_type(return_type_variant return_type,
-			param_list_type params, bool ctor = false);
+		param_list_type params, bool ctor = false);
 };
 
-
 class lox_overloaded_metatype final
-		: public lox_object_type,
-		  public std::enable_shared_from_this<lox_overloaded_metatype>
+	: public lox_object_type,
+	  public std::enable_shared_from_this<lox_overloaded_metatype>
 {
-public:
+ public:
 	explicit lox_overloaded_metatype(const std::string& name) :
-			lox_object_type(name, TYPE_ID_OVERLOADED_FUNC, FLAG_CALLABLE, nullptr),
-			root_(std::make_shared<lox_overloaded_node>())
+		lox_object_type(name, TYPE_ID_OVERLOADED_FUNC, FLAG_CALLABLE, nullptr),
+		root_(std::make_shared<lox_overloaded_node>())
 	{
 	}
 
@@ -154,19 +166,18 @@ public:
 		return last_;
 	}
 
-
 	void put(const std::shared_ptr<parsing::statement>& stmt,
-			const std::shared_ptr<lox_callable_type>& callable);
+		const std::shared_ptr<lox_callable_type>& callable);
 
 	std::optional<std::tuple<std::shared_ptr<parsing::statement>, std::shared_ptr<lox_callable_type>>>
 	get(const std::vector<std::shared_ptr<lox_type>>& params);
 
-private:
+ private:
 
 	class lox_overloaded_node final
-			: public std::enable_shared_from_this<lox_overloaded_node>
+		: public std::enable_shared_from_this<lox_overloaded_node>
 	{
-	public:
+	 public:
 		friend class lox_overloaded_metatype;
 
 		lox_overloaded_node() = default;
@@ -174,8 +185,8 @@ private:
 		~lox_overloaded_node() = default;
 
 		[[nodiscard]] explicit lox_overloaded_node(std::shared_ptr<parsing::statement> stmt,
-				std::shared_ptr<lox_callable_type> callable)
-				: end_(true), stmt_(std::move(stmt)), callable_(std::move(callable))
+			std::shared_ptr<lox_callable_type> callable)
+			: end_(true), stmt_(std::move(stmt)), callable_(std::move(callable))
 		{
 		}
 
@@ -185,7 +196,7 @@ private:
 			depth_ = pa->depth_ + 1;
 		}
 
-	private:
+	 private:
 
 		size_t depth_{ 0 };
 		std::weak_ptr<lox_overloaded_node> parent_;
@@ -199,7 +210,7 @@ private:
 
 	std::shared_ptr<lox_overloaded_metatype::lox_overloaded_node>
 	overloading_resolve(std::vector<std::shared_ptr<lox_type>>::iterator param_iter,
-			std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
+		std::vector<std::shared_ptr<lox_type>>::iterator end, std::shared_ptr<lox_overloaded_node> node);
 
 	std::shared_ptr<lox_overloaded_node> root_{};
 
@@ -209,28 +220,27 @@ private:
 };
 
 class redefined_symbol final
-		: public std::runtime_error
+	: public std::runtime_error
 {
-public:
+ public:
 	explicit redefined_symbol(const std::shared_ptr<lox_callable_type>& cur,
-			const std::shared_ptr<lox_callable_type>& conflict);
+		const std::shared_ptr<lox_callable_type>& conflict);
 
-private:
+ private:
 	std::shared_ptr<lox_callable_type> cur_{};
 	std::shared_ptr<lox_callable_type> conflict_{};
 
 };
 
 class too_many_params final
-		: public std::runtime_error
+	: public std::runtime_error
 {
-public:
+ public:
 	explicit too_many_params(const std::shared_ptr<lox_callable_type>& func);
 
-private:
+ private:
 	std::shared_ptr<lox_callable_type> func_{};
 
 };
-
 
 }

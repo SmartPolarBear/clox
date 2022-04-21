@@ -37,16 +37,27 @@
 namespace clox::interpreting::native
 {
 
+struct native_function_info final
+{
+	std::shared_ptr<native_function> function;
+	std::shared_ptr<resolving::lox_type> return_type;
+	resolving::lox_callable_type::param_list_type parameter_types;
+};
+
 // TODO: this should be iterable
 class native_manager
-		: public base::singleton<native_manager>
+	: public base::singleton<native_manager>
 {
-public:
+ public:
 	native_manager();
 
-	id_type register_function(const std::string& name, const function_type& function);
+	id_type register_function(const std::string& name, const function_type& function,
+		const std::shared_ptr<clox::resolving::lox_type>& return_type,
+		const clox::resolving::lox_callable_type::param_list_type& param_types);
 
-	id_type register_method(const std::string& object_name, const std::string& name, function_type method);
+	id_type register_method(const std::string& object_name, const std::string& name, const function_type& method,
+		const std::shared_ptr<clox::resolving::lox_type>& return_type,
+		const clox::resolving::lox_callable_type::param_list_type& param_types);
 
 	id_type lookup(const std::string& name);
 
@@ -68,7 +79,12 @@ public:
 		return functions_;
 	}
 
-private:
+	std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<native_method> >> methods()
+	{
+		return methods_;
+	}
+
+ private:
 	void register_global_functions();
 
 	id_type next_id();
@@ -80,6 +96,5 @@ private:
 
 	id_type id_counter_{ 1 };
 };
-
 
 }

@@ -28,22 +28,30 @@
 #include <utility>
 
 using namespace clox::interpreting::native;
+using namespace clox::resolving;
 
 using namespace std;
 
-id_type native_manager::register_function(const std::string& name, const function_type& function)
+id_type native_manager::register_function(const std::string& name,
+	const function_type& function,
+	const std::shared_ptr<clox::resolving::lox_type>& return_type,
+	const clox::resolving::lox_callable_type::param_list_type& param_types)
 {
 	auto id = next_id();
-	auto func = make_shared<native_function>(name, id, function);
+	auto func = make_shared<native_function>(name, id, function, return_type, param_types);
 	functions_.insert_or_assign(name, func);
 	all_[id] = func;
 	return id;
 }
 
-id_type native_manager::register_method(const std::string& object_name, const std::string& name, function_type func)
+id_type native_manager::register_method(const std::string& object_name,
+	const std::string& name,
+	const function_type& func,
+	const std::shared_ptr<clox::resolving::lox_type>& return_type,
+	const clox::resolving::lox_callable_type::param_list_type& param_types)
 {
 	auto id = next_id();
-	auto method = make_shared<native_method>(name, id, func);
+	auto method = make_shared<native_method>(name, id, func, return_type, param_types);
 	methods_[object_name].insert_or_assign(name, method);
 	all_[id] = method;
 	return 0;
@@ -81,6 +89,9 @@ native_manager::native_manager()
 
 void native_manager::register_global_functions()
 {
-	register_function("clock", nf_clock);
-	register_function("len", nf_len);
+	register_function("clock", nf_clock, make_shared<lox_floating_type>(), lox_callable_type::empty_parameter_list());
+	register_function("len",
+		nf_len,
+		make_shared<lox_integer_type>(),
+		lox_callable_type::parameter_list_of(make_shared<lox_any_type>()));
 }
