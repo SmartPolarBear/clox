@@ -24,8 +24,8 @@
 
 #include <helper/enum.h>
 
-#include <resolver/lox_type.h>
-#include <resolver/instance_type.h>
+#include "type/lox_type.h"
+#include "type/instance_type.h"
 
 #include <tuple>
 #include <utility>

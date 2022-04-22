@@ -24,13 +24,13 @@
 
 #include <resolver/resolver.h>
 
-#include <resolver/lox_type.h>
-#include <resolver/object_type.h>
-#include <resolver/callable_type.h>
-#include <resolver/instance_type.h>
+#include "type/lox_type.h"
+#include "type/object_type.h"
+#include "type/callable_type.h"
+#include "type/instance_type.h"
 #include <resolver/operators.h>
-#include <resolver/list_type.h>
-#include <resolver/map_type.h>
+#include "type/list_type.h"
+#include "type/map_type.h"
 
 #include <logger/logger.h>
 

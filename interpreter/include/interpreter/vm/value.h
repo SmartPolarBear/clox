@@ -25,10 +25,10 @@
 
 #include <scanner/scanner.h>
 
-#include <interpreter/vm/object.h>
+#include "object/object.h"
 
-#include <interpreter/vm/string_object.h>
-#include <interpreter/vm/function_object.h>
+#include "object/string_object.h"
+#include "object/function_object.h"
 
 #include <variant>
 #include <string>

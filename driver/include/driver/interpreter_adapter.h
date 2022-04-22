@@ -48,31 +48,4 @@ public:
 
 };
 
-class vm_interpreter_adapter final
-		: public interpreter_adapter
-{
-public:
-
-	explicit vm_interpreter_adapter(helper::console& cons)
-			: heap_(std::make_shared<interpreting::vm::object_heap>(cons)),
-			  cons_(&cons),
-			  repl_resolver_(),
-			  repl_vm_(cons, heap_)
-	{
-	}
-
-
-	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
-
-	int repl(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
-
-private:
-	std::shared_ptr<interpreting::vm::object_heap> heap_{};
-
-	resolving::resolver repl_resolver_{};
-	interpreting::vm::virtual_machine repl_vm_;
-
-	mutable helper::console* cons_{};
-};
-
 }

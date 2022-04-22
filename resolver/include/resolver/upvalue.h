@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <resolver/symbol.h>
+#include "symbol/symbol.h"
 
 #include <variant>
 

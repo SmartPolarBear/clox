@@ -22,7 +22,7 @@
 // Created by cleve on 8/27/2021.
 //
 
-#include <resolver/array_type.h>
+#include "type/array_type.h"
 
 clox::resolving::lox_array_type::lox_array_type(const std::shared_ptr<lox_type>& elem)
 		: lox_object_type(std::format("array<{}>", elem->printable_string()), TYPE_ID_ARRAY_CLASS, TYPE_CLASS,

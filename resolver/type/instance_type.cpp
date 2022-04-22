@@ -22,7 +22,7 @@
 // Created by cleve on 8/12/2021.
 //
 
-#include <resolver/instance_type.h>
+#include "type/instance_type.h"
 
 #include <utility>
 #include <format>

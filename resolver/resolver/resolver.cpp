@@ -26,10 +26,12 @@
 
 #include <resolver/ast_annotation.h>
 
-#include <resolver/lox_type.h>
-#include <resolver/object_type.h>
-#include <resolver/callable_type.h>
-#include <resolver/instance_type.h>
+#include "type/lox_type.h"
+#include "type/object_type.h"
+#include "type/callable_type.h"
+#include "type/instance_type.h"
+
+#include "../../native/include/native/native_manager.h"
 
 #include <logger/logger.h>
 
@@ -51,7 +53,7 @@ using namespace std;
 using namespace gsl;
 
 resolver::resolver() :
-		global_scope_{ std::make_shared<function_scope>(nullptr, nullptr, FUNCTION_ID_GLOBAL, global_scope_tag) }
+	global_scope_{ std::make_shared<function_scope>(nullptr, nullptr, FUNCTION_ID_GLOBAL, global_scope_tag) }
 {
 	global_scope_->types()["void"] = make_shared<lox_void_type>();
 
@@ -79,10 +81,13 @@ resolver::resolver() :
 
 void resolver::define_global_functions()
 {
-	define_native_function("clock", std::make_shared<lox_callable_type>(
-			make_shared<lox_floating_type>(), lox_callable_type::param_list_type{},
+	for (const auto& f : interpreting::native::native_manager::instance().functions())
+	{
+		define_native_function(f.first, std::make_shared<lox_callable_type>(
+			f.second->return_type(), f.second->parameter_types(),
 			false, true
-	));
+		));
+	}
 }
 
 std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, const std::string& msg)
@@ -91,10 +96,9 @@ std::shared_ptr<lox_type> resolver::type_error(const clox::scanning::token& tk, 
 	return make_shared<lox_any_type>();
 }
 
-
 void resolver::resolve(const std::vector<std::shared_ptr<parsing::statement>>& stmts)
 {
-	for (const auto& stmt: stmts)
+	for (const auto& stmt : stmts)
 	{
 		resolve(stmt);
 	}
@@ -118,7 +122,6 @@ std::shared_ptr<lox_type> resolver::resolve(const shared_ptr<parsing::type_expre
 	}
 	return accept(*expr, *this);
 }
-
 
 void resolver::scope_begin()
 {
@@ -165,7 +168,6 @@ void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_f
 	scopes_.push(next);
 }
 
-
 void resolver::scope_end()
 {
 	auto top = scopes_.top();
@@ -181,7 +183,6 @@ void resolver::declare_name(const clox::scanning::token& t, size_t dist)
 	declare_name(t.lexeme(), t, dist);
 }
 
-
 void resolver::declare_name(const string& lexeme, const clox::scanning::token& error_tk, size_t dist)
 {
 	if (scopes_.empty())return;
@@ -193,9 +194,9 @@ void resolver::declare_name(const string& lexeme, const clox::scanning::token& e
 		logger::instance().error(error_tk, std::format("{} already exists in this scoop.", lexeme));
 	}
 
-	top->names()[lexeme] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+	top->names()[lexeme] =
+		nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 }
-
 
 function_id_type resolver::declare_function(const shared_ptr<function_statement>& fs, size_t dist)
 {
@@ -211,7 +212,8 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 
 	if (!top->contains_name(fs->get_name().lexeme()))
 	{
-		top->names()[fs->get_name().lexeme()] = nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
+		top->names()[fs->get_name().lexeme()] =
+			nullptr; // initialize a slot, this avoiding using operator[] in following codes makes error in code reveals quicker.
 	}
 
 	if (!function_ids_.contains(fs))
@@ -222,9 +224,8 @@ function_id_type resolver::declare_function(const shared_ptr<function_statement>
 	return next_id;
 }
 
-
 void resolver::define_name(const clox::scanning::token& tk, const std::shared_ptr<lox_type>& type, size_t dist,
-		bool occupy_slot)
+	bool occupy_slot)
 {
 	define_name(tk.lexeme(), type, dist, occupy_slot);
 }
@@ -243,15 +244,14 @@ void resolver::define_name(const string& tk, const shared_ptr<lox_type>& type, s
 	else if (!occupy_slot) // it does not occupy a slot
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
-				VIRTUAL_UNUSED_SLOT);
+			VIRTUAL_UNUSED_SLOT);
 	}
 	else
 	{
 		target->names().at(tk) = make_shared<named_symbol>(tk, type, named_symbol::named_symbol_type::LOCAL,
-				slots_in_use_++);
+			slots_in_use_++);
 	}
 }
-
 
 void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox_type>& type, uint64_t dist)
 {
@@ -264,10 +264,9 @@ void resolver::define_type(const clox::scanning::token& tk, const shared_ptr<lox
 	scopes_.peek(dist)->types()[tk.lexeme()] = type;
 }
 
-
 std::shared_ptr<upvalue>
 resolver::resolve_upvalue(const shared_ptr<function_scope>& cur, const shared_ptr<function_scope>& bottom,
-		const shared_ptr<symbol>& sym)
+	const shared_ptr<symbol>& sym)
 {
 	if (auto parent = cur->parent_function_.lock();parent == bottom)
 	{
@@ -291,7 +290,7 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 {
 	int64_t depth = 0;
 
-	for (const auto& s: scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
+	for (const auto& s : scopes_ | views::reverse) // traverse from the stack top, which has a depth of zero.
 	{
 		if (s->contains_name(tk.lexeme()))
 		{
@@ -300,7 +299,8 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 			if (s->container_function() != FUNCTION_ID_GLOBAL &&
 				s->container_function() != scopes_.top()->container_function())
 			{
-				auto top_function = function_scope_ids_[scopes_.top()->container_function()], bottom_function = function_scope_ids_[s->container_function()];
+				auto top_function = function_scope_ids_[scopes_.top()->container_function()],
+					bottom_function = function_scope_ids_[s->container_function()];
 				auto upvalue = resolve_upvalue(top_function, bottom_function, ret);
 				expr->annotate<variable_annotation>(depth, ret, upvalue);
 			}
@@ -308,7 +308,6 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 			{
 				expr->annotate<variable_annotation>(depth, ret);
 			}
-
 
 			return ret;
 		}
@@ -318,10 +317,9 @@ std::shared_ptr<symbol> resolver::resolve_local(const shared_ptr<expression>& ex
 	return nullptr;
 }
 
-
 std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 {
-	for (auto& scoop: scopes_)
+	for (auto& scoop : scopes_)
 	{
 		if (scoop->contains_type(tk.lexeme()))
 		{
@@ -332,16 +330,15 @@ std::shared_ptr<lox_type> resolver::type_lookup(const scanning::token& tk)
 	return type_error(tk, std::format("Type {} is not defined.", tk.lexeme()));
 }
 
-
 void resolver::define_function_name(const clox::scanning::token& tk, const shared_ptr<parsing::statement>& stmt,
-		const shared_ptr<lox_callable_type>& type, size_t dist)
+	const shared_ptr<lox_callable_type>& type, size_t dist)
 {
 	define_function_name(tk.lexeme(), tk, stmt, type, dist);
 }
 
 void resolver::define_function_name(const string& lexeme, const clox::scanning::token& error_tk,
-		const shared_ptr<parsing::statement>& stmt,
-		const shared_ptr<lox_callable_type>& type, size_t dist)
+	const shared_ptr<parsing::statement>& stmt,
+	const shared_ptr<lox_callable_type>& type, size_t dist)
 {
 	if (scopes_.empty())return;
 
@@ -378,11 +375,11 @@ void resolver::define_function_name(const string& lexeme, const clox::scanning::
 }
 
 std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsing::call_expression>& call,
-		const std::shared_ptr<lox_overloaded_metatype>& callee)
+	const std::shared_ptr<lox_overloaded_metatype>& callee)
 {
 	vector<shared_ptr<lox_type>> args{};
 
-	for (const auto& arg: call->get_args())
+	for (const auto& arg : call->get_args())
 	{
 		auto type = resolve(arg);
 		args.push_back(type);
@@ -397,7 +394,6 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 
 	auto [stmt, callable] = resolve_ret.value();
 
-
 	if (stmt)
 	{
 		auto func_id = function_ids_.at(stmt);
@@ -406,16 +402,16 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 			auto class_type = callable->return_type();
 
 			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id,
-					function_binding::function_binding_flags::FB_CTOR,
-					static_pointer_cast<lox_class_type>(class_type));
+				function_binding::function_binding_flags::FB_CTOR,
+				static_pointer_cast<lox_class_type>(class_type));
 		}
 		else if (call->get_callee()->get_type() == parsing::PC_TYPE_get_expression) // it's a method
 		{
 			auto class_type = callable->return_type();
 
 			call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), func_id,
-					function_binding::function_binding_flags::FB_METHOD,
-					static_pointer_cast<lox_class_type>(class_type));
+				function_binding::function_binding_flags::FB_METHOD,
+				static_pointer_cast<lox_class_type>(class_type));
 		}
 		else [[likely]]
 		{
@@ -426,7 +422,7 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 	else if (callable->flags() & FLAG_NATIVE)
 	{
 		//TODO
-		int a=0;
+		int a = 0;
 	}
 	else if (callable->flags() & FLAG_CTOR)// it's a default constructor
 	{
@@ -434,14 +430,13 @@ std::shared_ptr<lox_type> resolver::resolve_function_call(const shared_ptr<parsi
 		auto class_type = callable->return_type();
 
 		call->annotate<call_annotation>(static_pointer_cast<statement>(stmt), FUNCTION_ID_DEFAULT_CTOR,
-				function_binding::function_binding_flags::FB_CTOR,
-				static_pointer_cast<lox_class_type>(class_type));
+			function_binding::function_binding_flags::FB_CTOR,
+			static_pointer_cast<lox_class_type>(class_type));
 	}
 	else
 	{
 		assert(false);
 	}
-
 
 	return callable;
 }

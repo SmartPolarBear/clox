@@ -39,7 +39,7 @@
 
 #include <parser/parser.h>
 
-#include <resolver/symbol.h>
+#include "symbol/symbol.h"
 
 
 #include <variant>

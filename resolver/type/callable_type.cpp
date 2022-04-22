@@ -23,7 +23,7 @@
 //
 #include <helper/enum.h>
 
-#include <resolver/callable_type.h>
+#include "type/callable_type.h"
 
 #include <cassert>
 #include <tuple>

@@ -23,9 +23,9 @@
 //
 #include <helper/enum.h>
 
-#include <resolver/object_type.h>
-#include <resolver/instance_type.h>
-#include <resolver/initializer_list_type.h>
+#include "type/object_type.h"
+#include "type/instance_type.h"
+#include "type/initializer_list_type.h"
 
 #include <tuple>
 #include <utility>

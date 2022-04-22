@@ -22,7 +22,7 @@
 // Created by cleve on 3/17/2022.
 //
 
-#include <resolver/list_type.h>
+#include "type/list_type.h"
 
 using namespace std;
 

@@ -29,23 +29,21 @@
 #include <interpreter/vm/exceptions.h>
 #include <interpreter/vm/opcode.h>
 
-#include <interpreter/vm/string_object.h>
-#include <interpreter/vm/closure_object.h>
-#include <interpreter/vm/upvalue_object.h>
-#include <interpreter/vm/instance_object.h>
-#include <interpreter/vm/list_object.h>
-#include <interpreter/vm/native_function_object.h>
+#include "object/string_object.h"
+#include "object/closure_object.h"
+#include "object/upvalue_object.h"
+#include "object/instance_object.h"
+#include "object/list_object.h"
+#include "object/native_function_object.h"
 
-#include "interpreter/vm/class_object.h"
-#include "interpreter/vm/bounded_method_object.h"
+#include "object/class_object.h"
+#include "object/bounded_method_object.h"
 
-#include "interpreter/native/native_manager.h"
+#include "../../native/include/native/native_manager.h"
 
 #include <gsl/gsl>
 
-
 #define DEBUG_NO_CATCH
-
 
 using namespace std;
 using namespace gsl;
@@ -55,10 +53,9 @@ using namespace clox::interpreting::native;
 using namespace clox::interpreting;
 using namespace clox::interpreting::vm;
 
-
 virtual_machine::virtual_machine(clox::helper::console& cons,
-		std::shared_ptr<object_heap> heap)
-		: heap_(std::move(heap)), cons_(&cons)
+	std::shared_ptr<object_heap> heap)
+	: heap_(std::move(heap)), cons_(&cons)
 {
 	stack_.reserve(STACK_RESERVED_SIZE);
 	call_frames_.reserve(CALL_STACK_RESERVED_SIZE);
@@ -68,8 +65,11 @@ virtual_machine::virtual_machine(clox::helper::console& cons,
 
 void virtual_machine::load_native_functions()
 {
-	globals_.insert_or_assign("clock",
-			heap_->allocate<native_function_object>(native_manager::instance().get("clock")));
+	for (const auto& f : interpreting::native::native_manager::instance().functions())
+	{
+		globals_.insert_or_assign(f.first,
+			heap_->allocate<native_function_object>(f.second));
+	}
 }
 
 virtual_machine::~virtual_machine()
@@ -113,7 +113,6 @@ clox::interpreting::vm::virtual_machine_status clox::interpreting::vm::virtual_m
 
 	return virtual_machine_status::OK;
 }
-
 
 std::tuple<std::optional<virtual_machine_status>, bool>
 virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
@@ -205,19 +204,18 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-
 	case NEGATE:
 	{
 		push(std::visit([](auto&& val) -> value
 		{
-			using T = std::decay_t<decltype(val)>;
-			if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
-						 std::is_same_v<T, scanning::integer_literal_type>)
-			{
-				return -val;
-			}
+		  using T = std::decay_t<decltype(val)>;
+		  if constexpr(std::is_same_v<T, scanning::floating_literal_type> ||
+			  std::is_same_v<T, scanning::integer_literal_type>)
+		  {
+			  return -val;
+		  }
 
-			throw invalid_value{ val };
+		  throw invalid_value{ val };
 		}, pop()));
 		break;
 	}
@@ -235,17 +233,16 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			binary_op([this](string_object_raw_pointer lp, string_object_raw_pointer rp) -> object_raw_pointer
 			{
-				return string_object::create_on_heap(heap_, lp->string() + rp->string());
+			  return string_object::create_on_heap(heap_, lp->string() + rp->string());
 			});
 		}
 		else
 		{
 			binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 			{
-				return l + r;
+			  return l + r;
 			});
 		}
-
 
 		break;
 	}
@@ -253,7 +250,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
-			return l - r;
+		  return l - r;
 		});
 		break;
 	}
@@ -261,7 +258,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
-			return l * r;
+		  return l * r;
 		});
 		break;
 	}
@@ -269,7 +266,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
-			return l / r;
+		  return l / r;
 		});
 		break;
 	}
@@ -277,7 +274,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](floating_value_type l, floating_value_type r) -> floating_value_type
 		{
-			return std::pow(l, r);
+		  return std::pow(l, r);
 		});
 		break;
 	}
@@ -286,7 +283,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
-			return l < r;
+		  return l < r;
 		});
 		break;
 	}
@@ -294,7 +291,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
-			return l <= r;
+		  return l <= r;
 		});
 		break;
 	}
@@ -302,7 +299,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
-			return l > r;
+		  return l > r;
 		});
 		break;
 	}
@@ -310,7 +307,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 		{
-			return l >= r;
+		  return l >= r;
 		});
 		break;
 	}
@@ -320,17 +317,16 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			binary_op([](string_object_raw_pointer lp, string_object_raw_pointer rp) -> bool
 			{
-				return lp->string() == rp->string();
+			  return lp->string() == rp->string();
 			});
 		}
 		else
 		{
 			binary_op([](scanning::floating_literal_type l, scanning::floating_literal_type r) -> bool
 			{
-				return l == r;
+			  return l == r;
 			});
 		}
-
 
 		break;
 	}
@@ -368,7 +364,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		break;
 	}
 
-
 	case SET:
 	{
 
@@ -397,7 +392,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		break;
 	}
-
 
 	case DEFINE:
 	{
@@ -438,41 +432,41 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 
 		static const auto inc_dec_visitor = [&](auto&& val) -> value
 		{
-			using T = std::decay_t<decltype(val)>;
-			if constexpr(std::is_same_v<T, integer_value_type>)
-			{
-				if (main_op_code_of(instruction) == op_code::INC)
-				{
-					return val + 1;
-				}
-				else if (main_op_code_of(instruction) == op_code::DEC)
-				{
-					return val - 1;
-				}
-				else
-				{
-					throw invalid_opcode(instruction);
-				}
-			}
-			else if constexpr(std::is_same_v<T, floating_value_type>)
-			{
-				if (main_op_code_of(instruction) == op_code::INC)
-				{
-					return val + 1.0;
-				}
-				else if (main_op_code_of(instruction) == op_code::DEC)
-				{
-					return val - 1.0;
-				}
-				else
-				{
-					throw invalid_opcode(instruction);
-				}
-			}
-			else
-			{
-				throw invalid_value{ val };
-			}
+		  using T = std::decay_t<decltype(val)>;
+		  if constexpr(std::is_same_v<T, integer_value_type>)
+		  {
+			  if (main_op_code_of(instruction) == op_code::INC)
+			  {
+				  return val + 1;
+			  }
+			  else if (main_op_code_of(instruction) == op_code::DEC)
+			  {
+				  return val - 1;
+			  }
+			  else
+			  {
+				  throw invalid_opcode(instruction);
+			  }
+		  }
+		  else if constexpr(std::is_same_v<T, floating_value_type>)
+		  {
+			  if (main_op_code_of(instruction) == op_code::INC)
+			  {
+				  return val + 1.0;
+			  }
+			  else if (main_op_code_of(instruction) == op_code::DEC)
+			  {
+				  return val - 1.0;
+			  }
+			  else
+			  {
+				  throw invalid_opcode(instruction);
+			  }
+		  }
+		  else
+		  {
+			  throw invalid_value{ val };
+		  }
 		};
 
 		if (secondary & SEC_OP_GLOBAL)
@@ -567,7 +561,7 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 					if (local)
 					{
 						closure->upvalues().push_back(
-								capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
+							capture_upvalue(&slot_at(frame, index), frame.stack_offset() + index));
 					}
 					else
 					{
@@ -585,7 +579,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 		{
 			throw invalid_value{ obj };
 		}
-
 
 		break;
 	}
@@ -614,10 +607,8 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	{
 		auto class_obj = peek_object<class_object_raw_pointer>();
 
-
 		pop();
 		push(heap_->allocate<instance_object>(class_obj));
-
 
 		break;
 	}
@@ -765,7 +756,6 @@ virtual_machine::run_code(chunk::code_type instruction, call_frame& frame)
 	return { nullopt, false };
 }
 
-
 value& virtual_machine::slot_at(const call_frame& frame, size_t slot)
 {
 	return *(stack_.begin() + frame.stack_offset() + slot);
@@ -781,7 +771,6 @@ chunk::code_type virtual_machine::next_code()
 {
 	return *top_call_frame().ip()++;
 }
-
 
 value virtual_machine::pop()
 {
@@ -813,20 +802,20 @@ bool virtual_machine::is_false(const value& val)
 {
 	return std::visit([this](auto&& val) -> bool
 	{
-		using T = std::decay_t<decltype(val)>;
+	  using T = std::decay_t<decltype(val)>;
 
-		if constexpr(is_same_v<T, bool>)
-		{
-			return !static_cast<scanning::boolean_literal_type>(val);
-		}
-		else if constexpr(is_same_v<T, nil_value_type>)
-		{
-			return true; // the value is false, so is_false should return true
-		}
-		else
-		{
-			return false;
-		}
+	  if constexpr(is_same_v<T, bool>)
+	  {
+		  return !static_cast<scanning::boolean_literal_type>(val);
+	  }
+	  else if constexpr(is_same_v<T, nil_value_type>)
+	  {
+		  return true; // the value is false, so is_false should return true
+	  }
+	  else
+	  {
+		  return false;
+	  }
 	}, val);
 }
 
@@ -886,17 +875,16 @@ void virtual_machine::call(closure_object_raw_pointer closure, size_t arg_count)
 	assert(stack_offset >= 0);
 
 	push_call_frame(closure,
-			closure->function()->body()->begin(),
-			stack_offset);
+		closure->function()->body()->begin(),
+		stack_offset);
 }
-
 
 void virtual_machine::call(const shared_ptr<native_function>& func, size_t arg_count)
 {
 	std::vector<value> args{};
 	for (size_t i = 0; i < arg_count; ++i)
 	{
-		args.push_back(peek(i + 1));
+		args.push_back(peek(i));
 	}
 
 	auto ret = func->call(args);
@@ -909,7 +897,6 @@ void virtual_machine::call(const shared_ptr<native_function>& func, size_t arg_c
 
 	push(ret);
 }
-
 
 upvalue_object_raw_pointer virtual_machine::capture_upvalue(value* val, index_type stack_index)
 {

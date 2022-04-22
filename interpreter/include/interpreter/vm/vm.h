@@ -34,19 +34,19 @@
 #include <interpreter/vm/heap_allocator.h>
 #include <interpreter/vm/garbage_collector.h>
 
-#include <interpreter/native/native_function.h>
+#include "../../../../native/include/native/native_function.h"
 
 
-#include <interpreter/vm/string_object.h>
-#include <interpreter/vm/closure_object.h>
-#include <interpreter/vm/instance_object.h>
+#include "object/string_object.h"
+#include "object/closure_object.h"
+#include "object/instance_object.h"
 
 #include <memory>
 #include <map>
 #include <ranges>
 
 #include <gsl/gsl>
-#include "class_object.h"
+#include "object/class_object.h"
 
 namespace clox::interpreting::vm
 {
