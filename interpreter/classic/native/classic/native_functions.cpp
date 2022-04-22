@@ -25,9 +25,9 @@
 #include <cstddef>
 #include <chrono>
 
-#include <interpreter/classic/interpreter.h>
-#include <interpreter/classic/evaluating_result.h>
-#include <interpreter/classic/native_functions.h>
+#include "interpreter/classic/interpreter.h"
+#include "interpreter/classic/evaluating_result.h"
+#include "interpreter/classic/native_functions.h"
 
 using namespace clox::interpreting;
 using namespace clox::interpreting::classic;
