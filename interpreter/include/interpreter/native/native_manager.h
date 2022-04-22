@@ -30,7 +30,7 @@
 #include "interpreter/native/native_function.h"
 #include "interpreter/native/native_method.h"
 
-#include "resolver/callable_type.h"
+#include "type/callable_type.h"
 
 #include <memory>
 
@@ -51,11 +51,11 @@ class native_manager
  public:
 	native_manager();
 
-	id_type register_function(const std::string& name, const function_type& function,
+	id_type register_function(const std::string& name, const native_function_handle_type& function,
 		const std::shared_ptr<clox::resolving::lox_type>& return_type,
 		const clox::resolving::lox_callable_type::param_list_type& param_types);
 
-	id_type register_method(const std::string& object_name, const std::string& name, const function_type& method,
+	id_type register_method(const std::string& object_name, const std::string& name, const native_function_handle_type& method,
 		const std::shared_ptr<clox::resolving::lox_type>& return_type,
 		const clox::resolving::lox_callable_type::param_list_type& param_types);
 

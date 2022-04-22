@@ -30,7 +30,7 @@ using namespace std;
 
 clox::interpreting::native::native_function::native_function(std::string name,
 	clox::interpreting::native::id_type id,
-	clox::interpreting::native::function_type func,
+	clox::interpreting::native::native_function_handle_type func,
 	std::shared_ptr<clox::resolving::lox_type> return_type,
 	clox::resolving::lox_callable_type::param_list_type param_types)
 	: name_(std::move(name)), id_(id), function_(std::move(func)),

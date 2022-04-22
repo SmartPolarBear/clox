@@ -22,8 +22,8 @@
 // Created by cleve on 8/29/2021.
 //
 
-#include <resolver/initializer_list_type.h>
-#include <resolver/array_type.h>
+#include "type/initializer_list_type.h"
+#include "type/array_type.h"
 
 #include <gsl/gsl>
 #include <utility>

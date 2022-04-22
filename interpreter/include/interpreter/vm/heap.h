@@ -31,7 +31,7 @@
 
 #include <scanner/scanner.h>
 
-#include <interpreter/vm/object.h>
+#include "object/object.h"
 
 #include <variant>
 #include <string>

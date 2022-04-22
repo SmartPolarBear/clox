@@ -29,15 +29,15 @@
 #include <interpreter/vm/exceptions.h>
 #include <interpreter/vm/opcode.h>
 
-#include <interpreter/vm/string_object.h>
-#include <interpreter/vm/closure_object.h>
-#include <interpreter/vm/upvalue_object.h>
-#include <interpreter/vm/instance_object.h>
-#include <interpreter/vm/list_object.h>
-#include <interpreter/vm/native_function_object.h>
+#include "object/string_object.h"
+#include "object/closure_object.h"
+#include "object/upvalue_object.h"
+#include "object/instance_object.h"
+#include "object/list_object.h"
+#include "object/native_function_object.h"
 
-#include "interpreter/vm/class_object.h"
-#include "interpreter/vm/bounded_method_object.h"
+#include "object/class_object.h"
+#include "object/bounded_method_object.h"
 
 #include "interpreter/native/native_manager.h"
 

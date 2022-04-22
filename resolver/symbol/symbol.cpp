@@ -22,7 +22,7 @@
 // Created by cleve on 8/4/2021.
 //
 
-#include <resolver/symbol.h>
+#include "symbol/symbol.h"
 
 #include <resolver/upvalue.h>
 

@@ -27,8 +27,8 @@
 #include "interpreter/vm/value.h"
 #include "interpreter/native/native.h"
 
-#include <resolver/lox_type.h>
-#include <resolver/callable_type.h>
+#include "type/lox_type.h"
+#include "type/callable_type.h"
 
 #include <string_view>
 #include <functional>
@@ -44,7 +44,7 @@ class native_function
 
 	[[nodiscard]] explicit native_function(std::string name,
 		id_type id,
-		function_type func,
+		native_function_handle_type func,
 		std::shared_ptr<clox::resolving::lox_type> return_type,
 		clox::resolving::lox_callable_type::param_list_type param_types);
 
@@ -78,7 +78,7 @@ class native_function
 
  protected:
 
-	function_type function_;
+	native_function_handle_type function_;
 
  private:
 	id_type id_{};

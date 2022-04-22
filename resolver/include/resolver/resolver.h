@@ -32,15 +32,15 @@
 
 #include <interpreter/classic/interpreter.h>
 
-#include <resolver/lox_type.h>
-#include <resolver/callable_type.h>
-#include <resolver/class_type.h>
-#include <resolver/instance_type.h>
+#include "type/lox_type.h"
+#include "type/callable_type.h"
+#include "type/class_type.h"
+#include "type/instance_type.h"
 #include <resolver/binding.h>
 #include <resolver/function.h>
 
-#include <resolver/scope.h>
-#include <resolver/scope_collection.h>
+#include "symbol/scope.h"
+#include "symbol/scope_collection.h"
 
 
 #include <vector>

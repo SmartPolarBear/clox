@@ -24,7 +24,7 @@
 
 #include <interpreter/vm/value.h>
 #include <interpreter/vm/exceptions.h>
-#include <interpreter/vm/string_object.h>
+#include "object/string_object.h"
 
 using namespace std;
 

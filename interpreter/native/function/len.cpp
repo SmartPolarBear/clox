@@ -24,9 +24,9 @@
 
 #include "interpreter/native/native_function_defs.h"
 
-#include <interpreter/vm/object.h>
-#include <interpreter/vm/list_object.h>
-#include <interpreter/vm/map_object.h>
+#include "object/object.h"
+#include "object/list_object.h"
+#include "object/map_object.h"
 
 #include <variant>
 

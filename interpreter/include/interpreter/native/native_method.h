@@ -41,7 +41,7 @@ class native_method
 
 	value_type call(value_type self, std::vector<value_type> args);
 
-	[[nodiscard]] explicit native_method(std::string name, id_type id, function_type func,
+	[[nodiscard]] explicit native_method(std::string name, id_type id, native_function_handle_type func,
 		std::shared_ptr<clox::resolving::lox_type> return_type,
 		clox::resolving::lox_callable_type::param_list_type param_types)
 		: native_function(std::move(name), id, std::move(func), std::move(return_type), std::move(param_types))

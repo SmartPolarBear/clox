@@ -30,7 +30,7 @@
 #include <interpreter/vm/chunk.h>
 #include <interpreter/vm/heap.h>
 #include <interpreter/vm/opcode.h>
-#include <interpreter/vm/closure_object.h>
+#include "object/closure_object.h"
 
 #include <interpreter/codegen/exceptions.h>
 
@@ -40,7 +40,7 @@
 
 #include <concepts>
 #include <string>
-#include "interpreter/vm/native_function_object.h"
+#include "object/native_function_object.h"
 
 
 namespace clox::interpreting::compiling

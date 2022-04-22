@@ -27,10 +27,10 @@
 #include <parser/expression.h>
 #include <parser/statement.h>
 
-#include <resolver/lox_type.h>
-#include <resolver/class_type.h>
+#include "type/lox_type.h"
+#include "type/class_type.h"
 #include <resolver/function.h>
-#include <resolver/symbol.h>
+#include "symbol/symbol.h"
 
 #include <vector>
 

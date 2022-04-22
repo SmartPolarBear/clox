@@ -40,7 +40,5 @@ namespace clox::interpreting::native
 using id_type = gsl::index;
 
 using value_type = clox::interpreting::vm::value;
-using function_type = std::function<value_type(std::optional<value_type> self, std::vector<value_type> args)>;
-
-
+using native_function_handle_type = std::function<value_type(std::optional<value_type> self, std::vector<value_type> args)>;
 }

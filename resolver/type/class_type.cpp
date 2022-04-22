@@ -22,7 +22,7 @@
 // Created by cleve on 8/9/2021.
 //
 
-#include <resolver/class_type.h>
+#include "type/class_type.h"
 
 #include <utility>
 

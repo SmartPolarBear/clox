@@ -33,7 +33,7 @@ using namespace clox::resolving;
 using namespace std;
 
 id_type native_manager::register_function(const std::string& name,
-	const function_type& function,
+	const native_function_handle_type& function,
 	const std::shared_ptr<clox::resolving::lox_type>& return_type,
 	const clox::resolving::lox_callable_type::param_list_type& param_types)
 {
@@ -46,7 +46,7 @@ id_type native_manager::register_function(const std::string& name,
 
 id_type native_manager::register_method(const std::string& object_name,
 	const std::string& name,
-	const function_type& func,
+	const native_function_handle_type& func,
 	const std::shared_ptr<clox::resolving::lox_type>& return_type,
 	const clox::resolving::lox_callable_type::param_list_type& param_types)
 {

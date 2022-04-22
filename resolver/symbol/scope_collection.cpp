@@ -22,7 +22,7 @@
 // Created by cleve on 10/1/2021.
 //
 
-#include "resolver/scope_collection.h"
+#include "symbol/scope_collection.h"
 
 using namespace clox::resolving;
 
