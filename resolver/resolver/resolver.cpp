@@ -31,7 +31,7 @@
 #include "type/callable_type.h"
 #include "type/instance_type.h"
 
-#include <interpreter/native/native_manager.h>
+#include "../../native/include/native/native_manager.h"
 
 #include <logger/logger.h>
 

@@ -21,21 +21,17 @@
 //
 // Created by cleve on 3/29/2022.
 //
+#include "include/native/native_method.h"
 
-#pragma once
+#include <utility>
 
-#include "interpreter/vm/value.h"
-#include "interpreter/native/native.h"
+using namespace clox::interpreting::native;
 
-#include <string_view>
-#include <functional>
+using namespace std;
 
-#include <gsl/gsl>
-
-namespace clox::interpreting::native
+clox::interpreting::native::value_type
+clox::interpreting::native::native_method::call(clox::interpreting::native::value_type self,
+		std::vector<value_type> args)
 {
-DEF_NATIVE_FUNC(clock)
-DEF_NATIVE_FUNC(len)
-
-
+	return this->function_(self, std::move(args));
 }

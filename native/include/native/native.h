@@ -19,18 +19,26 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/29/2022.
+// Created by cleve on 3/23/2022.
 //
-#include "interpreter/native/native_function_defs.h"
 
-#include <chrono>
+#pragma once
 
-using namespace clox::interpreting::native;
-using namespace std::chrono;
+#include "base/base.h"
 
-value_type clox::interpreting::native::nf_clock([[maybe_unused]]std::optional<value_type> self,
-	[[maybe_unused]] std::vector<value_type> args)
+#include "interpreter/vm/value.h"
+
+#include <functional>
+
+#include "gsl/gsl"
+
+#define DEF_NATIVE_FUNC(name) \
+	value_type nf_##name (std::optional<value_type> self, std::vector<value_type> args);
+
+namespace clox::interpreting::native
 {
-	return static_cast<vm::integer_value_type>(duration_cast<milliseconds>(
-		system_clock::now().time_since_epoch()).count());
-};
+using id_type = gsl::index;
+
+using value_type = clox::interpreting::vm::value;
+using native_function_handle_type = std::function<value_type(std::optional<value_type> self, std::vector<value_type> args)>;
+}

@@ -26,9 +26,9 @@
 
 #include "base/base.h"
 
-#include "interpreter/native/native.h"
-#include "interpreter/native/native_function.h"
-#include "interpreter/native/native_method.h"
+#include "native.h"
+#include "native_function.h"
+#include "native_method.h"
 
 #include "type/callable_type.h"
 

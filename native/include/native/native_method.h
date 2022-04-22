@@ -19,47 +19,39 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 4/20/2022.
+// Created by cleve on 3/29/2022.
 //
 
-#include "interpreter/native/native_function_defs.h"
+#pragma once
 
-#include "object/object.h"
-#include "object/list_object.h"
-#include "object/map_object.h"
+#include "native_function.h"
+#include "native.h"
 
-#include <variant>
+#include <string>
+#include <functional>
+#include <utility>
 
-using namespace std;
-
-using namespace clox::interpreting::native;
-using namespace clox::interpreting::vm;
-
-value_type clox::interpreting::native::nf_len([[maybe_unused]]std::optional<value_type> self,
-	[[maybe_unused]] std::vector<value_type> args)
+namespace clox::interpreting::native
 {
-	auto arg = args.front();
+class native_method
+	: public native_function
+{
+ public:
+	friend class native_manager;
 
-	if (holds_alternative<vm::object_value_type>(arg))
+	value_type call(value_type self, std::vector<value_type> args);
+
+	[[nodiscard]] explicit native_method(std::string name, id_type id, native_function_handle_type func,
+		std::shared_ptr<clox::resolving::lox_type> return_type,
+		clox::resolving::lox_callable_type::param_list_type param_types)
+		: native_function(std::move(name), id, std::move(func), std::move(return_type), std::move(param_types))
 	{
-		auto obj = get<vm::object_value_type>(arg);
-
-		switch (obj->type())
-		{
-		case object_type::LIST:
-		{
-			auto list = reinterpret_cast<list_object_raw_pointer>(obj);
-			return list->size();
-		}
-		case object_type::MAP:
-		{
-			auto map = reinterpret_cast<map_object_raw_pointer>(obj);
-			return map->size();
-		}
-		default:
-			break;
-		}
 	}
 
-	return 0; // TODO: throw an exception
+	native_method(const native_method&) = default;
+
+	native_method(native_method&&) = default;
+
+	native_method& operator=(const native_method&) = default;
 };
+}

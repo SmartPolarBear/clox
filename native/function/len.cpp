@@ -19,19 +19,47 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 3/29/2022.
+// Created by cleve on 4/20/2022.
 //
-#include <interpreter/native/native_method.h>
 
-#include <utility>
+#include "../include/native/native_function_defs.h"
 
-using namespace clox::interpreting::native;
+#include "object/object.h"
+#include "object/list_object.h"
+#include "object/map_object.h"
+
+#include <variant>
 
 using namespace std;
 
-clox::interpreting::native::value_type
-clox::interpreting::native::native_method::call(clox::interpreting::native::value_type self,
-		std::vector<value_type> args)
+using namespace clox::interpreting::native;
+using namespace clox::interpreting::vm;
+
+value_type clox::interpreting::native::nf_len([[maybe_unused]]std::optional<value_type> self,
+	[[maybe_unused]] std::vector<value_type> args)
 {
-	return this->function_(self, std::move(args));
-}
+	auto arg = args.front();
+
+	if (holds_alternative<vm::object_value_type>(arg))
+	{
+		auto obj = get<vm::object_value_type>(arg);
+
+		switch (obj->type())
+		{
+		case object_type::LIST:
+		{
+			auto list = reinterpret_cast<list_object_raw_pointer>(obj);
+			return list->size();
+		}
+		case object_type::MAP:
+		{
+			auto map = reinterpret_cast<map_object_raw_pointer>(obj);
+			return map->size();
+		}
+		default:
+			break;
+		}
+	}
+
+	return 0; // TODO: throw an exception
+};

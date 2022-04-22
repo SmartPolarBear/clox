@@ -22,8 +22,8 @@
 // Created by cleve on 3/23/2022.
 //
 
-#include <interpreter/native/native_manager.h>
-#include <interpreter/native/native_function_defs.h>
+#include "../../native/include/native/native_manager.h"
+#include "../../native/include/native/native_function_defs.h"
 
 #include <utility>
 

@@ -34,7 +34,7 @@
 #include <interpreter/vm/heap_allocator.h>
 #include <interpreter/vm/garbage_collector.h>
 
-#include <interpreter/native/native_function.h>
+#include "../../../../native/include/native/native_function.h"
 
 
 #include "object/string_object.h"

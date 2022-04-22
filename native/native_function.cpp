@@ -22,36 +22,24 @@
 // Created by cleve on 3/29/2022.
 //
 
-#pragma once
+#include "../../native/include/native/native_function.h"
 
-#include "interpreter/native/native_function.h"
-#include "interpreter/native/native.h"
-
-#include <string>
-#include <functional>
 #include <utility>
 
-namespace clox::interpreting::native
+using namespace std;
+
+clox::interpreting::native::native_function::native_function(std::string name,
+	clox::interpreting::native::id_type id,
+	clox::interpreting::native::native_function_handle_type func,
+	std::shared_ptr<clox::resolving::lox_type> return_type,
+	clox::resolving::lox_callable_type::param_list_type param_types)
+	: name_(std::move(name)), id_(id), function_(std::move(func)),
+	  return_type_(std::move(return_type)), param_types_(std::move(param_types))
 {
-class native_method
-	: public native_function
+}
+
+clox::interpreting::native::value_type
+clox::interpreting::native::native_function::call(std::vector<value_type> args)
 {
- public:
-	friend class native_manager;
-
-	value_type call(value_type self, std::vector<value_type> args);
-
-	[[nodiscard]] explicit native_method(std::string name, id_type id, native_function_handle_type func,
-		std::shared_ptr<clox::resolving::lox_type> return_type,
-		clox::resolving::lox_callable_type::param_list_type param_types)
-		: native_function(std::move(name), id, std::move(func), std::move(return_type), std::move(param_types))
-	{
-	}
-
-	native_method(const native_method&) = default;
-
-	native_method(native_method&&) = default;
-
-	native_method& operator=(const native_method&) = default;
-};
+	return function_(std::nullopt, std::move(args));
 }

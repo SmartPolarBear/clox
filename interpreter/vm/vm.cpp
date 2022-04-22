@@ -39,7 +39,7 @@
 #include "object/class_object.h"
 #include "object/bounded_method_object.h"
 
-#include "interpreter/native/native_manager.h"
+#include "../../native/include/native/native_manager.h"
 
 #include <gsl/gsl>
 

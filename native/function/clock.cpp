@@ -21,25 +21,16 @@
 //
 // Created by cleve on 3/29/2022.
 //
+#include "../include/native/native_function_defs.h"
 
-#include <interpreter/native/native_function.h>
+#include <chrono>
 
-#include <utility>
+using namespace clox::interpreting::native;
+using namespace std::chrono;
 
-using namespace std;
-
-clox::interpreting::native::native_function::native_function(std::string name,
-	clox::interpreting::native::id_type id,
-	clox::interpreting::native::native_function_handle_type func,
-	std::shared_ptr<clox::resolving::lox_type> return_type,
-	clox::resolving::lox_callable_type::param_list_type param_types)
-	: name_(std::move(name)), id_(id), function_(std::move(func)),
-	  return_type_(std::move(return_type)), param_types_(std::move(param_types))
+value_type clox::interpreting::native::nf_clock([[maybe_unused]]std::optional<value_type> self,
+	[[maybe_unused]] std::vector<value_type> args)
 {
-}
-
-clox::interpreting::native::value_type
-clox::interpreting::native::native_function::call(std::vector<value_type> args)
-{
-	return function_(std::nullopt, std::move(args));
-}
+	return static_cast<vm::integer_value_type>(duration_cast<milliseconds>(
+		system_clock::now().time_since_epoch()).count());
+};

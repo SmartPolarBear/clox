@@ -25,66 +25,17 @@
 #pragma once
 
 #include "interpreter/vm/value.h"
-#include "interpreter/native/native.h"
-
-#include "type/lox_type.h"
-#include "type/callable_type.h"
+#include "native.h"
 
 #include <string_view>
 #include <functional>
 
-#include <gsl/gsl>
+#include "gsl/gsl"
 
 namespace clox::interpreting::native
 {
-class native_function
-{
- public:
-	friend class native_manager;
+DEF_NATIVE_FUNC(clock)
+DEF_NATIVE_FUNC(len)
 
-	[[nodiscard]] explicit native_function(std::string name,
-		id_type id,
-		native_function_handle_type func,
-		std::shared_ptr<clox::resolving::lox_type> return_type,
-		clox::resolving::lox_callable_type::param_list_type param_types);
 
-	native_function(const native_function&) = default;
-
-	native_function(native_function&&) = default;
-
-	native_function& operator=(const native_function&) = default;
-
-	[[nodiscard]] std::string name() const
-	{
-		return name_;
-	}
-
-	[[nodiscard]] id_type id() const
-	{
-		return id_;
-	}
-
-	virtual value_type call(std::vector<value_type> args);
-
-	[[nodiscard]] std::shared_ptr<clox::resolving::lox_type> return_type() const
-	{
-		return return_type_;
-	}
-
-	[[nodiscard]] clox::resolving::lox_callable_type::param_list_type parameter_types() const
-	{
-		return param_types_;
-	}
-
- protected:
-
-	native_function_handle_type function_;
-
- private:
-	id_type id_{};
-	std::string name_{};
-
-	std::shared_ptr<clox::resolving::lox_type> return_type_{};
-	clox::resolving::lox_callable_type::param_list_type param_types_{};
-};
 }
