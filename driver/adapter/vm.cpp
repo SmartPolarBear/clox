@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SmartPolarBear
+// Copyright (c) 2022 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,34 @@
 // Created by cleve on 9/10/2021.
 //
 
-#include <base/configuration.h>
+#include "base/configuration.h"
 
-#include <driver/classic.h>
-#include <driver/driver.h>
-#include <driver/interpreter_adapter.h>
+#include "driver/adapter/classic.h"
+#include "driver/adapter/vm.h"
+#include "driver/driver.h"
+#include "driver/interpreter_adapter.h"
 
-#include <helper/std_console.h>
+#include "helper/std_console.h"
 
-#include <scanner/scanner.h>
+#include "scanner/scanner.h"
 
-#include <parser/parser.h>
-#include <parser/ast_printer.h>
+#include "parser/parser.h"
+#include "parser/ast_printer.h"
 
-#include <logger/logger.h>
+#include "logger/logger.h"
 
-#include <interpreter/vm/chunk.h>
+#include "interpreter/vm/chunk.h"
 
-#include <resolver/resolver.h>
+#include "resolver/resolver.h"
 
-#include <interpreter/codegen/codegen.h>
+#include "interpreter/codegen/codegen.h"
 
 #include <utility>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-#include <gsl/gsl>
+#include "gsl/gsl"
 
 
 using namespace std;

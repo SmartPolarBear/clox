@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SmartPolarBear
+// Copyright (c) 2022 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,25 +24,35 @@
 
 #pragma once
 
-#include <config.h>
+#include "helper/console.h"
 
-#include <driver/interpreter_adapter.h>
+#include "resolver/resolver.h"
+#include "interpreter/classic/interpreter.h"
 
-#include "driver/adapter/classic.h"
-#include "driver/adapter/vm.h"
+#include "driver/interpreter_adapter.h"
 
-#include <memory>
-
-class test_interpreter_adapater
+namespace clox::driver
+{
+class classic_interpreter_adapter final
+		: public interpreter_adapter
 {
 public:
+	explicit classic_interpreter_adapter(helper::console& cons)
+			: cons_(&cons),
+			  repl_resolver_(),
+			  repl_intp_(cons)
+	{
+	}
 
-#ifdef USE_VM
-	using adapter_type = clox::driver::vm_interpreter_adapter;
-#else
-	using adapter_type = clox::driver::classic_interpreter_adapter;
-#endif
 
-	static std::shared_ptr<clox::driver::interpreter_adapter> get(
-			clox::helper::console& cons);
+	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+
+	int repl(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+
+private:
+	resolving::resolver repl_resolver_{};
+	interpreting::classic::interpreter repl_intp_;
+
+	mutable helper::console* cons_{};
 };
+}

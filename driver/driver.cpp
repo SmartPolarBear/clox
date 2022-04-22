@@ -2,7 +2,8 @@
 
 #include <driver/driver.h>
 #include <driver/interpreter_adapter.h>
-#include <driver/classic.h>
+#include "driver/adapter/classic.h"
+#include "driver/adapter/vm.h"
 
 #include <helper/std_console.h>
 

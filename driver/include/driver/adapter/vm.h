@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SmartPolarBear
+// Copyright (c) 2022 SmartPolarBear
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,40 +19,50 @@
 // SOFTWARE.
 
 //
-// Created by cleve on 9/10/2021.
+// Created by cleve on 4/22/2022.
 //
 
 #pragma once
 
-#include <helper/console.h>
+#include "parser/gen/parser_base.inc"
+#include "parser/gen/parser_classes.inc"
 
-#include <resolver/resolver.h>
-#include <interpreter/classic/interpreter.h>
+#include "resolver/resolver.h"
+#include "interpreter/vm/vm.h"
 
-#include <driver/interpreter_adapter.h>
+#include <string>
+#include <vector>
+#include <memory>
+
+#include <concepts>
 
 namespace clox::driver
 {
-class classic_interpreter_adapter final
-		: public interpreter_adapter
+
+class vm_interpreter_adapter final
+	: public interpreter_adapter
 {
-public:
-	explicit classic_interpreter_adapter(helper::console& cons)
-			: cons_(&cons),
-			  repl_resolver_(),
-			  repl_intp_(cons)
+ public:
+
+	explicit vm_interpreter_adapter(helper::console& cons)
+		: heap_(std::make_shared<interpreting::vm::object_heap>(cons)),
+		  cons_(&cons),
+		  repl_resolver_(),
+		  repl_vm_(cons, heap_)
 	{
 	}
 
+	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
 
-	int full_code(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+	int repl(const std::vector<std::shared_ptr<parsing::statement>>& stmts) override;
 
-	int repl(const std::vector<std::shared_ptr<parsing::statement>>& code) override;
+ private:
+	std::shared_ptr<interpreting::vm::object_heap> heap_{};
 
-private:
 	resolving::resolver repl_resolver_{};
-	interpreting::classic::interpreter repl_intp_;
+	interpreting::vm::virtual_machine repl_vm_;
 
 	mutable helper::console* cons_{};
 };
+
 }
