@@ -23,7 +23,8 @@
 //
 
 #include "interpreter/vm/garbage_collector.h"
-#include "object/list_object.h"
+
+#include <object/list_object.h>
 
 #include <utility>
 

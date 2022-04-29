@@ -51,11 +51,10 @@ using namespace clox::interpreting::compiling;
 using namespace clox::interpreting::vm;
 
 codegen::codegen(std::shared_ptr<vm::object_heap> heap, const resolving::resolver& rsv)
-		: heap_(std::move(heap)), scopes_(rsv.global_scope()), scope_iterator_(scopes_.begin()), resolver_(&rsv)
+	: heap_(std::move(heap)), scopes_(rsv.global_scope()), scope_iterator_(scopes_.begin()), resolver_(&rsv)
 {
 	function_push(heap_->allocate<function_object>("", 0));
 }
-
 
 void codegen::generate(const std::shared_ptr<parsing::statement>& s)
 {
@@ -69,7 +68,7 @@ void codegen::generate(const shared_ptr<parsing::expression>& e)
 
 void codegen::generate(const vector<std::shared_ptr<parsing::statement>>& stmts)
 {
-	for (const auto& stmt: stmts)
+	for (const auto& stmt : stmts)
 	{
 		generate(stmt);
 	}
@@ -84,7 +83,7 @@ void codegen::scope_begin()
 		auto func = static_pointer_cast<function_scope>(scope);
 		function_top()->upvalue_count_ = func->upvalues().size();
 		emit_code(func->upvalues().size());
-		for (const auto& upval: func->upvalues())
+		for (const auto& upval : func->upvalues())
 		{
 			emit_codes(upval->holds_symbol() /*it is a local variable */, upval->access_index());
 		}
@@ -97,7 +96,7 @@ void codegen::scope_end()
 
 	if (scope->scope_type() == resolving::scope_types::FUNCTION_SCOPE)
 	{
-		for (auto& var: scope->names())
+		for (auto& var : scope->names())
 		{
 			auto named = static_pointer_cast<named_symbol>(var.second);
 			if (named->is_captured())
@@ -111,15 +110,15 @@ void codegen::scope_end()
 		}
 	}
 	else if (scope->scope_type() == resolving::scope_types::CLASS_BASE_SCOPE ||
-			 scope->scope_type() == resolving::scope_types::CLASS_FIELD_SCOPE)
+		scope->scope_type() == resolving::scope_types::CLASS_FIELD_SCOPE)
 	{
-		// Do nothing
+		// Do nothing on purpose
 	}
 	else
 	{
 		emit_codes(
-				V(op_code::POP_N),
-				static_cast<chunk::code_type>(scope->names().size())
+			V(op_code::POP_N),
+			static_cast<chunk::code_type>(scope->names().size())
 		);
 	}
 
@@ -132,7 +131,7 @@ std::shared_ptr<resolving::scope> codegen::current_scope()
 }
 
 void clox::interpreting::compiling::codegen::visit_assignment_expression(
-		const std::shared_ptr<assignment_expression>& ae)
+	const std::shared_ptr<assignment_expression>& ae)
 {
 //	generate(ae->get_value());
 
@@ -181,12 +180,6 @@ void clox::interpreting::compiling::codegen::visit_assignment_expression(
 void
 clox::interpreting::compiling::codegen::visit_binary_expression(const std::shared_ptr<binary_expression>& be)
 {
-//	if (auto binding = resolver_->binding_typed<operator_binding>(be);binding)
-//	{
-//		generate(binding->operator_implementation_call());
-//		return;
-//	}
-
 	if (auto annotation = be->get_annotation<operator_annotation>();annotation)
 	{
 		generate(annotation->operator_implementation_call());
@@ -243,7 +236,6 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 {
 	generate(ue->get_right());
 
-
 	switch (ue->get_op().type())
 	{
 	case scanning::token_type::MINUS:
@@ -279,7 +271,6 @@ void clox::interpreting::compiling::codegen::visit_unary_expression(const std::s
 		auto unpatched = current_chunk()->peek(1);
 		current_chunk()->patch_end(VC(secondary_op_code_of(unpatched) | vm::secondary_op_code::SEC_OP_PREFIX, op), 1);
 
-
 		break;
 	}
 
@@ -297,19 +288,6 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 {
 	emit_codes(be->get_keyword(), VC(SEC_OP_LOCAL, op_code::GET), 0); // get this object
 
-//	auto binding = resolver_->binding_typed<base_binding>(be);
-//	assert(binding);
-
-//
-//	if (binding->field_type() == resolving::base_binding::base_field_type::FIELD)
-//	{
-//		emit_codes(VC(SEC_OP_LOCAL, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
-//	}
-//	else if (binding->field_type() == resolving::base_binding::base_field_type::METHOD)
-//	{
-//		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), binding->index(), binding->field_id());
-//	}
-
 	auto annotation = be->get_annotation<base_annotation>();
 	if (annotation->field_type() == resolving::base_annotation::base_field_type::FIELD)
 	{
@@ -319,7 +297,6 @@ void clox::interpreting::compiling::codegen::visit_base_expression(const std::sh
 	{
 		emit_codes(VC(SEC_OP_FUNC, vm::op_code::GET_SUPER), annotation->index(), annotation->field_id());
 	}
-
 }
 
 void
@@ -386,34 +363,34 @@ clox::interpreting::compiling::codegen::visit_literal_expression(const std::shar
 
 	std::visit([this, &le](auto&& arg)
 	{
-		using T = std::decay_t<decltype(arg)>;
+	  using T = std::decay_t<decltype(arg)>;
 
-		if constexpr(std::is_same_v<T, boolean_literal_type>)
-		{
-			emit_code(le->get_token(),
-					V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
-		}
-		else if constexpr(std::is_same_v<T, nil_value_tag_type>)
-		{
-			emit_code(le->get_token(), V(vm::op_code::CONSTANT_NIL));
-		}
-		else if constexpr(std::is_same_v<T, string_literal_type>)
-		{
-			emit_constant(le->get_token(), string_object::create_on_heap(heap_, arg));
-		}
-		else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
-		{
-			emit_constant(le->get_token(), arg);
-		}
-		else
-		{
-			return; // do nothing for empty literal
-		}
+	  if constexpr(std::is_same_v<T, boolean_literal_type>)
+	  {
+		  emit_code(le->get_token(),
+			  V(static_cast<boolean_literal_type>(arg) ? op_code::CONSTANT_TRUE : op_code::CONSTANT_FALSE));
+	  }
+	  else if constexpr(std::is_same_v<T, nil_value_tag_type>)
+	  {
+		  emit_code(le->get_token(), V(vm::op_code::CONSTANT_NIL));
+	  }
+	  else if constexpr(std::is_same_v<T, string_literal_type>)
+	  {
+		  emit_constant(le->get_token(), string_object::create_on_heap(heap_, arg));
+	  }
+	  else if constexpr(!std::is_same_v<T, empty_literal_tag>) // empty literal isn't meant to be a constant
+	  {
+		  emit_constant(le->get_token(), arg);
+	  }
+	  else
+	  {
+		  return; // do nothing for empty literal
+	  }
 	}, val);
 }
 
 void clox::interpreting::compiling::codegen::visit_grouping_expression(
-		const std::shared_ptr<grouping_expression>& ge)
+	const std::shared_ptr<grouping_expression>& ge)
 {
 	generate(ge->get_expr());
 }
@@ -449,16 +426,14 @@ void clox::interpreting::compiling::codegen::visit_var_expression(const std::sha
 		throw internal_codegen_error{ "Name lookup failure" };
 	}
 
-
 }
 
-void
-clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr<ternary_expression>& te)
+void clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shared_ptr<ternary_expression>& te)
 {
 	generate(te->get_cond());
 
 	auto false_jmp = emit_jump(te->get_colon(),
-			V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
+		V(op_code::JUMP_IF_FALSE)); // if cond is false, jump to false expression calculation
 
 	emit_code(V(op_code::POP)); // pop the cond value
 	generate(te->get_true_expr());  // calculate the true expression
@@ -475,8 +450,7 @@ clox::interpreting::compiling::codegen::visit_ternary_expression(const std::shar
 	patch_jump(end_jmp);
 }
 
-void
-clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr<logical_expression>& le)
+void clox::interpreting::compiling::codegen::visit_logical_expression(const std::shared_ptr<logical_expression>& le)
 {
 	switch (le->get_op().type())
 	{
@@ -536,7 +510,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 	{
 		generate(ce->get_callee());
 
-		for (const auto& arg: ce->get_args())
+		for (const auto& arg : ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
@@ -544,27 +518,25 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
 	}
 	else if (auto annotation = ce->get_annotation<call_annotation>();annotation &&
-																	 annotation->is_ctor()) [[unlikely]]
+		annotation->is_ctor()) [[unlikely]]
 	{
 
 		emit_codes(ce->get_paren(), VC(SEC_OP_CLASS, vm::op_code::PUSH),
-				identifier_constant(annotation->ctor_class_type()->name()));
+			identifier_constant(annotation->ctor_class_type()->name()));
 
 		if (annotation->statement()) [[likely]]
 		{
-//			emit_codes(VC(SEC_OP_FUNC, vm::op_code::INSTANCE), annotation->id(), ce->get_args().size());
+			// TODO: should it call ctor?
 			emit_code(V(vm::op_code::INSTANCE));
 
-			// TODO: OP_INSTANCE SHOULD NOT BE RESPONSIBLE FOR CALL CTORS
-			for (const auto& arg: ce->get_args())
+			for (const auto& arg : ce->get_args())
 			{
 				generate(arg); // push arguments in the stack
 			}
 
 			emit_codes(ce->get_paren(), VC(SEC_OP_CTOR, op_code::INVOKE), annotation->id(),
-					ce->get_args().size()); // invoke the method
+				ce->get_args().size()); // invoke the method
 
-//			emit_code(V(vm::op_code::POP)); // constructor should return a nil value. pop it
 		}
 		else
 		{
@@ -584,8 +556,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 			emit_code(ce->get_paren(), V(op_code::CLOSURE));
 		}
 
-
-		for (const auto& arg: ce->get_args())
+		for (const auto& arg : ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
@@ -593,7 +564,7 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 		if (annotation->is_method()) [[unlikely]]
 		{
 			emit_codes(ce->get_paren(), V(op_code::INVOKE), annotation->id(),
-					ce->get_args().size()); // invoke the method
+				ce->get_args().size()); // invoke the method
 		}
 		else [[likely]]
 		{
@@ -605,7 +576,6 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 //			emit_code(V(vm::op_code::POP)); // Pop the default nil value
 		}
 
-
 	}
 	else [[unlikely]] // it is not a call expression that bind to certain function, so we directly deal with it
 	{
@@ -613,13 +583,12 @@ void clox::interpreting::compiling::codegen::visit_call_expression(const std::sh
 
 		emit_code(ce->get_paren(), V(op_code::CLOSURE));
 
-		for (const auto& arg: ce->get_args())
+		for (const auto& arg : ce->get_args())
 		{
 			generate(arg); // push arguments in the stack
 		}
 
 		emit_codes(ce->get_paren(), V(op_code::CALL), ce->get_args().size()); // call the function
-//		throw internal_codegen_error{ "Function lookup failure" };
 	}
 }
 
@@ -657,9 +626,6 @@ void clox::interpreting::compiling::codegen::visit_get_expression(const std::sha
 
 void clox::interpreting::compiling::codegen::visit_set_expression(const std::shared_ptr<set_expression>& se)
 {
-//	auto binding = resolver_->binding_typed<class_expression_binding>(se);
-//	assert(binding);
-
 	auto annotation = se->get_annotation<class_annotation>();
 
 	generate(se->get_object());
@@ -675,7 +641,7 @@ void clox::interpreting::compiling::codegen::visit_set_expression(const std::sha
 }
 
 void clox::interpreting::compiling::codegen::visit_expression_statement(
-		const std::shared_ptr<expression_statement>& es)
+	const std::shared_ptr<expression_statement>& es)
 {
 	generate(es->get_expr());
 	emit_code(V(op_code::POP));
@@ -699,11 +665,10 @@ clox::interpreting::compiling::codegen::visit_variable_statement(const std::shar
 		emit_code(vs->get_name(), V(op_code::CONSTANT_NIL));
 	}
 
-
 	if (auto symbol = current_scope()->find_name<named_symbol>(vs->get_name().lexeme());symbol->is_global())
 	{
 		define_global_variable(vs->get_name().lexeme(), identifier_constant(vs->get_name()),
-				vs->get_name());
+			vs->get_name());
 	}
 	else
 	{
@@ -717,7 +682,7 @@ void clox::interpreting::compiling::codegen::visit_block_statement(const std::sh
 
 	auto _ = finally([this]
 	{
-		scope_end();
+	  scope_end();
 	});
 
 	generate(bs->get_stmts());
@@ -726,7 +691,8 @@ void clox::interpreting::compiling::codegen::visit_block_statement(const std::sh
 
 void clox::interpreting::compiling::codegen::visit_while_statement(const std::shared_ptr<while_statement>& ws)
 {
-	auto last_op = current_chunk()->count(); // it will be the index of first instruction for cond. Prepared for LOOP instruction
+	auto last_op =
+		current_chunk()->count(); // it will be the index of first instruction for cond. Prepared for LOOP instruction
 
 	generate(ws->get_cond());
 
@@ -759,7 +725,7 @@ void clox::interpreting::compiling::codegen::visit_if_statement(const std::share
 	generate(ifs->get_true_stmt());
 
 	auto else_jmp = emit_jump(ifs->get_else_keyword().value_or(ifs->get_cond_l_paren()),
-			V(op_code::JUMP)); // when execute true branch, we must skip the else branch
+		V(op_code::JUMP)); // when execute true branch, we must skip the else branch
 
 	patch_jump(then_jmp);
 	emit_code(V(op_code::POP));// pop conditional value when cond is false
@@ -780,10 +746,10 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	// define it as variable to follow the function overloading specification
 	if (auto symbol = current_scope()->find_name<named_symbol>(fs->get_name().lexeme());
-			symbol && symbol->is_global())
+		symbol && symbol->is_global())
 	{
 		define_global_variable(fs->get_name().lexeme(), identifier_constant(fs->get_name()),
-				fs->get_name());
+			fs->get_name());
 	}
 	else
 	{
@@ -807,7 +773,7 @@ clox::interpreting::compiling::codegen::visit_function_statement(const std::shar
 
 	function_push(heap_->allocate<function_object>(fs->get_name().lexeme(), fs->get_params().size()));
 
-	for (const auto& param: fs->get_params())
+	for (const auto& param : fs->get_params())
 	{
 		declare_local_variable(param.first.lexeme());
 	}
@@ -856,7 +822,7 @@ void clox::interpreting::compiling::codegen::visit_class_statement(const std::sh
 
 	scope_begin();
 
-	for (const auto& method: class_stmt->get_methods())
+	for (const auto& method : class_stmt->get_methods())
 	{
 		generate(method);
 		auto id = resolver_->function_id(method);
@@ -889,7 +855,6 @@ void codegen::emit_code(const token& lead_token, vm::full_opcode_type byte)
 	current_chunk()->write(byte, lead_token);
 }
 
-
 void codegen::emit_return()
 {
 	emit_code(V(op_code::CONSTANT_NIL));
@@ -914,9 +879,8 @@ void codegen::set_constant(vm::full_opcode_type pos, const value& val)
 	current_chunk()->constant_at(pos) = val;
 }
 
-
 void codegen::define_global_variable(const std::string& name, vm::chunk::code_type global,
-		std::optional<scanning::token> tk)
+	std::optional<scanning::token> tk)
 {
 //	local_scopes_.front()->declare(name, local_scope::GLOBAL_SLOT);
 	if (tk.has_value())[[likely]]
@@ -945,21 +909,13 @@ uint16_t codegen::identifier_constant(const string& lexeme)
 	return make_constant(lexeme);
 }
 
-
 shared_ptr<named_symbol> codegen::variable_lookup(const string& name)
 {
 	return current_scope()->find_name<named_symbol>(name);
 }
 
-//std::shared_ptr<resolving::variable_binding> codegen::variable_lookup(const shared_ptr<parsing::expression>& expr)
-//{
-//	auto binding = resolver_->binding_typed<variable_binding>(expr);
-//	return binding;
-//}
-
 std::shared_ptr<resolving::variable_annotation> codegen::variable_lookup(const shared_ptr<expression>& expr)
 {
-//	auto binding = resolver_->binding_typed<variable_binding>(expr);
 	return expr->get_annotation<variable_annotation>();
 }
 
@@ -1028,7 +984,6 @@ vm::closure_object_raw_pointer codegen::top_level()
 	return heap_->allocate<closure_object>(function_top());
 }
 
-
 void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& ptr)
 {
 
@@ -1036,7 +991,7 @@ void codegen::visit_lambda_expression(const std::shared_ptr<lambda_expression>& 
 
 void codegen::visit_list_initializer_expression(const std::shared_ptr<list_initializer_expression>& lie)
 {
-	for (const auto& val: lie->get_values())
+	for (const auto& val : lie->get_values())
 	{
 		generate(val);
 	}
