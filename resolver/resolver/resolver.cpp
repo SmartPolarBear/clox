@@ -171,7 +171,6 @@ void resolver::scope_begin(const shared_ptr<lox_class_type>& class_type, class_f
 void resolver::scope_end()
 {
 	auto top = scopes_.top();
-//	slots_in_use_ -= top->names().size();
 	slots_in_use_ -= top->slot_count();
 
 	scopes_.pop();

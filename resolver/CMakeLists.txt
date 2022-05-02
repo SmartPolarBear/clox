@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
 
-add_subdirectory(scoper
-        )
 add_subdirectory(resolver)
 add_subdirectory(symbol)
 add_subdirectory(type)
