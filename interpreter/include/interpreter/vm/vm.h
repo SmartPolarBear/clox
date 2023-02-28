@@ -36,7 +36,6 @@
 
 #include "../../../../native/include/native/native_function.h"
 
-
 #include "object/string_object.h"
 #include "object/closure_object.h"
 #include "object/instance_object.h"
@@ -59,7 +58,7 @@ enum class virtual_machine_status
 
 template<typename F, typename R, class ...Args>
 concept BinaryOperator=
-requires(F&& f, Args&& ... args) {
+requires(F &&f, Args &&... args) {
 	{ std::invoke(std::forward<F>(f), std::forward<Args>(args)...) }->std::same_as<R>;
 };
 
@@ -82,11 +81,10 @@ public:
 	{
 	public:
 
-
 	public:
 
 		explicit call_frame(closure_object_raw_pointer closure, ip_type ip, size_t offset)
-				: closure_(closure), ip_(ip), stack_offset_(offset)
+			: closure_(closure), ip_(ip), stack_offset_(offset)
 		{
 		}
 
@@ -105,11 +103,10 @@ public:
 			return closure_;
 		}
 
-		[[nodiscard]] ip_type& ip()
+		[[nodiscard]] ip_type &ip()
 		{
 			return ip_;
 		}
-
 
 	private:
 		closure_object_raw_pointer closure_{};
@@ -124,10 +121,10 @@ public:
 
 	~virtual_machine();
 
-	explicit virtual_machine(helper::console& cons,
-			std::shared_ptr<object_heap> heap);
+	explicit virtual_machine(helper::console &cons,
+							 std::shared_ptr<object_heap> heap);
 
-	virtual_machine_status run(clox::interpreting::vm::closure_object* closure);
+	virtual_machine_status run(clox::interpreting::vm::closure_object *closure);
 
 private:
 	void load_native_functions();
@@ -135,20 +132,49 @@ private:
 	virtual_machine_status run();
 
 	// {return status, exit}
-	std::tuple<std::optional<virtual_machine_status>, bool> run_code(chunk::code_type instruction, call_frame& frame);
+	std::tuple<std::optional<virtual_machine_status>, bool> run_code(chunk::code_type instruction, call_frame &frame);
 
 	template<class ...TArgs>
-	void runtime_error(std::string_view fmt, const TArgs& ...args)
+	void runtime_error(std::string_view fmt, TArgs &&...args)
 	{
 
 		cons_->error() << std::format("[Line {}] in file {}:",
-				top_call_frame().function()->body()->line_of(top_call_frame().ip()),
-				top_call_frame().function()->body()->filename()) << std::endl;
+									  top_call_frame().function()->body()->line_of(top_call_frame().ip()),
+									  top_call_frame().function()->body()->filename()) << std::endl;
 
-		cons_->error() << std::format(fmt, args...) << "\n";
+		auto err = std::format(fmt, std::forward<TArgs>(args)...);
+		cons_->error() << err << "\n";
 
 		cons_->error() << "Call stack:" << std::endl;
-		for (auto& frm: call_frames_ | std::ranges::views::reverse)
+		for (auto &frm: call_frames_ | std::ranges::views::reverse)
+		{
+			auto func = frm.function();
+			auto line = func->body()->line_of(frm.ip() - 1);
+			cons_->error() << std::format("[Line {}] in ", line);
+			if (func->name().empty())
+			{
+				cons_->error() << "script" << std::endl;
+			}
+			else
+			{
+				cons_->error() << func->name() << std::endl;
+			}
+		}
+
+		reset_stack();
+	}
+
+	void runtime_error(std::string msg)
+	{
+
+		cons_->error() << std::format("[Line {}] in file {}:",
+									  top_call_frame().function()->body()->line_of(top_call_frame().ip()),
+									  top_call_frame().function()->body()->filename()) << std::endl;
+
+		cons_->error() << msg << "\n";
+
+		cons_->error() << "Call stack:" << std::endl;
+		for (auto &frm: call_frames_ | std::ranges::views::reverse)
 		{
 			auto func = frm.function();
 			auto line = func->body()->line_of(frm.ip() - 1);
@@ -186,24 +212,24 @@ private:
 				pop_two_and_push(ret);
 			}
 			else if (std::holds_alternative<integer_value_type>(l) ||
-					 std::holds_alternative<integer_value_type>(r))
+				std::holds_alternative<integer_value_type>(r))
 			{
 				pop_two_and_push(static_cast<integer_value_type>(ret));
 			}
 			else if (std::holds_alternative<boolean_value_type>(l) ||
-					 std::holds_alternative<boolean_value_type>(r))
+				std::holds_alternative<boolean_value_type>(r))
 			{
 				pop_two_and_push(static_cast<scanning::boolean_literal_type>(ret));
 			}
 			else
 			{
 				pop_two_and_push(
-						static_cast<integer_value_type>(ret)); // cannot combine for the sake of the rules of type promoting
+					static_cast<integer_value_type>(ret)); // cannot combine for the sake of the rules of type promoting
 			}
 		}
-		catch (const std::exception& e)
+		catch (const std::exception &e)
 		{
-			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			this->runtime_error(std::format("Invalid operands for binary operator: {}", e.what()));
 			throw e;
 		}
 	}
@@ -219,9 +245,9 @@ private:
 
 			pop_two_and_push(op(left, right));
 		}
-		catch (const std::exception& e)
+		catch (const std::exception &e)
 		{
-			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			this->runtime_error(std::format("Invalid operands for binary operator: {}", e.what()));
 			throw e;
 		}
 	}
@@ -238,9 +264,9 @@ private:
 
 			pop_two_and_push(op(left, right));
 		}
-		catch (const std::exception& e)
+		catch (const std::exception &e)
 		{
-			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			this->runtime_error(std::format("Invalid operands for binary operator: {}", e.what()));
 			throw e;
 		}
 	}
@@ -256,23 +282,22 @@ private:
 
 			pop_two_and_push(op(left, right));
 		}
-		catch (const std::exception& e)
+		catch (const std::exception &e)
 		{
-			this->runtime_error("Invalid operands for binary operator: {}", e.what());
+			this->runtime_error(std::format("Invalid operands for binary operator: {}", e.what()));
 			throw e;
 		}
 	}
 
-
-	void call_value(const value& val, size_t arg_count);
+	void call_value(const value &val, size_t arg_count);
 
 	void call(closure_object_raw_pointer closure, size_t arg_count);
 
-	void call(const std::shared_ptr<native::native_function>& , size_t arg_count);
+	void call(const std::shared_ptr<native::native_function> &, size_t arg_count);
 
-	bool is_false(const value& val);
+	bool is_false(const value &val);
 
-	[[maybe_unused]] bool is_true(const value& val)
+	[[maybe_unused]] bool is_true(const value &val)
 	{
 		return !is_false(val);
 	}
@@ -280,38 +305,37 @@ private:
 	// stack modification
 	void reset_stack();
 
-
 	template<object_pointer T>
 	T peek_object(size_t offset = 0)
 	{
-		return std::visit([](auto&& val) -> T
-		{
-			using TV = std::decay_t<decltype(val)>;
-			if constexpr (std::is_same_v<TV, object_raw_pointer>)
-			{
-				if (auto func = dynamic_cast<T>(val);func)
-				{
-					return func;
-				}
-				else
-				{
-					throw invalid_value{ val };
-				}
-			}
-			else
-			{
-				throw invalid_value{ val };
-			}
-		}, peek(offset));
+		return std::visit([](auto &&val) -> T
+						  {
+							  using TV = std::decay_t<decltype(val)>;
+							  if constexpr (std::is_same_v<TV, object_raw_pointer>)
+							  {
+								  if (auto func = dynamic_cast<T>(val);func)
+								  {
+									  return func;
+								  }
+								  else
+								  {
+									  throw invalid_value{val};
+								  }
+							  }
+							  else
+							  {
+								  throw invalid_value{val};
+							  }
+						  }, peek(offset));
 	}
 
 	value peek(size_t offset = 0);
 
 	value pop();
 
-	void push(const value& val);
+	void push(const value &val);
 
-	inline void pop_two_and_push(const value& val);
+	inline void pop_two_and_push(const value &val);
 	//
 
 	// instruction reading
@@ -321,15 +345,15 @@ private:
 
 	chunk::code_type next_code();
 
-	value& slot_at(const call_frame& frame, size_t slot);
+	value &slot_at(const call_frame &frame, size_t slot);
 
-	upvalue_object_raw_pointer capture_upvalue(value* val, index_type stack_index);
+	upvalue_object_raw_pointer capture_upvalue(value *val, index_type stack_index);
 
 	void close_upvalues(index_type last);
 
 	// call frame
 
-	call_frame& top_call_frame()
+	call_frame &top_call_frame()
 	{
 		return *call_frames_.rbegin();
 	}
@@ -363,8 +387,7 @@ private:
 
 	std::map<index_type, upvalue_object_raw_pointer> open_upvalues_{}; // it should be ordered
 
-	mutable helper::console* cons_{ nullptr };
+	mutable helper::console *cons_{nullptr};
 };
-
 
 }

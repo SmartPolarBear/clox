@@ -49,12 +49,12 @@ value_type clox::interpreting::native::nf_len([[maybe_unused]]std::optional<valu
 		case object_type::LIST:
 		{
 			auto list = reinterpret_cast<list_object_raw_pointer>(obj);
-			return list->size();
+			return (integer_value_type)list->size();
 		}
 		case object_type::MAP:
 		{
 			auto map = reinterpret_cast<map_object_raw_pointer>(obj);
-			return map->size();
+			return (integer_value_type)map->size();
 		}
 		default:
 			break;

@@ -32,45 +32,53 @@ using namespace clox::logging;
 using namespace clox::resolving;
 using namespace clox::interpreting;
 
-int clox::driver::run_code(helper::console& output_cons,
-		const std::shared_ptr<interpreter_adapter>& adapter,
-		const string& code,
-		bool dump_ast,
-		bool dump_assembly)
+int clox::driver::run_code(helper::console &output_cons,
+						   const std::shared_ptr<interpreter_adapter> &adapter,
+						   const string &code,
+						   bool dump_ast,
+						   bool dump_assembly)
 {
 	// switch to the desirable console for logging
-	auto& prev_cons = logger::instance().get_console();
+	auto &prev_cons = logger::instance().get_console();
 	auto _ = gsl::finally([&prev_cons]()
-	{
-		logger::instance().set_console(prev_cons);
-	});
+						  {
+							  logger::instance().set_console(prev_cons);
+						  });
 
 	logger::instance().set_console(output_cons);
 
-	scanner sc{ code };
-	parser ps{ sc.scan() };
+	scanner sc{code};
+	parser ps{sc.scan()};
 
 	auto stmts = ps.parse();
-	if (logger::instance().has_errors())return 65;
+	if (logger::instance().has_errors())
+	{
+		return 65;
+	}
 
 	return adapter->full_code(stmts);
 }
 
-int clox::driver::run_file(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter,
-		const std::string& name)
+int clox::driver::run_file(helper::console &cons, const std::shared_ptr<interpreter_adapter> &adapter,
+						   const std::string &name)
 {
-	ifstream src{ name };
+	ifstream src{name};
 
 	stringstream ss{};
 	ss << src.rdbuf();
 
+	if (!src)
+	{
+		throw std::runtime_error("Cannot read source file.");
+	}
+
 	return run_code(cons, adapter, ss.str());
 }
 
-int clox::driver::run_repl(helper::console& cons, const std::shared_ptr<interpreter_adapter>& adapter)
+int clox::driver::run_repl(helper::console &cons, const std::shared_ptr<interpreter_adapter> &adapter)
 {
 	resolver rsv{};
-	classic::interpreter the_interpreter{ cons};
+	classic::interpreter the_interpreter{cons};
 
 //	auto ck = make_shared<vm::chunk>("test");
 //	auto idx = ck->add_constant(244.0f);
@@ -83,28 +91,30 @@ int clox::driver::run_repl(helper::console& cons, const std::shared_ptr<interpre
 
 	cons.out() << ">>>";
 
-
 	for (auto line = cons.read_line(); line.has_value(); line = cons.read_line())
 	{
 		auto _ = gsl::finally([&cons]
-		{
-			cons.out() << ">>>";
-		});
+							  {
+								  cons.out() << ">>>";
+							  });
 
 		logger::instance().clear_error();
 
-		scanner sc{ line.value_or("") };
-		parser ps{ sc.scan() };
+		scanner sc{line.value_or("")};
+		parser ps{sc.scan()};
 		auto stmt = ps.parse();
 
-
 		if (logger::instance().has_errors())
+		{
 			continue;
+		}
 
 		adapter->repl(stmt);
 
 		if (logger::instance().has_errors() || logger::instance().has_runtime_errors())
+		{
 			continue;
+		}
 
 	}
 

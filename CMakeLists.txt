@@ -4,7 +4,7 @@ project(clox)
 
 include(CTest)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Python COMPONENTS Interpreter)
 
