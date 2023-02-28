@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" GENERATION_OPTIONS="-G Ninja -DENABLE_ASAN=Off -DENABLE_DEBUG_STRESS_GC=Off -DENABLE_DEBUG_LOGGING_GC=Off" />
+      <configuration PROFILE_NAME="Release" ENABLED="true" CONFIG_NAME="Release" GENERATION_OPTIONS="-G Ninja -DENABLE_ASAN=Off -DENABLE_DEBUG_STRESS_GC=Off -DENABLE_DEBUG_LOGGING_GC=Off" />
+    </configurations>
+  </component>
+</project>

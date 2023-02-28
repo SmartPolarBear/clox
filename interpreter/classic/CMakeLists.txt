@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
+add_subdirectory(native)
+
 target_sources(clox
         PRIVATE interpreter.cpp
         PRIVATE evaluating_result.cpp
